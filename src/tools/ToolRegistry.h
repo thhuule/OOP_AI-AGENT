@@ -7,50 +7,34 @@
 
 namespace oop_agent
 {
-    class Tool;
+
+class Tool;
+
+class ToolRegistry
+{
+public:
 
     /**
-     * @brief Quản lý tập trung toàn bộ Tool trong hệ thống.
-     *
-     * Mục đích:
-     * - Đăng ký Tool vào hệ thống.
-     * - Tra cứu Tool theo tên.
-     * - Tách Agent khỏi implementation cụ thể của từng Tool.
-     *
-     * Ví dụ:
-     *   "calculator" -> CalculatorTool
-     *   "file"       -> FileTool
+     * @brief Đăng ký Tool vào hệ thống.
      */
-    class ToolRegistry
-    {
-    public:
+    void register_tool(
+        std::unique_ptr<Tool> tool);
 
-        /**
-         * @brief Đăng ký Tool mới.
-         *
-         * Nếu Tool có cùng tên đã tồn tại
-         * thì Tool mới sẽ ghi đè Tool cũ.
-         */
-        void register_tool(std::unique_ptr<Tool> tool);
+    /**
+     * @brief Tra cứu Tool theo tên.
+     *
+     * @return nullptr nếu không tìm thấy.
+     */
+    [[nodiscard]]
+    Tool* get_tool(
+        std::string_view name) const;
 
-        /**
-         * @brief Tìm Tool theo tên.
-         *
-         * Trường hợp tìm thấy:
-         *   Trả về con trỏ tới Tool.
-         *
-         * Trường hợp không tìm thấy:
-         *   Trả về nullptr.
-         */
-        [[nodiscard]]
-        Tool* get_tool(std::string_view name) const;
+private:
 
-    private:
-
-        std::unordered_map<
-            std::string,
-            std::unique_ptr<Tool>
-        > tools_;
-    };
+    std::unordered_map<
+        std::string,
+        std::unique_ptr<Tool>
+    > tools_;
+};
 
 }
