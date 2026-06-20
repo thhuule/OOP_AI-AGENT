@@ -19,7 +19,8 @@ void ToolRegistry::register_tool(
 Tool* ToolRegistry::get_tool(
     std::string_view name) const
 {
-    auto it = tools_.find(std::string(name));
+    auto it = tools_.find(
+        std::string(name));
 
     if (it == tools_.end())
     {
