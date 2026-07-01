@@ -68,7 +68,7 @@ FileTool::execute(
     }
 
     return std::unexpected(
-        ToolError::InvalidArguments);
+        ToolError::InvalidArgument);
 }
 
 }
