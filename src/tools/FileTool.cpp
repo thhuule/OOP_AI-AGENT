@@ -3,72 +3,56 @@
 #include <fstream>
 #include <sstream>
 
-namespace oop_agent
-{
+namespace oop_agent {
 
-std::string_view
-FileTool::get_name() const noexcept
-{
-    return "file";
-}
+std::string_view FileTool::get_name() const noexcept { return "file"; }
 
-std::string_view
-FileTool::get_description() const noexcept
-{
-    return "Read and write files";
+std::string_view FileTool::get_description() const noexcept {
+  return "Read and write files";
 }
 
 std::expected<std::string, ToolError>
-FileTool::execute(
-    const std::string& arguments)
-{
-    std::stringstream ss(arguments);
+FileTool::execute(const std::string &arguments) {
+  std::stringstream ss(arguments);
 
-    std::string command;
-    ss >> command;
+  std::string command;
+  ss >> command;
 
-    if (command == "read")
-    {
-        std::string filename;
-        ss >> filename;
+  if (command == "read") {
+    std::string filename;
+    ss >> filename;
 
-        std::ifstream file(filename);
+    std::ifstream file(filename);
 
-        if (!file)
-        {
-            return std::unexpected(
-                ToolError::NotFound);
-        }
-
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-
-        return buffer.str();
+    if (!file) {
+      return std::unexpected(ToolError::NotFound);
     }
 
-    if (command == "write")
-    {
-        std::string filename;
-        ss >> filename;
+    std::stringstream buffer;
+    buffer << file.rdbuf();
 
-        std::string content;
-        std::getline(ss, content);
+    return buffer.str();
+  }
 
-        std::ofstream file(filename);
+  if (command == "write") {
+    std::string filename;
+    ss >> filename;
 
-        if (!file)
-        {
-            return std::unexpected(
-                ToolError::ExecutionFailed);
-        }
+    std::string content;
+    std::getline(ss, content);
 
-        file << content;
+    std::ofstream file(filename);
 
-        return "OK";
+    if (!file) {
+      return std::unexpected(ToolError::ExecutionFailed);
     }
 
-    return std::unexpected(
-        ToolError::InvalidArguments);
+    file << content;
+
+    return "OK";
+  }
+
+  return std::unexpected(ToolError::InvalidArgument);
 }
 
-}
+} // namespace oop_agent
