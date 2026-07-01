@@ -30,7 +30,7 @@ CalculatorTool::execute(
     if (!(ss >> lhs >> op >> rhs))
     {
         return std::unexpected(
-            ToolError::InvalidArguments);
+            ToolError::InvalidArgument);
     }
 
     double result {};
@@ -63,7 +63,7 @@ CalculatorTool::execute(
 
         default:
             return std::unexpected(
-                ToolError::InvalidArguments);
+                ToolError::InvalidArgument);
     }
 
     return std::to_string(result);
