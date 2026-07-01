@@ -1,0 +1,3 @@
+/mnt/c/Code/Code/OOP/AI-AGENT project/build/CMakeFiles/OopAgent.dir
+/mnt/c/Code/Code/OOP/AI-AGENT project/build/CMakeFiles/edit_cache.dir
+/mnt/c/Code/Code/OOP/AI-AGENT project/build/CMakeFiles/rebuild_cache.dir
