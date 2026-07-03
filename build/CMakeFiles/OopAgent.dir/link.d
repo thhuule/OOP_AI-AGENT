@@ -3,6 +3,8 @@ OopAgent: \
   /usr/lib/gcc/x86_64-linux-gnu/15/../../../x86_64-linux-gnu/crti.o \
   /usr/lib/gcc/x86_64-linux-gnu/15/crtbeginS.o \
   CMakeFiles/OopAgent.dir/benchmark/run_eval.cpp.o \
+  CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.o \
+  CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.o \
   CMakeFiles/OopAgent.dir/src/harness/KeywordEvaluator.cpp.o \
   CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o \
   CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o \
@@ -45,6 +47,10 @@ OopAgent: \
 /usr/lib/gcc/x86_64-linux-gnu/15/crtbeginS.o:
 
 CMakeFiles/OopAgent.dir/benchmark/run_eval.cpp.o:
+
+CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.o:
+
+CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.o:
 
 CMakeFiles/OopAgent.dir/src/harness/KeywordEvaluator.cpp.o:
 

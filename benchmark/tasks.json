@@ -6,11 +6,8 @@
             "description": "Xem danh sách file trong thư mục",
             "input": "Liệt kê tất cả file trong thư mục hiện tại",
             "expected_tool": "exec",
-            "expected_keywords": [
-                ".cpp",
-                ".h"
-            ],
-            "evaluator": "keyword"
+            "expected_keywords": ".cpp, .h",
+            "evaluator_type": "keyword"
         },
         {
             "id": "task_002",
@@ -18,11 +15,8 @@
             "description": "Ghi nội dung mới vào file",
             "input": "Tạo file notes.txt với nội dung 'Agent test run'",
             "expected_tool": "file_write",
-            "expected_keywords": [
-                "written",
-                "notes.txt"
-            ],
-            "evaluator": "keyword"
+            "expected_keywords": "written, notes.txt",
+            "evaluator_type": "keyword"
         },
         {
             "id": "task_003",
@@ -30,10 +24,8 @@
             "description": "Đọc nội dung file vừa tạo",
             "input": "Đọc nội dung file notes.txt",
             "expected_tool": "file_read",
-            "expected_keywords": [
-                "Agent test run"
-            ],
-            "evaluator": "keyword"
+            "expected_keywords": "Agent test run",
+            "evaluator_type": "keyword"
         },
         {
             "id": "task_004",
@@ -41,10 +33,8 @@
             "description": "Chạy một file script",
             "input": "Chạy file hello.sh và cho biết output",
             "expected_tool": "exec",
-            "expected_keywords": [
-                "Hello"
-            ],
-            "evaluator": "keyword"
+            "expected_keywords": "Hello",
+            "evaluator_type": "keyword"
         }
     ]
 }
