@@ -1,0 +1,50 @@
+{
+    "tasks": [
+        {
+            "id": "task_001",
+            "category": "simple",
+            "description": "Xem danh sách file trong thư mục",
+            "input": "Liệt kê tất cả file trong thư mục hiện tại",
+            "expected_tool": "exec",
+            "expected_keywords": [
+                ".cpp",
+                ".h"
+            ],
+            "evaluator": "keyword"
+        },
+        {
+            "id": "task_002",
+            "category": "simple",
+            "description": "Ghi nội dung mới vào file",
+            "input": "Tạo file notes.txt với nội dung 'Agent test run'",
+            "expected_tool": "file_write",
+            "expected_keywords": [
+                "written",
+                "notes.txt"
+            ],
+            "evaluator": "keyword"
+        },
+        {
+            "id": "task_003",
+            "category": "simple",
+            "description": "Đọc nội dung file vừa tạo",
+            "input": "Đọc nội dung file notes.txt",
+            "expected_tool": "file_read",
+            "expected_keywords": [
+                "Agent test run"
+            ],
+            "evaluator": "keyword"
+        },
+        {
+            "id": "task_004",
+            "category": "simple",
+            "description": "Chạy một file script",
+            "input": "Chạy file hello.sh và cho biết output",
+            "expected_tool": "exec",
+            "expected_keywords": [
+                "Hello"
+            ],
+            "evaluator": "keyword"
+        }
+    ]
+}
