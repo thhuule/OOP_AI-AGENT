@@ -153,6 +153,54 @@ benchmark/run_eval.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/benchmark/run_eval.cpp.s
 .PHONY : benchmark/run_eval.cpp.s
 
+src/agent/SkillLoader.o: src/agent/SkillLoader.cpp.o
+.PHONY : src/agent/SkillLoader.o
+
+# target to build an object file
+src/agent/SkillLoader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.o
+.PHONY : src/agent/SkillLoader.cpp.o
+
+src/agent/SkillLoader.i: src/agent/SkillLoader.cpp.i
+.PHONY : src/agent/SkillLoader.i
+
+# target to preprocess a source file
+src/agent/SkillLoader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.i
+.PHONY : src/agent/SkillLoader.cpp.i
+
+src/agent/SkillLoader.s: src/agent/SkillLoader.cpp.s
+.PHONY : src/agent/SkillLoader.s
+
+# target to generate assembly for a file
+src/agent/SkillLoader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.s
+.PHONY : src/agent/SkillLoader.cpp.s
+
+src/harness/HarnessRunner.o: src/harness/HarnessRunner.cpp.o
+.PHONY : src/harness/HarnessRunner.o
+
+# target to build an object file
+src/harness/HarnessRunner.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.o
+.PHONY : src/harness/HarnessRunner.cpp.o
+
+src/harness/HarnessRunner.i: src/harness/HarnessRunner.cpp.i
+.PHONY : src/harness/HarnessRunner.i
+
+# target to preprocess a source file
+src/harness/HarnessRunner.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.i
+.PHONY : src/harness/HarnessRunner.cpp.i
+
+src/harness/HarnessRunner.s: src/harness/HarnessRunner.cpp.s
+.PHONY : src/harness/HarnessRunner.s
+
+# target to generate assembly for a file
+src/harness/HarnessRunner.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.s
+.PHONY : src/harness/HarnessRunner.cpp.s
+
 src/harness/KeywordEvaluator.o: src/harness/KeywordEvaluator.cpp.o
 .PHONY : src/harness/KeywordEvaluator.o
 
@@ -261,6 +309,12 @@ help:
 	@echo "... benchmark/run_eval.o"
 	@echo "... benchmark/run_eval.i"
 	@echo "... benchmark/run_eval.s"
+	@echo "... src/agent/SkillLoader.o"
+	@echo "... src/agent/SkillLoader.i"
+	@echo "... src/agent/SkillLoader.s"
+	@echo "... src/harness/HarnessRunner.o"
+	@echo "... src/harness/HarnessRunner.i"
+	@echo "... src/harness/HarnessRunner.s"
 	@echo "... src/harness/KeywordEvaluator.o"
 	@echo "... src/harness/KeywordEvaluator.i"
 	@echo "... src/harness/KeywordEvaluator.s"

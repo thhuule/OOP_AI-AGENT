@@ -1,5 +1,6 @@
 #include "KeywordEvaluator.h"
 #include <sstream>
+#include <vector>
 
 namespace oop_agent {
 

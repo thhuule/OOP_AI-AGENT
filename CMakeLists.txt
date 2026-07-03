@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Xuất compile_commands.json cho clangd/IDE
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Tìm các thư viện bên thứ ba bắt buộc [cite: 45]
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
