@@ -1,40 +1,34 @@
-{
-    "tasks": [
-        {
-            "id": "task_001",
-            "category": "simple",
-            "description": "Xem danh sách file trong thư mục",
-            "input": "Liệt kê tất cả file trong thư mục hiện tại",
-            "expected_tool": "exec",
-            "expected_keywords": ".cpp, .h",
-            "evaluator_type": "keyword"
-        },
-        {
-            "id": "task_002",
-            "category": "simple",
-            "description": "Ghi nội dung mới vào file",
-            "input": "Tạo file notes.txt với nội dung 'Agent test run'",
-            "expected_tool": "file_write",
-            "expected_keywords": "written, notes.txt",
-            "evaluator_type": "keyword"
-        },
-        {
-            "id": "task_003",
-            "category": "simple",
-            "description": "Đọc nội dung file vừa tạo",
-            "input": "Đọc nội dung file notes.txt",
-            "expected_tool": "file_read",
-            "expected_keywords": "Agent test run",
-            "evaluator_type": "keyword"
-        },
-        {
-            "id": "task_004",
-            "category": "simple",
-            "description": "Chạy một file script",
-            "input": "Chạy file hello.sh và cho biết output",
-            "expected_tool": "exec",
-            "expected_keywords": "Hello",
-            "evaluator_type": "keyword"
-        }
-    ]
-}
+[
+  {
+    "id": "task_001",
+    "description": "Xem danh sách file trong thư mục",
+    "instruction": "Liệt kê tất cả file trong thư mục hiện tại",
+    "eval_type": "keyword",
+    "expected_keywords": ".cpp, .h",
+    "max_steps": 10
+  },
+  {
+    "id": "task_002",
+    "description": "Ghi nội dung mới vào file",
+    "instruction": "Tạo file notes.txt với nội dung 'Agent test run'",
+    "eval_type": "keyword",
+    "expected_keywords": "Agent test run",
+    "max_steps": 10
+  },
+  {
+    "id": "task_003",
+    "description": "Đọc nội dung file vừa tạo",
+    "instruction": "Đọc nội dung file notes.txt",
+    "eval_type": "keyword",
+    "expected_keywords": "Agent test run",
+    "max_steps": 10
+  },
+  {
+    "id": "task_004",
+    "description": "Chạy một file script",
+    "instruction": "Chạy file hello.sh và cho biết output",
+    "eval_type": "functional",
+    "eval_script": "bash hello.sh | grep Hello && echo PASS",
+    "max_steps": 10
+  }
+]
