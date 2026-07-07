@@ -26,6 +26,7 @@ add_executable(OopAgent benchmark/run_eval.cpp ${SOURCE_FILES})
 
 target_include_directories(OopAgent PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CURL_INCLUDE_DIRS}
 )
 
