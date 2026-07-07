@@ -74,7 +74,7 @@ public:
 
     /**
      * @brief Đăng ký một Evaluator strategy (keyword, functional, ...).
-     * @param name Tên evaluator khớp với field "evaluator_type" trong tasks.json
+     * @param name Tên evaluator khớp với field "eval_type" trong tasks.json
      * @param evaluator Unique pointer tới Evaluator cụ thể
      */
     void registerEvaluator(const std::string& name,

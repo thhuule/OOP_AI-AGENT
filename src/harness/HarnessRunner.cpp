@@ -41,20 +41,20 @@ bool HarnessRunner::loadTasks() {
 
     tasks_.clear();
 
-    if (!j.contains("tasks") || !j["tasks"].is_array()) {
-        std::cerr << "[HarnessRunner] Không tìm thấy key \"tasks\" hoặc không phải mảng\n";
+    if (!j.is_array()) {
+        std::cerr << "[HarnessRunner] JSON không phải mảng (expected top-level array)\n";
         return false;
     }
 
-    for (const auto& t : j["tasks"]) {
+    for (const auto& t : j) {
         Task task;
-        task.id               = t.value("id", "");
-        task.category         = t.value("category", "");
-        task.description      = t.value("description", "");
-        task.input            = t.value("input", "");
-        task.expected_tool    = t.value("expected_tool", "");
+        task.id                = t.value("id", "");
+        task.description       = t.value("description", "");
+        task.instruction       = t.value("instruction", "");
+        task.eval_type         = t.value("eval_type", "");
         task.expected_keywords = t.value("expected_keywords", "");
-        task.evaluator_type   = t.value("evaluator_type", "");
+        task.eval_script       = t.value("eval_script", "");
+        task.max_steps         = t.value("max_steps", 10);
 
         if (!task.id.empty()) {
             std::cout << "[HarnessRunner] Loaded task: " << task.id << "\n";
@@ -108,19 +108,19 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
 
     auto start = std::chrono::steady_clock::now();
 
-    // ── TODO: Gọi AgentLoop thực thi task.input ──
-    // Hiện tại placeholder — sẽ thay bằng AgentLoop::run(task.input) khi A hoàn thành
+    // ── TODO: Gọi AgentLoop thực thi task.instruction ──
+    // Hiện tại placeholder — sẽ thay bằng AgentLoop::run(task.instruction) khi A hoàn thành
     result.agent_output = "[placeholder] Agent chưa được kết nối";
 
     auto end = std::chrono::steady_clock::now();
     result.latency_ms = std::chrono::duration<double, std::milli>(end - start).count();
 
     // ── Evaluate (std::optional) ──
-    auto opt_evaluator = findEvaluator(task.evaluator_type);
+    auto opt_evaluator = findEvaluator(task.eval_type);
     if (!opt_evaluator.has_value()) {
         std::cerr << "[HarnessRunner] Không tìm thấy evaluator: "
-                  << task.evaluator_type << "\n";
-        result.eval_feedback = "Evaluator không hợp lệ: " + task.evaluator_type;
+                  << task.eval_type << "\n";
+        result.eval_feedback = "Evaluator không hợp lệ: " + task.eval_type;
         return result;
     }
 
