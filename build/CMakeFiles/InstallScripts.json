@@ -1,7 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"/workspaces/OOP_AI-AGENT/build/cmake_install.cmake"
+		"/mnt/c/Code/Code/OOP/AI-AGENT project/build/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

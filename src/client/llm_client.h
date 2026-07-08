@@ -46,4 +46,19 @@ public:
     ) = 0;
 };
 
+// 5. Lớp thực thi cụ thể cho Ollama
+class OllamaClient : public LLMClient {
+private:
+    static size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp);
+
+public:
+    OllamaClient() = default;
+    ~OllamaClient() override = default;
+
+    std::expected<std::string, LLMError> generate_chat(
+        const std::vector<Message>& conversation_history,
+        const LLMConfig& config = LLMConfig{}
+    ) override;
+};
+
 } // namespace oop_agent
