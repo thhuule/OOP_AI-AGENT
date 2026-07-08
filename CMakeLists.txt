@@ -19,7 +19,7 @@ file(GLOB_RECURSE SOURCE_FILES
     "src/agent/*.cpp"
     "src/client/*.cpp"
     "src/tools/*.cpp"
-    "src/harness/*.cpp"
+    # "src/harness/*.cpp"
 )
 
 add_executable(OopAgent benchmark/run_eval.cpp ${SOURCE_FILES})
