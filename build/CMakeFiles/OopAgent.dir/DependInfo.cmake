@@ -13,8 +13,10 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/workspaces/OOP_AI-AGENT/src/agent/agent_loop.cpp" "CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o.d"
   "/workspaces/OOP_AI-AGENT/src/client/ollama_client.cpp" "CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o.d"
   "/workspaces/OOP_AI-AGENT/src/tools/CalculatorTool.cpp" "CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o.d"
+  "/workspaces/OOP_AI-AGENT/src/tools/ExecTool.cpp" "CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o.d"
   "/workspaces/OOP_AI-AGENT/src/tools/FileTool.cpp" "CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o.d"
   "/workspaces/OOP_AI-AGENT/src/tools/ToolRegistry.cpp" "CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o.d"
+  "/workspaces/OOP_AI-AGENT/src/tools/WebSearchTool.cpp" "CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o" "gcc" "CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o.d"
   "" "OopAgent" "gcc" "CMakeFiles/OopAgent.dir/link.d"
   )
 

@@ -1,3 +1,4 @@
+
 #include "ToolRegistry.h"
 #include "Tool.h"
 
@@ -30,4 +31,52 @@ Tool* ToolRegistry::get_tool(
     return it->second.get();
 }
 
+void ToolRegistry::set_allow_list(
+    const std::vector<std::string>& names)
+{
+    allow_list_.clear();
+
+    for (const auto& name : names)
+    {
+        allow_list_.insert(name);
+    }
 }
+
+void ToolRegistry::set_deny_list(
+    const std::vector<std::string>& names)
+{
+    deny_list_.clear();
+
+    for (const auto& name : names)
+    {
+        deny_list_.insert(name);
+    }
+}
+
+bool ToolRegistry::is_allowed(
+    std::string_view name) const
+{
+    std::string tool_name(name);
+
+    // Nếu Allow List không rỗng thì chỉ Tool
+    // nằm trong danh sách mới được phép chạy.
+    if (!allow_list_.empty())
+    {
+        if (allow_list_.find(tool_name)
+            == allow_list_.end())
+        {
+            return false;
+        }
+    }
+
+    // Tool nằm trong Deny List sẽ bị chặn.
+    if (deny_list_.find(tool_name)
+        != deny_list_.end())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+} // namespace oop_agent
