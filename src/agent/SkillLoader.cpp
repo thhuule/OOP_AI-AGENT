@@ -1,4 +1,4 @@
-#include "../../include/SkillLoader.h"
+#include "SkillLoader.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
