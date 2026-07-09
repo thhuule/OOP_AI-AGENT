@@ -1,17 +1,23 @@
-#include "../src/client/ollama_client.h"
-#include "../src/agent/agent_loop.h"
+#include "tools/WebSearchTool.h"
 #include <iostream>
 
-int main() {
-    std::cout << "=== THỬ NGHIỆM AGENT CORE LOOP (ROLE A) ===" << std::endl;
+using namespace oop_agent;
 
-    // Khởi tạo Client và Agent Engine
-    auto client = std::make_shared<oop_agent::OllamaClient>();
-    oop_agent::AgentLoop agent(client);
+int main()
+{
+    WebSearchTool tool;
 
-    // Chạy thử một câu lệnh đơn giản gửi tới Ollama
-    std::string response = agent.run("Hãy tự giới thiệu ngắn gọn bạn là ai bằng 1 câu văn.");
-    
-    std::cout << "\n[Kết quả cuối cùng của Agent]: " << response << std::endl;
+    auto result = tool.execute("capital of Japan");
+
+    if (result.has_value())
+    {
+        std::cout << "Success\n";
+        std::cout << result.value() << '\n';
+    }
+    else
+    {
+        std::cout << "Error: " << static_cast<int>(result.error()) << '\n';
+    }
+
     return 0;
 }

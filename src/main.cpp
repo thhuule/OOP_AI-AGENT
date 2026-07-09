@@ -1,22 +1,23 @@
-#include "../include/SkillLoader.h"
+#include "WebSearchTool.h"
 #include <iostream>
 
-int main() {
-  // Đường dẫn tương đối tới thư mục skills/
-  SkillLoader loader("skills");
+using namespace oop_agent;
 
-  // Load tất cả file .md trong thư mục skills/
-  loader.loadAll();
+int main()
+{
+    WebSearchTool web;
 
-  // In danh sách skill đã load
-  std::cout << "\n=== Loaded Skills ===\n";
-  for (const auto &name : loader.getLoadedSkills()) {
-    std::cout << "  - " << name << "\n";
-  }
+    auto result = web.execute("capital of Japan");
 
-  // In system prompt (nội dung tất cả skill ghép lại)
-  std::cout << "\n=== System Prompt ===\n";
-  std::cout << loader.getSystemPrompt() << "\n";
+    if (result.has_value())
+    {
+        std::cout << "Result:\n";
+        std::cout << result.value() << '\n';
+    }
+    else
+    {
+        std::cout << "Error: " << static_cast<int>(result.error()) << '\n';
+    }
 
-  return 0;
+    return 0;
 }
