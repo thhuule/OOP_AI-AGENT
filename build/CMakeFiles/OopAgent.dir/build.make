@@ -44,10 +44,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake
+CMAKE_COMMAND = /home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake -E rm -f
+RM = /home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -142,10 +142,24 @@ CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/OOP_AI-AGENT/src/tools/CalculatorTool.cpp -o CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.s
 
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o: CMakeFiles/OopAgent.dir/flags.make
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o: /workspaces/OOP_AI-AGENT/src/tools/ExecTool.cpp
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o: CMakeFiles/OopAgent.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o -MF CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o.d -o CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o -c /workspaces/OOP_AI-AGENT/src/tools/ExecTool.cpp
+
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/OOP_AI-AGENT/src/tools/ExecTool.cpp > CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.i
+
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/OOP_AI-AGENT/src/tools/ExecTool.cpp -o CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.s
+
 CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o: CMakeFiles/OopAgent.dir/flags.make
 CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o: /workspaces/OOP_AI-AGENT/src/tools/FileTool.cpp
 CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o: CMakeFiles/OopAgent.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o -MF CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o.d -o CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o -c /workspaces/OOP_AI-AGENT/src/tools/FileTool.cpp
 
 CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.i: cmake_force
@@ -159,7 +173,7 @@ CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.s: cmake_force
 CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o: CMakeFiles/OopAgent.dir/flags.make
 CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o: /workspaces/OOP_AI-AGENT/src/tools/ToolRegistry.cpp
 CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o: CMakeFiles/OopAgent.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o -MF CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o.d -o CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o -c /workspaces/OOP_AI-AGENT/src/tools/ToolRegistry.cpp
 
 CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.i: cmake_force
@@ -170,6 +184,20 @@ CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/OOP_AI-AGENT/src/tools/ToolRegistry.cpp -o CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.s
 
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o: CMakeFiles/OopAgent.dir/flags.make
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o: /workspaces/OOP_AI-AGENT/src/tools/WebSearchTool.cpp
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o: CMakeFiles/OopAgent.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o -MF CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o.d -o CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o -c /workspaces/OOP_AI-AGENT/src/tools/WebSearchTool.cpp
+
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/OOP_AI-AGENT/src/tools/WebSearchTool.cpp > CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.i
+
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/OOP_AI-AGENT/src/tools/WebSearchTool.cpp -o CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.s
+
 # Object files for target OopAgent
 OopAgent_OBJECTS = \
 "CMakeFiles/OopAgent.dir/benchmark/run_eval.cpp.o" \
@@ -177,8 +205,10 @@ OopAgent_OBJECTS = \
 "CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o" \
 "CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o" \
 "CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o" \
+"CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o" \
 "CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o" \
-"CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o"
+"CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o" \
+"CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o"
 
 # External object files for target OopAgent
 OopAgent_EXTERNAL_OBJECTS =
@@ -188,14 +218,16 @@ OopAgent: CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o
+OopAgent: CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o
+OopAgent: CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o
 OopAgent: CMakeFiles/OopAgent.dir/build.make
 OopAgent: CMakeFiles/OopAgent.dir/compiler_depend.ts
 OopAgent: /usr/lib/x86_64-linux-gnu/libcurl.so
 OopAgent: /usr/lib/x86_64-linux-gnu/libcurl.so
 OopAgent: CMakeFiles/OopAgent.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable OopAgent"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable OopAgent"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/OopAgent.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

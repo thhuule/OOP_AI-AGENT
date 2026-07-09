@@ -7,10 +7,13 @@ OopAgent: \
   CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o \
   CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o \
   CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o \
+  CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o \
   CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o \
   CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o \
+  CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o \
   /usr/lib/x86_64-linux-gnu/libcurl.so \
   /usr/lib/x86_64-linux-gnu/libcurl.so \
+  /usr/lib/gcc/x86_64-linux-gnu/16/../../../x86_64-linux-gnu/libpthread.a \
   /usr/lib/gcc/x86_64-linux-gnu/16/libstdc++.so \
   /usr/lib/gcc/x86_64-linux-gnu/16/../../../x86_64-linux-gnu/libm.so \
   /usr/lib/gcc/x86_64-linux-gnu/16/../../../x86_64-linux-gnu/libm.so \
@@ -89,13 +92,19 @@ CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o:
 
 CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o:
 
+CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o:
+
 CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o:
 
 CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o:
 
+CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o:
+
 /usr/lib/x86_64-linux-gnu/libcurl.so:
 
 /usr/lib/x86_64-linux-gnu/libcurl.so:
+
+/usr/lib/gcc/x86_64-linux-gnu/16/../../../x86_64-linux-gnu/libpthread.a:
 
 /usr/lib/gcc/x86_64-linux-gnu/16/libstdc++.so:
 
