@@ -48,10 +48,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake
+CMAKE_COMMAND = /home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake -E rm -f
+RM = /home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -68,7 +68,7 @@ CMAKE_BINARY_DIR = /workspaces/OOP_AI-AGENT/build
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
-	/usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -78,7 +78,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
-	/usr/local/python/3.12.1/lib/python3.12/site-packages/cmake/data/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/codespace/.local/lib/python3.12/site-packages/cmake/data/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -249,6 +249,30 @@ src/tools/CalculatorTool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.s
 .PHONY : src/tools/CalculatorTool.cpp.s
 
+src/tools/ExecTool.o: src/tools/ExecTool.cpp.o
+.PHONY : src/tools/ExecTool.o
+
+# target to build an object file
+src/tools/ExecTool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o
+.PHONY : src/tools/ExecTool.cpp.o
+
+src/tools/ExecTool.i: src/tools/ExecTool.cpp.i
+.PHONY : src/tools/ExecTool.i
+
+# target to preprocess a source file
+src/tools/ExecTool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.i
+.PHONY : src/tools/ExecTool.cpp.i
+
+src/tools/ExecTool.s: src/tools/ExecTool.cpp.s
+.PHONY : src/tools/ExecTool.s
+
+# target to generate assembly for a file
+src/tools/ExecTool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.s
+.PHONY : src/tools/ExecTool.cpp.s
+
 src/tools/FileTool.o: src/tools/FileTool.cpp.o
 .PHONY : src/tools/FileTool.o
 
@@ -297,6 +321,30 @@ src/tools/ToolRegistry.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.s
 .PHONY : src/tools/ToolRegistry.cpp.s
 
+src/tools/WebSearchTool.o: src/tools/WebSearchTool.cpp.o
+.PHONY : src/tools/WebSearchTool.o
+
+# target to build an object file
+src/tools/WebSearchTool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o
+.PHONY : src/tools/WebSearchTool.cpp.o
+
+src/tools/WebSearchTool.i: src/tools/WebSearchTool.cpp.i
+.PHONY : src/tools/WebSearchTool.i
+
+# target to preprocess a source file
+src/tools/WebSearchTool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.i
+.PHONY : src/tools/WebSearchTool.cpp.i
+
+src/tools/WebSearchTool.s: src/tools/WebSearchTool.cpp.s
+.PHONY : src/tools/WebSearchTool.s
+
+# target to generate assembly for a file
+src/tools/WebSearchTool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.s
+.PHONY : src/tools/WebSearchTool.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -321,12 +369,18 @@ help:
 	@echo "... src/tools/CalculatorTool.o"
 	@echo "... src/tools/CalculatorTool.i"
 	@echo "... src/tools/CalculatorTool.s"
+	@echo "... src/tools/ExecTool.o"
+	@echo "... src/tools/ExecTool.i"
+	@echo "... src/tools/ExecTool.s"
 	@echo "... src/tools/FileTool.o"
 	@echo "... src/tools/FileTool.i"
 	@echo "... src/tools/FileTool.s"
 	@echo "... src/tools/ToolRegistry.o"
 	@echo "... src/tools/ToolRegistry.i"
 	@echo "... src/tools/ToolRegistry.s"
+	@echo "... src/tools/WebSearchTool.o"
+	@echo "... src/tools/WebSearchTool.i"
+	@echo "... src/tools/WebSearchTool.s"
 .PHONY : help
 
 
