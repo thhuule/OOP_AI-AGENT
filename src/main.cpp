@@ -1,23 +1,21 @@
-#include "WebSearchTool.h"
+#include "tools/MemoryTool.h"
 #include <iostream>
 
 using namespace oop_agent;
 
 int main()
 {
-    WebSearchTool web;
+    MemoryTool memory;
 
-    auto result = web.execute("capital of Japan");
+    auto result = memory.execute("save I love AI");
 
-    if (result.has_value())
-    {
-        std::cout << "Result:\n";
-        std::cout << result.value() << '\n';
-    }
+    if (result)
+        std::cout << *result << '\n';
     else
-    {
-        std::cout << "Error: " << static_cast<int>(result.error()) << '\n';
-    }
+        std::cout << "Error\n";
 
-    return 0;
+    auto search = memory.execute("search AI");
+
+    if (search)
+        std::cout << *search << '\n';
 }

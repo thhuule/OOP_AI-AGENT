@@ -20,6 +20,7 @@ public:
 private:
     std::shared_ptr<LLMClient> client_;
     std::vector<std::shared_ptr<Tool>> tools_;
+    std::shared_ptr<Tool> find_tool(std::string_view name);
     std::vector<Message> memory_; // Lưu trữ ngữ cảnh hội thoại (System prompt + History)
 };
 
