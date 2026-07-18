@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.28) # Nâng version tối thiểu để hỗ trợ tốt C++26/Modules nếu cần
 project(OopAiAgent VERSION 1.0.0 LANGUAGES CXX)
 
-# Bật chuẩn C++26
-set(CMAKE_CXX_STANDARD 26)
+# Bật chuẩn C++23
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -22,7 +22,17 @@ file(GLOB_RECURSE SOURCE_FILES
     # "src/harness/*.cpp"
 )
 
-add_executable(OopAgent benchmark/run_eval.cpp ${SOURCE_FILES})
+add_executable(OopAgent
+    src/main.cpp
+    src/agent/agent_loop.cpp
+    src/agent/SkillLoader.cpp
+    src/client/ollama_client.cpp
+    src/tools/CalculatorTool.cpp
+    src/tools/ExecTool.cpp
+    src/tools/FileTool.cpp
+    src/tools/WebSearchTool.cpp
+    src/tools/ToolRegistry.cpp
+)
 
 target_include_directories(OopAgent PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -36,9 +46,9 @@ target_link_libraries(OopAgent PRIVATE
     Threads::Threads
 )
 
-# Flag nghiêm ngặt + hỗ trợ C++26 hoàn chỉnh
+# Flag nghiêm ngặt + hỗ trợ C++23 đầy đủ
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
 endif()
