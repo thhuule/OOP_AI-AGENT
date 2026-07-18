@@ -33,6 +33,10 @@ add_executable(OopAgent
     src/tools/FileTool.cpp
     src/tools/WebSearchTool.cpp
     src/tools/ToolRegistry.cpp
+    src/tools/MemoryTool.cpp
+    src/tools/TimeTool.cpp
+    src/tools/JsonTool.cpp
+    src/tools/GitTool.cpp
 )
 
 add_executable(run_eval
@@ -60,6 +64,7 @@ target_link_libraries(run_eval PRIVATE
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
+    SQLite::SQLite3
 )
 
 # Flag nghiêm ngặt + hỗ trợ C++23 đầy đủ
