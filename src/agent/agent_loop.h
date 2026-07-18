@@ -35,6 +35,8 @@ private:
     std::vector<std::shared_ptr<Tool>> tools_;
     std::shared_ptr<Tool> find_tool(std::string_view name);
     std::vector<Message> memory_; // Lưu trữ ngữ cảnh hội thoại (System prompt + History)
+    StepHook step_hook_ = nullptr;
+    bool parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args);
 };
 
 } // namespace oop_agent
