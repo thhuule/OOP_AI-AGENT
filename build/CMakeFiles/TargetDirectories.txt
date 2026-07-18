@@ -1,4 +1,0 @@
-/workspaces/OOP_AI-AGENT/build/CMakeFiles/OopAgent.dir
-/workspaces/OOP_AI-AGENT/build/CMakeFiles/run_eval.dir
-/workspaces/OOP_AI-AGENT/build/CMakeFiles/edit_cache.dir
-/workspaces/OOP_AI-AGENT/build/CMakeFiles/rebuild_cache.dir
