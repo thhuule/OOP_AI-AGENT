@@ -4,6 +4,8 @@
 #include <vector>
 
 
+namespace oop_agent {
+
 // Load tất cả skill file .md từ thư mục skills/
 // Inject nội dung vào system prompt của agent
 class SkillLoader {
@@ -29,3 +31,6 @@ private:
   std::vector<std::string> loaded_skills_;  // tên file đã load
   std::vector<std::string> skill_contents_; // nội dung từng file
 };
+
+} // namespace oop_agent
+

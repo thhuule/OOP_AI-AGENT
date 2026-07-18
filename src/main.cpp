@@ -1,3 +1,4 @@
+#include "agent/SkillLoader.h"
 #include "agent/agent_loop.h"
 #include "client/ollama_client.h"
 #include "tools/CalculatorTool.h"
