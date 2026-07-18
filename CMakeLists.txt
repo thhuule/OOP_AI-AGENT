@@ -34,13 +34,34 @@ add_executable(OopAgent
     src/tools/ToolRegistry.cpp
 )
 
-target_include_directories(OopAgent PRIVATE 
+add_executable(run_eval
+    benchmark/run_eval.cpp
+    src/agent/agent_loop.cpp
+    src/agent/SkillLoader.cpp
+    src/client/ollama_client.cpp
+    src/tools/CalculatorTool.cpp
+    src/tools/ExecTool.cpp
+    src/tools/FileTool.cpp
+    src/tools/WebSearchTool.cpp
+    src/tools/ToolRegistry.cpp
+)
+
+set(common_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CURL_INCLUDE_DIRS}
 )
 
+target_include_directories(OopAgent PRIVATE ${common_include_dirs})
+target_include_directories(run_eval PRIVATE ${common_include_dirs})
+
 target_link_libraries(OopAgent PRIVATE 
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+)
+
+target_link_libraries(run_eval PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
@@ -49,6 +70,8 @@ target_link_libraries(OopAgent PRIVATE
 # Flag nghiêm ngặt + hỗ trợ C++23 đầy đủ
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
+    target_compile_options(run_eval PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
+    target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
 endif()

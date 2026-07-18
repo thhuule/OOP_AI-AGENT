@@ -1,23 +1,30 @@
-#include "tools/WebSearchTool.h"
+#include "agent/agent_loop.h"
+#include "client/ollama_client.h"
+#include "tools/CalculatorTool.h"
+#include "agent/SkillLoader.h"
 #include <iostream>
+#include <memory>
 
-using namespace oop_agent;
+int main() {
+    // 1. Khởi tạo Client Ollama thật với model cụ thể
+    // 1. Khởi tạo Client Ollama thật với địa chỉ URL và model
+auto ollama_client = std::make_shared<oop_agent::OllamaClient>(
+    "http://oihnt-35-233-204-204.free.pinggy.net",
+    "gemma4:e4b"
+);
 
-int main()
-{
-    WebSearchTool tool;
+    // 2. Khởi tạo Agent
+    oop_agent::AgentLoop agent(ollama_client);
 
-    auto result = tool.execute("capital of Japan");
+    // 3. Nạp SkillLoader thật từ bạn C
+    agent.set_skill_loader(std::make_shared<SkillLoader>("src/skills"));
 
-    if (result.has_value())
-    {
-        std::cout << "Success\n";
-        std::cout << result.value() << '\n';
-    }
-    else
-    {
-        std::cout << "Error: " << static_cast<int>(result.error()) << '\n';
-    }
+    // 4. Đăng ký các công cụ thật
+    agent.register_tool(std::make_shared<oop_agent::CalculatorTool>());
 
+    // 5. Chạy eval với câu lệnh thật
+    std::string final_res = agent.run("Tính tích của 15 và 17 bằng công cụ calculator", 5);
+
+    std::cout << "=> KẾT QUẢ EVALUATE: " << final_res << std::endl;
     return 0;
 }

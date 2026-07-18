@@ -1,30 +1,31 @@
 #pragma once
 
 #include "client/llm_client.h"
+#include <string> // Cần thiết cho std::string
 
 namespace oop_agent {
 
-/**
- * @brief Lớp thực thi cụ thể để kết nối với Ollama server [cite: 5, 31]
- * Sử dụng libcurl để thực hiện HTTP POST request.
- */
 class OllamaClient : public LLMClient {
 public:
+    // Cập nhật: Thêm constructor nhận tham số
+    OllamaClient(const std::string& url, const std::string& model) 
+        : base_url(url), model_name(model) {}
+
+    // Giữ lại constructor mặc định nếu cần
     OllamaClient() = default;
+    
     ~OllamaClient() override = default;
 
-    /**
-     * @brief Hiện thực hóa việc gửi request đến endpoint /api/chat của Ollama [cite: 5, 27]
-     */
     std::expected<std::string, LLMError> generate_chat(
         const std::vector<Message>& conversation_history,
         const LLMConfig& config = LLMConfig{}
     ) override;
 
 private:
-    /**
-     * @brief Hàm callback để libcurl ghi nhận dữ liệu trả về từ server
-     */
+    // Thêm các biến thành viên để lưu trữ cấu hình
+    std::string base_url;
+    std::string model_name;
+
     static size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp);
 };
 
