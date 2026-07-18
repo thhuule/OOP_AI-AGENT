@@ -113,9 +113,12 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
 
     auto start = std::chrono::steady_clock::now();
 
-    // ── TODO: Gọi AgentLoop thực thi task.instruction ──
-    // Hiện tại placeholder — sẽ thay bằng AgentLoop::run(task.instruction) khi A hoàn thành
-    result.agent_output = "[placeholder] Agent chưa được kết nối";
+    // ── Gọi AgentLoop thực thi task.instruction ──
+    if (agent_) {
+        result.agent_output = agent_->run(task.instruction, task.max_steps);
+    } else {
+        result.agent_output = "[placeholder] Agent chưa được kết nối";
+    }
 
     auto end = std::chrono::steady_clock::now();
     result.latency_ms = std::chrono::duration<double, std::milli>(end - start).count();
