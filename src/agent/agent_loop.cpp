@@ -79,7 +79,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
 
         LLMConfig config;
         config.model_name = "gemma4:e4b";
-        config.api_url = "http://vcvou-34-26-174-246.run.pinggy-free.link/api/chat";
+        config.api_url = "http://oihnt-35-233-204-204.free.pinggy.net/api/chat";
 
         // a. Gọi mô hình LLM[cite: 15]
         auto response = client_->generate_chat(memory_, config);

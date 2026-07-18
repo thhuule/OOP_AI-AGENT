@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /workspaces/OOP_AI-AGENT/build
 
 # The main recursive "all" target.
 all: CMakeFiles/OopAgent.dir/all
+all: CMakeFiles/run_eval.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,6 +73,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/OopAgent.dir/clean
+clean: CMakeFiles/run_eval.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -99,6 +101,32 @@ OopAgent: CMakeFiles/OopAgent.dir/rule
 CMakeFiles/OopAgent.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/clean
 .PHONY : CMakeFiles/OopAgent.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/run_eval.dir
+
+# All Build rule for target.
+CMakeFiles/run_eval.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/workspaces/OOP_AI-AGENT/build/CMakeFiles --progress-num=11,12,13,14,15,16,17,18,19,20 "Built target run_eval"
+.PHONY : CMakeFiles/run_eval.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/run_eval.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/OOP_AI-AGENT/build/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/run_eval.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/OOP_AI-AGENT/build/CMakeFiles 0
+.PHONY : CMakeFiles/run_eval.dir/rule
+
+# Convenience name for target.
+run_eval: CMakeFiles/run_eval.dir/rule
+.PHONY : run_eval
+
+# clean rule for target.
+CMakeFiles/run_eval.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/clean
+.PHONY : CMakeFiles/run_eval.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

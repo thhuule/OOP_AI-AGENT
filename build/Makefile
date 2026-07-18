@@ -129,12 +129,50 @@ OopAgent/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/build
 .PHONY : OopAgent/fast
 
+#=============================================================================
+# Target rules for targets named run_eval
+
+# Build rule for target.
+run_eval: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 run_eval
+.PHONY : run_eval
+
+# fast build rule for target.
+run_eval/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/build
+.PHONY : run_eval/fast
+
+benchmark/run_eval.o: benchmark/run_eval.cpp.o
+.PHONY : benchmark/run_eval.o
+
+# target to build an object file
+benchmark/run_eval.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/benchmark/run_eval.cpp.o
+.PHONY : benchmark/run_eval.cpp.o
+
+benchmark/run_eval.i: benchmark/run_eval.cpp.i
+.PHONY : benchmark/run_eval.i
+
+# target to preprocess a source file
+benchmark/run_eval.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/benchmark/run_eval.cpp.i
+.PHONY : benchmark/run_eval.cpp.i
+
+benchmark/run_eval.s: benchmark/run_eval.cpp.s
+.PHONY : benchmark/run_eval.s
+
+# target to generate assembly for a file
+benchmark/run_eval.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/benchmark/run_eval.cpp.s
+.PHONY : benchmark/run_eval.cpp.s
+
 src/agent/SkillLoader.o: src/agent/SkillLoader.cpp.o
 .PHONY : src/agent/SkillLoader.o
 
 # target to build an object file
 src/agent/SkillLoader.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/SkillLoader.cpp.o
 .PHONY : src/agent/SkillLoader.cpp.o
 
 src/agent/SkillLoader.i: src/agent/SkillLoader.cpp.i
@@ -143,6 +181,7 @@ src/agent/SkillLoader.i: src/agent/SkillLoader.cpp.i
 # target to preprocess a source file
 src/agent/SkillLoader.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/SkillLoader.cpp.i
 .PHONY : src/agent/SkillLoader.cpp.i
 
 src/agent/SkillLoader.s: src/agent/SkillLoader.cpp.s
@@ -151,6 +190,7 @@ src/agent/SkillLoader.s: src/agent/SkillLoader.cpp.s
 # target to generate assembly for a file
 src/agent/SkillLoader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/SkillLoader.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/SkillLoader.cpp.s
 .PHONY : src/agent/SkillLoader.cpp.s
 
 src/agent/agent_loop.o: src/agent/agent_loop.cpp.o
@@ -159,6 +199,7 @@ src/agent/agent_loop.o: src/agent/agent_loop.cpp.o
 # target to build an object file
 src/agent/agent_loop.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/agent_loop.cpp.o
 .PHONY : src/agent/agent_loop.cpp.o
 
 src/agent/agent_loop.i: src/agent/agent_loop.cpp.i
@@ -167,6 +208,7 @@ src/agent/agent_loop.i: src/agent/agent_loop.cpp.i
 # target to preprocess a source file
 src/agent/agent_loop.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/agent_loop.cpp.i
 .PHONY : src/agent/agent_loop.cpp.i
 
 src/agent/agent_loop.s: src/agent/agent_loop.cpp.s
@@ -175,6 +217,7 @@ src/agent/agent_loop.s: src/agent/agent_loop.cpp.s
 # target to generate assembly for a file
 src/agent/agent_loop.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/agent/agent_loop.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/agent/agent_loop.cpp.s
 .PHONY : src/agent/agent_loop.cpp.s
 
 src/client/ollama_client.o: src/client/ollama_client.cpp.o
@@ -183,6 +226,7 @@ src/client/ollama_client.o: src/client/ollama_client.cpp.o
 # target to build an object file
 src/client/ollama_client.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/client/ollama_client.cpp.o
 .PHONY : src/client/ollama_client.cpp.o
 
 src/client/ollama_client.i: src/client/ollama_client.cpp.i
@@ -191,6 +235,7 @@ src/client/ollama_client.i: src/client/ollama_client.cpp.i
 # target to preprocess a source file
 src/client/ollama_client.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/client/ollama_client.cpp.i
 .PHONY : src/client/ollama_client.cpp.i
 
 src/client/ollama_client.s: src/client/ollama_client.cpp.s
@@ -199,6 +244,7 @@ src/client/ollama_client.s: src/client/ollama_client.cpp.s
 # target to generate assembly for a file
 src/client/ollama_client.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/client/ollama_client.cpp.s
 .PHONY : src/client/ollama_client.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -231,6 +277,7 @@ src/tools/CalculatorTool.o: src/tools/CalculatorTool.cpp.o
 # target to build an object file
 src/tools/CalculatorTool.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/CalculatorTool.cpp.o
 .PHONY : src/tools/CalculatorTool.cpp.o
 
 src/tools/CalculatorTool.i: src/tools/CalculatorTool.cpp.i
@@ -239,6 +286,7 @@ src/tools/CalculatorTool.i: src/tools/CalculatorTool.cpp.i
 # target to preprocess a source file
 src/tools/CalculatorTool.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/CalculatorTool.cpp.i
 .PHONY : src/tools/CalculatorTool.cpp.i
 
 src/tools/CalculatorTool.s: src/tools/CalculatorTool.cpp.s
@@ -247,6 +295,7 @@ src/tools/CalculatorTool.s: src/tools/CalculatorTool.cpp.s
 # target to generate assembly for a file
 src/tools/CalculatorTool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/CalculatorTool.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/CalculatorTool.cpp.s
 .PHONY : src/tools/CalculatorTool.cpp.s
 
 src/tools/ExecTool.o: src/tools/ExecTool.cpp.o
@@ -255,6 +304,7 @@ src/tools/ExecTool.o: src/tools/ExecTool.cpp.o
 # target to build an object file
 src/tools/ExecTool.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ExecTool.cpp.o
 .PHONY : src/tools/ExecTool.cpp.o
 
 src/tools/ExecTool.i: src/tools/ExecTool.cpp.i
@@ -263,6 +313,7 @@ src/tools/ExecTool.i: src/tools/ExecTool.cpp.i
 # target to preprocess a source file
 src/tools/ExecTool.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ExecTool.cpp.i
 .PHONY : src/tools/ExecTool.cpp.i
 
 src/tools/ExecTool.s: src/tools/ExecTool.cpp.s
@@ -271,6 +322,7 @@ src/tools/ExecTool.s: src/tools/ExecTool.cpp.s
 # target to generate assembly for a file
 src/tools/ExecTool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ExecTool.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ExecTool.cpp.s
 .PHONY : src/tools/ExecTool.cpp.s
 
 src/tools/FileTool.o: src/tools/FileTool.cpp.o
@@ -279,6 +331,7 @@ src/tools/FileTool.o: src/tools/FileTool.cpp.o
 # target to build an object file
 src/tools/FileTool.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/FileTool.cpp.o
 .PHONY : src/tools/FileTool.cpp.o
 
 src/tools/FileTool.i: src/tools/FileTool.cpp.i
@@ -287,6 +340,7 @@ src/tools/FileTool.i: src/tools/FileTool.cpp.i
 # target to preprocess a source file
 src/tools/FileTool.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/FileTool.cpp.i
 .PHONY : src/tools/FileTool.cpp.i
 
 src/tools/FileTool.s: src/tools/FileTool.cpp.s
@@ -295,6 +349,7 @@ src/tools/FileTool.s: src/tools/FileTool.cpp.s
 # target to generate assembly for a file
 src/tools/FileTool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/FileTool.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/FileTool.cpp.s
 .PHONY : src/tools/FileTool.cpp.s
 
 src/tools/ToolRegistry.o: src/tools/ToolRegistry.cpp.o
@@ -303,6 +358,7 @@ src/tools/ToolRegistry.o: src/tools/ToolRegistry.cpp.o
 # target to build an object file
 src/tools/ToolRegistry.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ToolRegistry.cpp.o
 .PHONY : src/tools/ToolRegistry.cpp.o
 
 src/tools/ToolRegistry.i: src/tools/ToolRegistry.cpp.i
@@ -311,6 +367,7 @@ src/tools/ToolRegistry.i: src/tools/ToolRegistry.cpp.i
 # target to preprocess a source file
 src/tools/ToolRegistry.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ToolRegistry.cpp.i
 .PHONY : src/tools/ToolRegistry.cpp.i
 
 src/tools/ToolRegistry.s: src/tools/ToolRegistry.cpp.s
@@ -319,6 +376,7 @@ src/tools/ToolRegistry.s: src/tools/ToolRegistry.cpp.s
 # target to generate assembly for a file
 src/tools/ToolRegistry.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/ToolRegistry.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/ToolRegistry.cpp.s
 .PHONY : src/tools/ToolRegistry.cpp.s
 
 src/tools/WebSearchTool.o: src/tools/WebSearchTool.cpp.o
@@ -327,6 +385,7 @@ src/tools/WebSearchTool.o: src/tools/WebSearchTool.cpp.o
 # target to build an object file
 src/tools/WebSearchTool.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/WebSearchTool.cpp.o
 .PHONY : src/tools/WebSearchTool.cpp.o
 
 src/tools/WebSearchTool.i: src/tools/WebSearchTool.cpp.i
@@ -335,6 +394,7 @@ src/tools/WebSearchTool.i: src/tools/WebSearchTool.cpp.i
 # target to preprocess a source file
 src/tools/WebSearchTool.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/WebSearchTool.cpp.i
 .PHONY : src/tools/WebSearchTool.cpp.i
 
 src/tools/WebSearchTool.s: src/tools/WebSearchTool.cpp.s
@@ -343,6 +403,7 @@ src/tools/WebSearchTool.s: src/tools/WebSearchTool.cpp.s
 # target to generate assembly for a file
 src/tools/WebSearchTool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/tools/WebSearchTool.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_eval.dir/build.make CMakeFiles/run_eval.dir/src/tools/WebSearchTool.cpp.s
 .PHONY : src/tools/WebSearchTool.cpp.s
 
 # Help Target
@@ -354,6 +415,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... OopAgent"
+	@echo "... run_eval"
+	@echo "... benchmark/run_eval.o"
+	@echo "... benchmark/run_eval.i"
+	@echo "... benchmark/run_eval.s"
 	@echo "... src/agent/SkillLoader.o"
 	@echo "... src/agent/SkillLoader.i"
 	@echo "... src/agent/SkillLoader.s"
