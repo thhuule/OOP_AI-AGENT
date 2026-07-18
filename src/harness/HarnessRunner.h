@@ -116,6 +116,11 @@ public:
    */
   bool exportResults(const std::vector<TaskRunResult> &results) const;
 
+  /**
+   * @brief Đăng ký Agent vào Harness.
+   */
+  void set_agent(AgentLoop *agent) noexcept { agent_ = agent; }
+
   // ── Accessors ───────────────────────────────────────────────────
 
   /**
@@ -145,6 +150,8 @@ private:
    */
   [[nodiscard]] std::optional<Evaluator *>
   findEvaluator(const std::string &evaluator_type) const;
+
+  AgentLoop *agent_ = nullptr; // Con trỏ tới Agent để chạy task
 
   std::string tasks_json_path_; // Đường dẫn tới tasks.json
   std::string output_dir_;      // Thư mục xuất kết quả

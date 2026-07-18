@@ -36,14 +36,7 @@ add_executable(OopAgent
 
 add_executable(run_eval
     benchmark/run_eval.cpp
-    src/agent/agent_loop.cpp
-    src/agent/SkillLoader.cpp
-    src/client/ollama_client.cpp
-    src/tools/CalculatorTool.cpp
-    src/tools/ExecTool.cpp
-    src/tools/FileTool.cpp
-    src/tools/WebSearchTool.cpp
-    src/tools/ToolRegistry.cpp
+    ${SOURCE_FILES}
 )
 
 set(common_include_dirs
@@ -75,3 +68,4 @@ elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
     target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
 endif()
+
