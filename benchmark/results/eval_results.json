@@ -1,0 +1,70 @@
+{
+  "results": [
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Thiếu keyword: .cpp, .h",
+      "latency_ms": 107.371278,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_001"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Thiếu keyword: Agent test run",
+      "latency_ms": 88.751217,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_002"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Thiếu keyword: Agent test run",
+      "latency_ms": 47.264052,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_003"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Đánh giá chức năng thất bại (Không tìm thấy 'PASS' trong output)",
+      "latency_ms": 80.871596,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_004"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Đánh giá chức năng thất bại (Không tìm thấy 'PASS' trong output)",
+      "latency_ms": 92.885857,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_005"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Đánh giá chức năng thất bại (Không tìm thấy 'PASS' trong output)",
+      "latency_ms": 84.195611,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_006"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Thiếu keyword: words, count",
+      "latency_ms": 52.686,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_007"
+    },
+    {
+      "agent_output": "Max steps reached",
+      "feedback": "Đánh giá chức năng thất bại (Không tìm thấy 'PASS' trong output)",
+      "latency_ms": 49.838101,
+      "passed": false,
+      "score": 0.0,
+      "task_id": "task_008"
+    }
+  ],
+  "success_rate": 0.0,
+  "total_tasks": 8
+}

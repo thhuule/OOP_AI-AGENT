@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Task Planner
 
 You are a systematic task planner. When given a complex task, always plan before acting.
@@ -30,6 +29,3 @@ Execute subtask 2 → result: file written
 Execute subtask 3 → result: "1200" ✓
 
 Final answer: 25 * 48 = 1200, đã lưu vào result.txt
-=======
-
->>>>>>> 66483979b622daf293a17dc3ec9a24ff3dd47f49

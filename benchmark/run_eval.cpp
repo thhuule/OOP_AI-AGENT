@@ -1,21 +1,19 @@
 #include "agent/agent_loop.h"
-
-#include "client/ollama_client.h"
-
-#include "tools/CalculatorTool.h"
-#include "tools/FileTool.h"
-#include "tools/ExecTool.h"
 #include "tools/WebSearchTool.h"
 #include "tools/MemoryTool.h"
 #include "tools/TimeTool.h"
 #include "tools/JsonTool.h"
 #include "tools/GitTool.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
 
-using namespace oop_agent;
+int main() {
+  // 1. Khởi tạo Client Ollama thật với địa chỉ URL và model
+  auto ollama_client = std::make_shared<oop_agent::OllamaClient>(
+      "http://oihnt-35-233-204-204.free.pinggy.net",
+      "gemma4:e4b"
+  );
 
 int main()
 {
@@ -56,6 +54,19 @@ int main()
                   << answer
                   << "\n";
     }
+  }
+  oop_agent::HarnessRunner harness(tasks_path, output_dir);
+  harness.loadTasks();
 
-    return 0;
+  // 5. Inject StepHook
+  agent.set_step_hook(harness.createStepHook());
+
+  // Kết nối Agent vào Harness
+  harness.set_agent(&agent);
+
+  // 6. Chạy benchmark
+  auto results = harness.runAll();
+  harness.exportResults(results);
+
+  return 0;
 }

@@ -1,5 +1,7 @@
 #include "HarnessRunner.h"
 #include "KeywordEvaluator.h"
+#include "FunctionalEvaluator.h"
+#include "../tools/ExecTool.h"
 
 #include <chrono>
 #include <filesystem>
@@ -18,6 +20,9 @@ HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
 
     // Đăng ký evaluator mặc định: keyword
     registerEvaluator("keyword", std::make_unique<KeywordEvaluator>());
+    // Inject ExecTool vào FunctionalEvaluator (Dependency Injection)
+    auto exec_tool = std::make_shared<ExecTool>();
+    registerEvaluator("functional", std::make_unique<FunctionalEvaluator>(exec_tool));
 }
 
 // ── Phase 1: Setup ──────────────────────────────────────────────────
@@ -108,9 +113,12 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
 
     auto start = std::chrono::steady_clock::now();
 
-    // ── TODO: Gọi AgentLoop thực thi task.instruction ──
-    // Hiện tại placeholder — sẽ thay bằng AgentLoop::run(task.instruction) khi A hoàn thành
-    result.agent_output = "[placeholder] Agent chưa được kết nối";
+    // ── Gọi AgentLoop thực thi task.instruction ──
+    if (agent_) {
+        result.agent_output = agent_->run(task.instruction, task.max_steps);
+    } else {
+        result.agent_output = "[placeholder] Agent chưa được kết nối";
+    }
 
     auto end = std::chrono::steady_clock::now();
     result.latency_ms = std::chrono::duration<double, std::milli>(end - start).count();
@@ -121,10 +129,12 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
         std::cerr << "[HarnessRunner] Không tìm thấy evaluator: "
                   << task.eval_type << "\n";
         result.eval_feedback = "Evaluator không hợp lệ: " + task.eval_type;
+        result.trajectory = current_trajectory_;
         return result;
     }
 
-    auto eval_result = opt_evaluator.value()->evaluate(result.agent_output, task.expected_keywords);
+    std::string expected_param = (task.eval_type == "functional") ? task.eval_script : task.expected_keywords;
+    auto eval_result = opt_evaluator.value()->evaluate(result.agent_output, expected_param);
     if (eval_result.has_value()) {
         result.eval_success  = eval_result->is_passed;
         result.eval_score    = eval_result->score;
@@ -138,6 +148,7 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
               << " | " << (result.eval_success ? "PASS" : "FAIL")
               << " | " << result.eval_feedback << "\n";
 
+    result.trajectory = current_trajectory_;
     return result;
 }
 
@@ -147,6 +158,7 @@ bool HarnessRunner::exportResults(const std::vector<TaskRunResult>& results) con
     // Tạo thư mục output nếu chưa có
     std::filesystem::create_directories(output_dir_);
 
+    // 1. Xuất tổng kết eval_results.json
     std::string filepath = output_dir_ + "/eval_results.json";
     std::ofstream out(filepath);
     if (!out.is_open()) {
@@ -154,7 +166,6 @@ bool HarnessRunner::exportResults(const std::vector<TaskRunResult>& results) con
         return false;
     }
 
-    // Xuất JSON bằng nlohmann/json
     nlohmann::json j;
     j["success_rate"] = computeSuccessRate(results);
     j["total_tasks"]  = results.size();
@@ -171,10 +182,75 @@ bool HarnessRunner::exportResults(const std::vector<TaskRunResult>& results) con
         });
     }
     j["results"] = results_arr;
-
     out << j.dump(2) << "\n";
+    std::cout << "[HarnessRunner] Kết quả tổng kết đã lưu tại: " << filepath << "\n";
 
-    std::cout << "[HarnessRunner] Kết quả đã lưu tại: " << filepath << "\n";
+    // 2. Xuất trajectory_{task_id}.json cho từng task
+    for (const auto& r : results) {
+        nlohmann::json traj_json;
+        traj_json["task_id"] = r.task_id;
+        traj_json["model"] = "gemma4:e4b";
+        traj_json["success"] = r.eval_success;
+
+        int total_tokens = 0;
+        nlohmann::json steps_arr = nlohmann::json::array();
+
+        for (size_t i = 0; i < r.trajectory.size(); ++i) {
+            const auto& step = r.trajectory[i];
+            total_tokens += step.tokens_used;
+
+            nlohmann::json step_json;
+            step_json["step_id"] = static_cast<int>(i);
+            step_json["thought"] = step.thought;
+
+            // Parse action to check if it's JSON or formatted like calculator("15*17")
+            nlohmann::json action_obj;
+            std::string act = step.action;
+            try {
+                auto parsed_act = nlohmann::json::parse(act);
+                if (parsed_act.is_object()) {
+                    action_obj = parsed_act;
+                } else {
+                    throw std::runtime_error("not object");
+                }
+            } catch (...) {
+                size_t open_paren = act.find('(');
+                size_t close_paren = act.rfind(')');
+                if (open_paren != std::string::npos && close_paren != std::string::npos && close_paren > open_paren) {
+                    std::string tool = act.substr(0, open_paren);
+                    std::string args = act.substr(open_paren + 1, close_paren - open_paren - 1);
+                    action_obj["type"] = "tool_call";
+                    action_obj["tool"] = tool;
+                    action_obj["args"] = args;
+                } else {
+                    action_obj["type"] = "tool_call";
+                    action_obj["tool"] = act;
+                    action_obj["args"] = "";
+                }
+            }
+
+            step_json["action"] = action_obj;
+            step_json["tool_result"] = step.result;
+            step_json["tokens_used"] = step.tokens_used;
+            step_json["latency_ms"] = step.latency_ms;
+
+            steps_arr.push_back(step_json);
+        }
+
+        traj_json["total_tokens"] = total_tokens;
+        traj_json["total_time_ms"] = static_cast<int>(r.latency_ms);
+        traj_json["steps"] = steps_arr;
+
+        std::string task_file_path = output_dir_ + "/trajectory_" + r.task_id + ".json";
+        std::ofstream task_out(task_file_path);
+        if (task_out.is_open()) {
+            task_out << traj_json.dump(2) << "\n";
+            std::cout << "[HarnessRunner] Đã xuất trajectory cho task " << r.task_id << " tại: " << task_file_path << "\n";
+        } else {
+            std::cerr << "[HarnessRunner] Không thể tạo file: " << task_file_path << "\n";
+        }
+    }
+
     return true;
 }
 

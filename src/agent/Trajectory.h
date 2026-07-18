@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+namespace oop_agent {
+
 // Một bước trong agent run
 struct Step {
   int step_number;          // bước thứ mấy
@@ -23,3 +25,6 @@ struct Trajectory {
   double total_latency_ms;  // tổng thời gian chạy
   int total_tokens;         // tổng token toàn run
 };
+
+} // namespace oop_agent
+
