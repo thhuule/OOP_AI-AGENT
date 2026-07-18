@@ -8,8 +8,43 @@ namespace oop_agent {
 void AgentLoop::register_tool(std::shared_ptr<Tool> tool) {
     if (tool) {
         tools_.push_back(tool);
-        std::cout << "[AgentLoop] Đã nạp công cụ thành công: " << tool->get_name() << std::endl;
+        std::cout << "[AgentLoop] Đã nạp công cụ: " << tool->get_name() << std::endl;
     }
+}
+
+bool AgentLoop::parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args) {
+    try {
+        // Tìm block JSON trong phản hồi của LLM[cite: 15]
+        std::regex json_block_regex(R"(```(?:json)?\s*([\s\S]*?)\s*```)");
+        std::smatch match;
+        std::string json_str = llm_text;
+        
+        if (std::regex_search(llm_text, match, json_block_regex)) {
+            json_str = match[1].str();
+        }
+
+        auto j = json::parse(json_str);
+        if (j.contains("tool") && j.contains("args")) {
+            tool_name = j["tool"].get<std::string>();
+            if (j["args"].is_string()) {
+                tool_args = j["args"].get<std::string>();
+            } else {
+                tool_args = j["args"].dump();
+            }
+            return true;
+        }
+    } catch (...) {
+        // Tự động chuyển sang phương án Fallback Regex nếu chuỗi JSON lỗi định dạng[cite: 15]
+    }
+
+    // Fallback sang Regex quét mẫu {"tool": "...", "args": "..."}[cite: 15]
+    std::regex tool_rgx(R"delim("tool"\s*:\s*"([^"]+)")delim");
+    std::regex args_rgx(R"delim("args"\s*:\s*"([^"]+)")delim");
+    std::smatch m;
+    if (std::regex_search(llm_text, m, tool_rgx)) tool_name = m[1].str();
+    if (std::regex_search(llm_text, m, args_rgx)) tool_args = m[1].str();
+
+    return !tool_name.empty();
 }
 std::shared_ptr<Tool>
 AgentLoop::find_tool(std::string_view name)

@@ -1,7 +1,9 @@
 #include "tools/MemoryTool.h"
 #include <iostream>
+#include <memory>
 
-using namespace oop_agent;
+int main() {
+    std::cout << "=== BẮT ĐẦU KIỂM THỬ VỚI OLLAMA TỪ XA (PINGGY) ===" << std::endl;
 
 int main()
 {
