@@ -82,26 +82,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
         LLMConfig config;
         // Giá trị mặc định
         config.model_name = "gemma4:e4b";
-        config.api_url = "http://localhost:11434/api/chat";
-
-        // Thử load động từ config.json
-        std::ifstream config_file("config.json");
-        if (!config_file.is_open()) {
-            config_file.open("../config.json"); // Trong trường hợp chạy từ thư mục build/
-        }
-        if (config_file.is_open()) {
-            try {
-                auto j = json::parse(config_file);
-                if (j.contains("model_name")) {
-                    config.model_name = j["model_name"].get<std::string>();
-                }
-                if (j.contains("api_url")) {
-                    config.api_url = j["api_url"].get<std::string>();
-                }
-            } catch (...) {
-                // Nếu parse lỗi thì giữ nguyên mặc định
-            }
-        }
+        config.api_url = "http://oihnt-35-233-204-204.free.pinggy.net/api/chat";
 
         // a. Gọi mô hình LLM[cite: 15]
         auto response = client_->generate_chat(memory_, config);
