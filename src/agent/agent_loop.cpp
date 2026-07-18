@@ -64,6 +64,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
                      "Nếu đã có câu trả lời cuối cùng, hãy ghi nhận:\n"
                      "{\"tool\": \"final_answer\", \"args\": \"nội_dung_câu_trả_lời_của_bạn\"}";
 
+    std::cout << "[AgentLoop] System prompt: " << system_prompt << std::endl;
     memory_.push_back(Message{"system", system_prompt, {}});
     
     // 2. Add instruction ban đầu vào bộ nhớ thoại[cite: 15]
@@ -126,7 +127,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
             memory_.push_back(Message{"user", "Observation: " + observation, {}});
         } else {
             // Đưa thông tin nhắc nhở định dạng vào bộ nhớ để LLM sửa sai ở bước kế tiếp
-            memory_.push_back(Message{"user", "Observation: Lỗi định dạng JSON ReAct. Vui lòng gửi lại cấu trúc dạng {\"tool\": \"...\", \"args\": \"...\"}"});
+            memory_.push_back(Message{"user", "Observation: Lỗi định dạng JSON ReAct. Vui lòng gửi lại cấu trúc dạng {\"tool\": \"...\", \"args\": \"...\"}", {}});
         }
     }
 

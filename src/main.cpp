@@ -48,8 +48,8 @@ int main() {
 
   // Khởi tạo các thành phần
   auto mock_client = std::make_shared<MockLLMClient>();
-  auto actual_loader = std::make_shared<oop_agent::SkillLoader>("src/skills");
-  // Dùng luôn class thật của bạn C
+  auto actual_loader = std::make_shared<oop_agent::SkillLoader>("../src/skills");
+  actual_loader->loadAll(); // Load tất cả skill .md từ thư mục
 
   // Khởi tạo AgentLoop của bạn A
   oop_agent::AgentLoop agent(mock_client);
