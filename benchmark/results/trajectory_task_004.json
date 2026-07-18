@@ -2,7 +2,7 @@
   "model": "gemma4:e4b",
   "steps": [],
   "success": false,
-  "task_id": "task_001",
-  "total_time_ms": 107,
+  "task_id": "task_004",
+  "total_time_ms": 80,
   "total_tokens": 0
 }
