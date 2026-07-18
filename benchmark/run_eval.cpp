@@ -19,7 +19,7 @@ int main() {
   agent.register_tool(std::make_shared<oop_agent::CalculatorTool>());
 
   // 3. Setup SkillLoader
-  auto skill_loader = std::make_shared<oop_agent::SkillLoader>("src/skills");
+  auto skill_loader = std::make_shared<oop_agent::SkillLoader>("../src/skills");
   skill_loader->loadAll();
   agent.set_skill_loader(skill_loader);
 
