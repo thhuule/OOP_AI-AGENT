@@ -1,5 +1,6 @@
 #include "agent_loop.h"
 #include <iostream>
+#include <regex>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -14,7 +15,7 @@ void AgentLoop::register_tool(std::shared_ptr<Tool> tool) {
 
 bool AgentLoop::parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args) {
     try {
-        // Tìm block JSON trong phản hồi của LLM[cite: 15]
+        // Tìm block JSON trong phản hồi của LLM
         std::regex json_block_regex(R"(```(?:json)?\s*([\s\S]*?)\s*```)");
         std::smatch match;
         std::string json_str = llm_text;
@@ -24,22 +25,29 @@ bool AgentLoop::parse_tool_call(const std::string& llm_text, std::string& tool_n
         }
 
         auto j = json::parse(json_str);
-        if (j.contains("tool") && j.contains("args")) {
+        std::string args_key = "";
+        if (j.contains("args")) {
+            args_key = "args";
+        } else if (j.contains("arguments")) {
+            args_key = "arguments";
+        }
+
+        if (j.contains("tool") && !args_key.empty()) {
             tool_name = j["tool"].get<std::string>();
-            if (j["args"].is_string()) {
-                tool_args = j["args"].get<std::string>();
+            if (j[args_key].is_string()) {
+                tool_args = j[args_key].get<std::string>();
             } else {
-                tool_args = j["args"].dump();
+                tool_args = j[args_key].dump();
             }
             return true;
         }
     } catch (...) {
-        // Tự động chuyển sang phương án Fallback Regex nếu chuỗi JSON lỗi định dạng[cite: 15]
+        // Tự động chuyển sang phương án Fallback Regex nếu chuỗi JSON lỗi định dạng
     }
 
-    // Fallback sang Regex quét mẫu {"tool": "...", "args": "..."}[cite: 15]
+    // Fallback sang Regex quét mẫu {"tool": "...", "args/arguments": "..."}
     std::regex tool_rgx(R"delim("tool"\s*:\s*"([^"]+)")delim");
-    std::regex args_rgx(R"delim("args"\s*:\s*"([^"]+)")delim");
+    std::regex args_rgx(R"delim("(?:args|arguments)"\s*:\s*"([^"]+)")delim");
     std::smatch m;
     if (std::regex_search(llm_text, m, tool_rgx)) tool_name = m[1].str();
     if (std::regex_search(llm_text, m, args_rgx)) tool_args = m[1].str();
@@ -67,10 +75,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps)
 
     memory_.clear();
 
-    memory_.push_back(
-        Message{
-            "system",
-    R"(Bạn là AI Agent.
+    std::string system_prompt = R"(Bạn là AI Agent.
 
     Available tools:
     - calculator
@@ -92,7 +97,16 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps)
     Sau khi nhận được Observation từ Tool,
     hãy trả lời người dùng bằng ngôn ngữ tự nhiên.
 
-    Không gọi Tool lần thứ hai nếu đã có Observation.)",
+    Không gọi Tool lần thứ hai nếu đã có Observation.)";
+
+    if (skill_loader_) {
+        system_prompt += "\n\nSkills/System Context:\n" + skill_loader_->getSystemPrompt();
+    }
+
+    memory_.push_back(
+        Message{
+            "system",
+            system_prompt,
             {}
         });
 
@@ -146,35 +160,10 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps)
         // Thử parse JSON xem có phải Tool Call không
         //----------------------------------------------------
 
-        try
+        std::string tool_name;
+        std::string arguments;
+        if (parse_tool_call(llm_text, tool_name, arguments))
         {
-            json j =
-                json::parse(llm_text);
-
-            if (!j.contains("tool") ||
-                !j.contains("arguments"))
-            {
-                final_answer =
-                    "Invalid Tool JSON.";
-
-                break;
-            }
-
-            if (!j["tool"].is_string() ||
-                !j["arguments"].is_string())
-            {
-                final_answer =
-                    "Invalid Tool JSON.";
-
-                break;
-            }
-
-            std::string tool_name =
-                j["tool"].get<std::string>();
-
-            std::string arguments =
-                j["arguments"].get<std::string>();
-
             auto tool =
                 find_tool(tool_name);
 
@@ -217,10 +206,15 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps)
                 {}
             });
 
+            if (step_hook_)
+            {
+                step_hook_(llm_text, tool_name + "(" + arguments + ")", result.value());
+            }
+
             // Tiếp tục vòng lặp để LLM đọc Observation
             continue;
         }
-        catch (const json::exception&)
+        else
         {
             //------------------------------------------------
             // Không phải JSON -> coi như câu trả lời cuối
@@ -234,6 +228,11 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps)
                 });
 
             final_answer = llm_text;
+
+            if (step_hook_)
+            {
+                step_hook_(llm_text, "None", "");
+            }
 
             break;
         }
