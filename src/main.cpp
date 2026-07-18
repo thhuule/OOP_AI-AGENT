@@ -2,12 +2,11 @@
 #include <iostream>
 #include <memory>
 
-int main() {
-    std::cout << "=== BẮT ĐẦU KIỂM THỬ VỚI OLLAMA TỪ XA (PINGGY) ===" << std::endl;
-
 int main()
 {
-    MemoryTool memory;
+    std::cout << "=== BẮT ĐẦU KIỂM THỬ VỚI MEMORYTOOL ===" << std::endl;
+
+    oop_agent::MemoryTool memory;
 
     auto result = memory.execute("save I love AI");
 
@@ -20,4 +19,6 @@ int main()
 
     if (search)
         std::cout << *search << '\n';
+
+    return 0;
 }
