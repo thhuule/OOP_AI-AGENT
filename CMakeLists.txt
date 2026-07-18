@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Threads REQUIRED) # Dùng cho Multi-agent Threading [cite: 218]
+find_package(SQLite3 REQUIRED)
 
 # Thu thập source code [cite: 129]
 file(GLOB_RECURSE SOURCE_FILES
@@ -52,6 +53,7 @@ target_link_libraries(OopAgent PRIVATE
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
+    SQLite::SQLite3
 )
 
 target_link_libraries(run_eval PRIVATE 
