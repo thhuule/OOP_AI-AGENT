@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "agent_output": "Đã tính ra kết quả là 255",
+      "feedback": "Khớp tất cả keywords",
+      "latency_ms": 12400.0,
+      "passed": true,
+      "score": 1.0,
+      "task_id": "task_001"
+    }
+  ],
+  "success_rate": 1.0,
+  "total_tasks": 1
+}
