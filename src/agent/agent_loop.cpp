@@ -1,11 +1,8 @@
 #include "agent_loop.h"
 #include <iostream>
-#include <fstream>
-#include <regex>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-
 namespace oop_agent {
 
 void AgentLoop::register_tool(std::shared_ptr<Tool> tool) {
@@ -49,91 +46,202 @@ bool AgentLoop::parse_tool_call(const std::string& llm_text, std::string& tool_n
 
     return !tool_name.empty();
 }
-
-std::string AgentLoop::run(const std::string& instruction, int max_steps) {
-    std::cout << "[AgentLoop] Chạy tác vụ: \"" << instruction << "\"" << std::endl;
-    
-    memory_.clear();
-    
-    // 1. Inject nội dung kỹ năng (Skill) từ SkillLoader vào System Prompt[cite: 15]
-    std::string system_prompt = "Bạn là một AI Agent hoạt động theo chuẩn ReAct loop (Observe -> Think -> Act).\n";
-    if (skill_loader_) {
-        system_prompt += "Dưới đây là các kỹ năng hệ thống bạn có thể áp dụng:\n" + skill_loader_->getSystemPrompt();
+std::shared_ptr<Tool>
+AgentLoop::find_tool(std::string_view name)
+{
+    for (auto& tool : tools_)
+    {
+        if (tool->get_name() == name)
+        {
+            return tool;
+        }
     }
-    system_prompt += "\nỞ mỗi bước, bạn PHẢI phản hồi bằng duy nhất một khối JSON theo định dạng sau:\n"
-                     "{\"tool\": \"tên_công_cụ\", \"args\": \"tham_số_chuỗi\"}\n"
-                     "Nếu đã có câu trả lời cuối cùng, hãy ghi nhận:\n"
-                     "{\"tool\": \"final_answer\", \"args\": \"nội_dung_câu_trả_lời_của_bạn\"}";
 
-    std::cout << "[AgentLoop] System prompt: " << system_prompt << std::endl;
-    memory_.push_back(Message{"system", system_prompt, {}});
-    
-    // 2. Add instruction ban đầu vào bộ nhớ thoại[cite: 15]
-    memory_.push_back(Message{"user", instruction, {}});
+    return nullptr;
+}
+
+std::string AgentLoop::run(const std::string& instruction, int max_steps)
+{
+    std::cout << "[AgentLoop] Bắt đầu xử lý task: \""
+              << instruction << "\"\n";
+
+    memory_.clear();
+
+    memory_.push_back(
+        Message{
+            "system",
+    R"(Bạn là AI Agent.
+
+    Available tools:
+    - calculator
+    - memory
+    - time
+    - json
+    - git
+    - exec
+    - file
+    - websearch
+
+    Nếu cần sử dụng Tool hãy CHỈ trả về JSON:
+
+    {
+        "tool":"<tool_name>",
+        "arguments":"<arguments>"
+    }
+
+    Sau khi nhận được Observation từ Tool,
+    hãy trả lời người dùng bằng ngôn ngữ tự nhiên.
+
+    Không gọi Tool lần thứ hai nếu đã có Observation.)",
+            {}
+        });
+
+    memory_.push_back(
+        Message{
+            "user",
+            instruction,
+            {}
+        });
 
     int current_step = 0;
-    std::string final_answer = "Max steps reached"; // Trạng thái mặc định nếu vượt quá số bước[cite: 15]
+    std::string final_answer = "Không có phản hồi.";
 
-    // 3. Vòng lặp ReAct giới hạn bởi max_steps[cite: 15]
-    while (current_step < max_steps) {
+    while (current_step < max_steps)
+    {
         current_step++;
-        std::cout << "\n--- [ReAct Loop] Bước " << current_step << " / " << max_steps << " ---" << std::endl;
+
+        std::cout
+            << "\n===== Step "
+            << current_step
+            << " =====\n";
 
         LLMConfig config;
-        // Giá trị mặc định
         config.model_name = "gemma4:e4b";
-        config.api_url = "http://oihnt-35-233-204-204.free.pinggy.net/api/chat";
+        config.api_url =
+            "http://vcvou-34-26-174-246.run.pinggy-free.link/api/chat";
 
-        // a. Gọi mô hình LLM[cite: 15]
-        auto response = client_->generate_chat(memory_, config);
-        if (!response.has_value()) {
-            std::cerr << "[AgentLoop] Lỗi kết nối LLM." << std::endl;
+        auto response =
+            client_->generate_chat(memory_, config);
+
+        if (!response)
+        {
+            std::cerr
+                << "[AgentLoop] LLM Error\n";
+
+            final_answer =
+                "LLM connection failed.";
+
             break;
         }
 
-        std::string llm_text = response.value();
-        std::cout << "[LLM]: " << llm_text << std::endl;
-        memory_.push_back(Message{"assistant", llm_text, {}});
+        std::string llm_text =
+            response.value();
 
-        // b. Tiến hành bóc tách lệnh gọi Tool[cite: 15]
-        std::string tool_name, tool_args;
-        bool parse_success = parse_tool_call(llm_text, tool_name, tool_args);
+        std::cout
+            << "[LLM]\n"
+            << llm_text
+            << '\n';
 
-        // e. Gọi StepHook báo cáo tình trạng bước về cho bạn C (nếu có)[cite: 15]
-        if (step_hook_) {
-            step_hook_(llm_text, tool_name, tool_args);
-        }
+        //----------------------------------------------------
+        // Thử parse JSON xem có phải Tool Call không
+        //----------------------------------------------------
 
-        if (parse_success) {
-            // d. Nếu công cụ là câu trả lời cuối cùng -> Kết thúc vòng lặp[cite: 15]
-            if (tool_name == "final_answer") {
-                final_answer = tool_args;
+        try
+        {
+            json j =
+                json::parse(llm_text);
+
+            if (!j.contains("tool") ||
+                !j.contains("arguments"))
+            {
+                final_answer =
+                    "Invalid Tool JSON.";
+
                 break;
             }
 
-            // c. Khởi chạy thực thi tool[cite: 15]
-            std::shared_ptr<Tool> target_tool = nullptr;
-            for (const auto& t : tools_) {
-                if (t->get_name() == tool_name) { target_tool = t; break; }
+            if (!j["tool"].is_string() ||
+                !j["arguments"].is_string())
+            {
+                final_answer =
+                    "Invalid Tool JSON.";
+
+                break;
             }
 
-            std::string observation;
-            if (target_tool) {
-                auto result = target_tool->execute(tool_args);
-                observation = result.value_or("Lỗi thực thi công cụ");
-            } else {
-                observation = "Lỗi: Không tìm thấy công cụ mang tên '" + tool_name + "'";
+            std::string tool_name =
+                j["tool"].get<std::string>();
+
+            std::string arguments =
+                j["arguments"].get<std::string>();
+
+            auto tool =
+                find_tool(tool_name);
+
+            if (!tool)
+            {
+                final_answer =
+                    "Tool not found: " +
+                    tool_name;
+
+                break;
             }
 
-            std::cout << "[Observation]: " << observation << std::endl;
-            memory_.push_back(Message{"user", "Observation: " + observation, {}});
-        } else {
-            // Đưa thông tin nhắc nhở định dạng vào bộ nhớ để LLM sửa sai ở bước kế tiếp
-            memory_.push_back(Message{"user", "Observation: Lỗi định dạng JSON ReAct. Vui lòng gửi lại cấu trúc dạng {\"tool\": \"...\", \"args\": \"...\"}", {}});
+            std::cout
+                << "[Agent] Execute Tool: "
+                << tool_name
+                << '\n';
+
+            auto result =
+                tool->execute(arguments);
+
+            if (!result)
+            {
+                final_answer =
+                    "Tool '" +
+                    tool_name +
+                    "' execution failed.";
+
+                break;
+            }
+
+            std::cout
+                << "[Observation]\n"
+                << result.value()
+                << '\n';
+
+            memory_.push_back(
+            Message{
+                "tool",
+                "Observation: " + result.value(),
+                {}
+            });
+
+            // Tiếp tục vòng lặp để LLM đọc Observation
+            continue;
+        }
+        catch (const json::exception&)
+        {
+            //------------------------------------------------
+            // Không phải JSON -> coi như câu trả lời cuối
+            //------------------------------------------------
+
+            memory_.push_back(
+                Message{
+                    "assistant",
+                    llm_text,
+                    {}
+                });
+
+            final_answer = llm_text;
+
+            break;
         }
     }
 
+    std::cout
+        << "[AgentLoop] Hoàn thành.\n";
+
     return final_answer;
 }
-
 } // namespace oop_agent

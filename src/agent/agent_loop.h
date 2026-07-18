@@ -33,11 +33,8 @@ private:
     std::shared_ptr<LLMClient> client_;
     std::shared_ptr<SkillLoader> skill_loader_ = nullptr;
     std::vector<std::shared_ptr<Tool>> tools_;
-    std::vector<Message> memory_; // Lịch sử hội thoại (Ngữ cảnh hệ thống + Chat history)
-    StepHook step_hook_ = nullptr; // Hook Callback
-
-    // Hàm tiện ích nội bộ để bóc tách thông tin từ phản hồi của Gemma4
-    bool parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args);
+    std::shared_ptr<Tool> find_tool(std::string_view name);
+    std::vector<Message> memory_; // Lưu trữ ngữ cảnh hội thoại (System prompt + History)
 };
 
 } // namespace oop_agent
