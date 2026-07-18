@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace oop_agent {
+
 SkillLoader::SkillLoader(const std::string &skills_dir)
     : skills_dir_(skills_dir) {}
 
@@ -49,3 +51,5 @@ std::string SkillLoader::getSystemPrompt() const {
 std::vector<std::string> SkillLoader::getLoadedSkills() const {
   return loaded_skills_;
 }
+
+} // namespace oop_agent

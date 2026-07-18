@@ -1,0 +1,33 @@
+{
+  "model": "gemma4:e4b",
+  "steps": [
+    {
+      "action": {
+        "args": "15*17",
+        "tool": "calculator",
+        "type": "tool_call"
+      },
+      "latency_ms": 890.0,
+      "step_id": 0,
+      "thought": "Cần tính 15 * 17 trước...",
+      "tokens_used": 312,
+      "tool_result": "255"
+    },
+    {
+      "action": {
+        "args": "capital of Japan",
+        "tool": "web_search",
+        "type": "tool_call"
+      },
+      "latency_ms": 11510.0,
+      "step_id": 1,
+      "thought": "Tìm kiếm thủ đô Nhật Bản...",
+      "tokens_used": 1530,
+      "tool_result": "Tokyo"
+    }
+  ],
+  "success": true,
+  "task_id": "task_001",
+  "total_time_ms": 12400,
+  "total_tokens": 1842
+}
