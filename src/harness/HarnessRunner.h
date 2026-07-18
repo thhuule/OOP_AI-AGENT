@@ -13,6 +13,14 @@ namespace oop_agent {
 // Forward declarations
 class ToolRegistry;
 
+struct TrajectoryStep {
+    std::string thought;
+    std::string action;
+    std::string result;
+    int tokens_used = 0;
+    double latency_ms = 0.0;
+};
+
 /**
  * @brief Kết quả chạy một Task đơn lẻ, bao gồm cả thông tin eval.
  */
@@ -23,6 +31,7 @@ struct TaskRunResult {
     float eval_score = 0.0f;        // Điểm từ Evaluator (0.0 – 1.0)
     std::string eval_feedback;      // Nhận xét chi tiết từ Evaluator
     double latency_ms = 0.0;        // Thời gian chạy task (milliseconds)
+    std::vector<TrajectoryStep> trajectory; // Trajectory của task này
 };
 
 /**
@@ -140,12 +149,6 @@ private:
     // Map evaluator_type → Evaluator instance (Strategy Pattern)
     std::unordered_map<std::string, std::unique_ptr<Evaluator>> evaluators_;
 
-    // Trajectory tạm — ghi lại các step trong lần run hiện tại
-    struct TrajectoryStep {
-        std::string thought;
-        std::string action;
-        std::string result;
-    };
     std::vector<TrajectoryStep> current_trajectory_;
 };
 

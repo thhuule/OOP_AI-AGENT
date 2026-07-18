@@ -30,5 +30,37 @@
     "eval_type": "functional",
     "eval_script": "bash hello.sh | grep Hello && echo PASS",
     "max_steps": 10
+  },
+  {
+    "id": "task_005",
+    "description": "Tính toán và lưu kết quả",
+    "instruction": "Tính 47 * 23 rồi lưu kết quả vào file result.txt",
+    "eval_type": "functional",
+    "eval_script": "test -f result.txt && grep 1081 result.txt && echo PASS",
+    "max_steps": 10
+  },
+  {
+    "id": "task_006",
+    "description": "Tìm kiếm và ghi kết quả",
+    "instruction": "Tìm thủ đô của Nhật Bản rồi ghi vào file capital.txt",
+    "eval_type": "functional",
+    "eval_script": "test -f capital.txt && grep -i tokyo capital.txt && echo PASS",
+    "max_steps": 10
+  },
+  {
+    "id": "task_007",
+    "description": "Đọc file và tính tổng",
+    "instruction": "Đọc file notes.txt, đếm số từ trong đó rồi in ra kết quả",
+    "eval_type": "keyword",
+    "expected_keywords": "words, count",
+    "max_steps": 10
+  },
+  {
+    "id": "task_008",
+    "description": "Chạy script và lưu output",
+    "instruction": "Chạy hello.sh rồi lưu output vào file output.txt",
+    "eval_type": "functional",
+    "eval_script": "test -f output.txt && grep Hello output.txt && echo PASS",
+    "max_steps": 10
   }
 ]

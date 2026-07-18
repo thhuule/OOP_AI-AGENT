@@ -225,6 +225,54 @@ src/client/ollama_client.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/client/ollama_client.cpp.s
 .PHONY : src/client/ollama_client.cpp.s
 
+src/harness/HarnessRunner.o: src/harness/HarnessRunner.cpp.o
+.PHONY : src/harness/HarnessRunner.o
+
+# target to build an object file
+src/harness/HarnessRunner.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.o
+.PHONY : src/harness/HarnessRunner.cpp.o
+
+src/harness/HarnessRunner.i: src/harness/HarnessRunner.cpp.i
+.PHONY : src/harness/HarnessRunner.i
+
+# target to preprocess a source file
+src/harness/HarnessRunner.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.i
+.PHONY : src/harness/HarnessRunner.cpp.i
+
+src/harness/HarnessRunner.s: src/harness/HarnessRunner.cpp.s
+.PHONY : src/harness/HarnessRunner.s
+
+# target to generate assembly for a file
+src/harness/HarnessRunner.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/HarnessRunner.cpp.s
+.PHONY : src/harness/HarnessRunner.cpp.s
+
+src/harness/KeywordEvaluator.o: src/harness/KeywordEvaluator.cpp.o
+.PHONY : src/harness/KeywordEvaluator.o
+
+# target to build an object file
+src/harness/KeywordEvaluator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/KeywordEvaluator.cpp.o
+.PHONY : src/harness/KeywordEvaluator.cpp.o
+
+src/harness/KeywordEvaluator.i: src/harness/KeywordEvaluator.cpp.i
+.PHONY : src/harness/KeywordEvaluator.i
+
+# target to preprocess a source file
+src/harness/KeywordEvaluator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/KeywordEvaluator.cpp.i
+.PHONY : src/harness/KeywordEvaluator.cpp.i
+
+src/harness/KeywordEvaluator.s: src/harness/KeywordEvaluator.cpp.s
+.PHONY : src/harness/KeywordEvaluator.s
+
+# target to generate assembly for a file
+src/harness/KeywordEvaluator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/OopAgent.dir/build.make CMakeFiles/OopAgent.dir/src/harness/KeywordEvaluator.cpp.s
+.PHONY : src/harness/KeywordEvaluator.cpp.s
+
 src/tools/CalculatorTool.o: src/tools/CalculatorTool.cpp.o
 .PHONY : src/tools/CalculatorTool.o
 
@@ -366,6 +414,12 @@ help:
 	@echo "... src/client/ollama_client.o"
 	@echo "... src/client/ollama_client.i"
 	@echo "... src/client/ollama_client.s"
+	@echo "... src/harness/HarnessRunner.o"
+	@echo "... src/harness/HarnessRunner.i"
+	@echo "... src/harness/HarnessRunner.s"
+	@echo "... src/harness/KeywordEvaluator.o"
+	@echo "... src/harness/KeywordEvaluator.i"
+	@echo "... src/harness/KeywordEvaluator.s"
 	@echo "... src/tools/CalculatorTool.o"
 	@echo "... src/tools/CalculatorTool.i"
 	@echo "... src/tools/CalculatorTool.s"
