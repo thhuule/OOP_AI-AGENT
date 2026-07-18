@@ -1,41 +1,30 @@
-#include "agent/SkillLoader.h"
 #include "agent/agent_loop.h"
 #include "client/ollama_client.h"
-#include "harness/HarnessRunner.h"
 #include "tools/CalculatorTool.h"
-#include "tools/ExecTool.h"
-#include "tools/FileTool.h"
+#include "agent/SkillLoader.h"
 #include <iostream>
-
+#include <memory>
 
 int main() {
-  // 1. Setup LLM client
-  auto client = std::make_shared<oop_agent::OllamaClient>();
+    // 1. Khởi tạo Client Ollama thật với model cụ thể
+    // 1. Khởi tạo Client Ollama thật với địa chỉ URL và model
+auto ollama_client = std::make_shared<oop_agent::OllamaClient>(
+    "http://oihnt-35-233-204-204.free.pinggy.net",
+    "gemma4:e4b"
+);
 
-  // 2. Setup AgentLoop + tools
-  oop_agent::AgentLoop agent(client);
-  agent.register_tool(std::make_shared<oop_agent::ExecTool>());
-  agent.register_tool(std::make_shared<oop_agent::FileTool>());
-  agent.register_tool(std::make_shared<oop_agent::CalculatorTool>());
+    // 2. Khởi tạo Agent
+    oop_agent::AgentLoop agent(ollama_client);
 
-  // 3. Setup SkillLoader
-  auto skill_loader = std::make_shared<oop_agent::SkillLoader>("../src/skills");
-  skill_loader->loadAll();
-  agent.set_skill_loader(skill_loader);
+    // 3. Nạp SkillLoader thật từ bạn C
+    agent.set_skill_loader(std::make_shared<SkillLoader>("src/skills"));
 
-  // 4. Setup HarnessRunner
-  oop_agent::HarnessRunner harness("benchmark/tasks.json");
-  harness.loadTasks();
+    // 4. Đăng ký các công cụ thật
+    agent.register_tool(std::make_shared<oop_agent::CalculatorTool>());
 
-  // 5. Inject StepHook
-  agent.set_step_hook(harness.createStepHook());
+    // 5. Chạy eval với câu lệnh thật
+    std::string final_res = agent.run("Tính tích của 15 và 17 bằng công cụ calculator", 5);
 
-  // Kết nối Agent vào Harness
-  harness.set_agent(&agent);
-
-  // 6. Chạy benchmark
-  auto results = harness.runAll();
-  harness.exportResults(results);
-
-  return 0;
+    std::cout << "=> KẾT QUẢ EVALUATE: " << final_res << std::endl;
+    return 0;
 }
