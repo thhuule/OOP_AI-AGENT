@@ -59,10 +59,12 @@ bool HarnessRunner::loadTasks() {
         task.eval_type         = t.value("eval_type", "");
         task.expected_keywords = t.value("expected_keywords", "");
         task.eval_script       = t.value("eval_script", "");
+        task.category          = t.value("category", "simple");
         task.max_steps         = t.value("max_steps", 10);
 
         if (!task.id.empty()) {
-            std::cout << "[HarnessRunner] Loaded task: " << task.id << "\n";
+            std::cout << "[HarnessRunner] Loaded task: " << task.id
+                      << " [" << task.category << "]\n";
             tasks_.push_back(std::move(task));
         }
     }
@@ -84,22 +86,60 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
     std::vector<TaskRunResult> results;
     results.reserve(tasks_.size());
 
+    int total = static_cast<int>(tasks_.size());
+    int current = 0;
+    int running_passed = 0;
+
     for (const auto& task : tasks_) {
+        current++;
         std::cout << "\n────────────────────────────────────────\n";
-        std::cout << "[HarnessRunner] Chạy task: " << task.id
-                  << " — " << task.description << "\n";
+        std::cout << "[" << current << "/" << total << "] Running "
+                  << task.id << " — " << task.description
+                  << " [" << task.category << "]\n";
 
         auto result = runSingle(task);
+        if (result.eval_success) running_passed++;
+
+        std::cout << "[Progress] " << running_passed << "/" << current
+                  << " passed so far\n";
+
         results.push_back(std::move(result));
     }
 
-    // In tổng kết
-    float success_rate = computeSuccessRate(results);
+    // ── Tổng kết theo category ──
     std::cout << "\n════════════════════════════════════════\n";
-    std::cout << "[HarnessRunner] Success rate: "
-              << static_cast<int>(success_rate * 100) << "% ("
-              << static_cast<int>(success_rate * results.size()) << "/"
-              << results.size() << ")\n";
+    std::cout << "           BENCHMARK SUMMARY\n";
+    std::cout << "════════════════════════════════════════\n";
+
+    // Đếm pass/total cho mỗi category
+    auto count_category = [&](const std::string& cat) -> std::pair<int,int> {
+        int passed = 0, total_cat = 0;
+        for (size_t i = 0; i < results.size(); ++i) {
+            if (tasks_[i].category == cat) {
+                total_cat++;
+                if (results[i].eval_success) passed++;
+            }
+        }
+        return {passed, total_cat};
+    };
+
+    auto [simple_pass, simple_total]   = count_category("simple");
+    auto [medium_pass, medium_total]   = count_category("medium");
+    auto [hard_pass, hard_total]       = count_category("hard");
+
+    if (simple_total > 0)
+        std::cout << "  Simple tasks:  " << simple_pass << "/" << simple_total << " passed\n";
+    if (medium_total > 0)
+        std::cout << "  Medium tasks:  " << medium_pass << "/" << medium_total << " passed\n";
+    if (hard_total > 0)
+        std::cout << "  Hard tasks:    " << hard_pass   << "/" << hard_total   << " passed\n";
+
+    float success_rate = computeSuccessRate(results);
+    std::cout << "  ────────────────────────────────\n";
+    std::cout << "  Total: " << (simple_pass + medium_pass + hard_pass)
+              << "/" << results.size()
+              << " passed (" << static_cast<int>(success_rate * 100) << "%)\n";
+    std::cout << "════════════════════════════════════════\n";
 
     return results;
 }
@@ -189,7 +229,24 @@ bool HarnessRunner::exportResults(const std::vector<TaskRunResult>& results) con
     for (const auto& r : results) {
         nlohmann::json traj_json;
         traj_json["task_id"] = r.task_id;
-        traj_json["model"] = "gemma4:e4b";
+
+        // Đọc model name từ config.json thay vì hardcode
+        std::string model_name = "gemini-2.5-flash";
+        {
+            std::string cfg_path = "config.json";
+            if (!std::filesystem::exists(cfg_path)) cfg_path = "../config.json";
+            if (std::filesystem::exists(cfg_path)) {
+                std::ifstream cfg(cfg_path);
+                if (cfg.is_open()) {
+                    try {
+                        auto j_cfg = nlohmann::json::parse(cfg);
+                        if (j_cfg.contains("model")) model_name = j_cfg["model"].get<std::string>();
+                        else if (j_cfg.contains("model_name")) model_name = j_cfg["model_name"].get<std::string>();
+                    } catch (...) {}
+                }
+            }
+        }
+        traj_json["model"] = model_name;
         traj_json["success"] = r.eval_success;
 
         int total_tokens = 0;

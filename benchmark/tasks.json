@@ -5,6 +5,7 @@
     "instruction": "Liệt kê tất cả file trong thư mục hiện tại",
     "eval_type": "keyword",
     "expected_keywords": ".cpp, .h",
+    "category": "simple",
     "max_steps": 10
   },
   {
@@ -13,6 +14,7 @@
     "instruction": "Tạo file notes.txt với nội dung 'Agent test run'",
     "eval_type": "keyword",
     "expected_keywords": "Agent test run",
+    "category": "simple",
     "max_steps": 10
   },
   {
@@ -21,6 +23,7 @@
     "instruction": "Đọc nội dung file notes.txt",
     "eval_type": "keyword",
     "expected_keywords": "Agent test run",
+    "category": "simple",
     "max_steps": 10
   },
   {
@@ -29,6 +32,7 @@
     "instruction": "Chạy file hello.sh và cho biết output",
     "eval_type": "functional",
     "eval_script": "bash hello.sh | grep Hello && echo PASS",
+    "category": "simple",
     "max_steps": 10
   },
   {
@@ -37,6 +41,7 @@
     "instruction": "Tính 47 * 23 rồi lưu kết quả vào file result.txt",
     "eval_type": "functional",
     "eval_script": "test -f result.txt && grep 1081 result.txt && echo PASS",
+    "category": "medium",
     "max_steps": 10
   },
   {
@@ -45,6 +50,7 @@
     "instruction": "Tìm thủ đô của Nhật Bản rồi ghi vào file capital.txt",
     "eval_type": "functional",
     "eval_script": "test -f capital.txt && grep -i tokyo capital.txt && echo PASS",
+    "category": "medium",
     "max_steps": 10
   },
   {
@@ -53,6 +59,7 @@
     "instruction": "Đọc file notes.txt, đếm số từ trong đó rồi in ra kết quả",
     "eval_type": "keyword",
     "expected_keywords": "words, count",
+    "category": "medium",
     "max_steps": 10
   },
   {
@@ -61,6 +68,25 @@
     "instruction": "Chạy hello.sh rồi lưu output vào file output.txt",
     "eval_type": "functional",
     "eval_script": "test -f output.txt && grep Hello output.txt && echo PASS",
+    "category": "medium",
     "max_steps": 10
+  },
+  {
+    "id": "task_009",
+    "description": "Tìm thông tin từ web và tổng hợp tính toán",
+    "instruction": "Tìm số dân thành phố Hà Nội và Hồ Chí Minh, tính tổng rồi lưu vào hanoi_hcm.txt",
+    "eval_type": "functional",
+    "eval_script": "test -f hanoi_hcm.txt && echo PASS",
+    "category": "hard",
+    "max_steps": 15
+  },
+  {
+    "id": "task_010",
+    "description": "Phân tích file mã nguồn và tạo báo cáo summary",
+    "instruction": "Đọc tất cả file .h trong thư mục src/harness, đếm tổng số dòng code và ghi vào report.txt",
+    "eval_type": "functional",
+    "eval_script": "test -f report.txt && echo PASS",
+    "category": "hard",
+    "max_steps": 15
   }
 ]
