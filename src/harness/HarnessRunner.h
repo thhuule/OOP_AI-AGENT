@@ -24,6 +24,7 @@ struct TrajectoryStep {
 
 /**
  * @brief Kết quả chạy một Task đơn lẻ, bao gồm cả thông tin eval.
+ HarnessRunner là post-mortem analyzer, chạy xong xuất ra file json
  */
 struct TaskRunResult {
   std::string task_id;                    // ID của task đã chạy
