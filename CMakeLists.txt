@@ -21,6 +21,7 @@ file(GLOB_RECURSE SOURCE_FILES
     "src/client/*.cpp"
     "src/tools/*.cpp"
     "src/harness/*.cpp"
+    "src/multiagent/*.cpp"
 )
 
 add_executable(OopAgent
@@ -37,10 +38,16 @@ add_executable(OopAgent
     src/tools/TimeTool.cpp
     src/tools/JsonTool.cpp
     src/tools/GitTool.cpp
+    src/multiagent/MultiAgentRunner.cpp
 )
 
 add_executable(run_eval
     benchmark/run_eval.cpp
+    ${SOURCE_FILES}
+)
+
+add_executable(test_multi_agent
+    benchmark/test_multi_agent.cpp
     ${SOURCE_FILES}
 )
 
@@ -52,6 +59,7 @@ set(common_include_dirs
 
 target_include_directories(OopAgent PRIVATE ${common_include_dirs})
 target_include_directories(run_eval PRIVATE ${common_include_dirs})
+target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
 
 target_link_libraries(OopAgent PRIVATE 
     CURL::libcurl
@@ -61,6 +69,13 @@ target_link_libraries(OopAgent PRIVATE
 )
 
 target_link_libraries(run_eval PRIVATE 
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
+
+target_link_libraries(test_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
