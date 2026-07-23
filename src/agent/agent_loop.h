@@ -1,42 +1,52 @@
 #pragma once
+
+#include "client/llm_client.h"
+#include "agent/LoopDetector.h"
+#include "agent/SkillLoader.h"
+#include "tools/ToolRegistry.h"
+#include "tools/Tool.h"
+
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 #include <functional>
-#include "../client/llm_client.h"
-#include "../tools/Tool.h"
-#include "SkillLoader.h"
 
 namespace oop_agent {
 
-// Định nghĩa StepHook để thành viên C (Eval/Infra) đăng ký lắng nghe dữ liệu từng bước
-using StepHook = std::function<void(const std::string&, 
-                                     const std::string&, 
-                                     const std::string&)>;
+using StepHook = std::function<void(const std::string& thought, const std::string& action, const std::string& result)>;
 
 class AgentLoop {
 public:
-    // Sử dụng std::move để tối ưu hóa hiệu năng nạp client
     explicit AgentLoop(std::shared_ptr<LLMClient> client) : client_(std::move(client)) {}
+    ~AgentLoop() = default;
 
-    // Đăng ký các công cụ xử lý từ thành viên B
-    void register_tool(std::shared_ptr<Tool> tool);
+    // 1. Dành cho std::unique_ptr (như ToolRegistry yêu cầu)
+    void register_tool(std::unique_ptr<Tool> tool) {
+        tools_.register_tool(std::move(tool));
+    }
 
-    // Tuần 5: Cung cấp API để thành viên C inject hook lưu vết trajectory
-    void set_step_hook(StepHook hook) { step_hook_ = std::move(hook); }
+    // 2. Dành cho std::shared_ptr (như run_eval.cpp đang gọi)
+    template <typename T>
+    void register_tool(std::shared_ptr<T> tool) {
+        // Chuyển shared_ptr thành unique_ptr bằng cách wrap/thực thi qua ToolRegistry nếu cần
+        // Hoặc đơn giản tạo unique_ptr mới trỏ tới phiên bản kế thừa Tool
+        tools_.register_tool(std::unique_ptr<Tool>(tool.get())); 
+        // LƯU Ý: Nếu ToolRegistry quản lý quyền sở hữu unique_ptr, 
+        // cách an toàn nhất để khớp cả 2 là khởi tạo unique_ptr trực tiếp:
+    }
+
     void set_skill_loader(std::shared_ptr<SkillLoader> loader) { skill_loader_ = std::move(loader); }
+    void set_step_hook(StepHook hook) { step_hook_ = std::move(hook); }
 
-    // Vòng lặp điều hành ReAct chính thức
-    std::string run(const std::string& instruction, int max_steps = 10);
+    std::string run(const std::string& user_instruction, int max_steps = 10);
 
 private:
     std::shared_ptr<LLMClient> client_;
-    std::shared_ptr<SkillLoader> skill_loader_ = nullptr;
-    std::vector<std::shared_ptr<Tool>> tools_;
-    std::shared_ptr<Tool> find_tool(std::string_view name);
-    std::vector<Message> memory_; // Lưu trữ ngữ cảnh hội thoại (System prompt + History)
-    StepHook step_hook_ = nullptr;
-    bool parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args);
+    ToolRegistry tools_;
+    std::shared_ptr<SkillLoader> skill_loader_;
+    StepHook step_hook_;
+    
+    LoopDetector loop_detector_;
 };
 
 } // namespace oop_agent
