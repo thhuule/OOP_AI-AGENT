@@ -32,11 +32,22 @@ void MultiAgentRunner::startAll() {
 
     std::cout << "[MultiAgentRunner] Khởi chạy " << agents_.size() << " Sub-Agents...\n";
 
+    // Khởi chạy thread điều phối (Dispatcher) trung chuyển tin nhắn từ global_bus_ đến các agent
+    dispatcher_thread_ = std::thread([this]() {
+        while (running_) {
+            auto msg = global_bus_.pop(100);
+            if (msg.has_value()) {
+                sendMessage(msg.value());
+            }
+        }
+    });
+
     for (auto& [id, config] : agents_) {
         auto* in_q = in_queues_[id].get();
+        auto task_func = config.task_func; // Copy task_func ra biến cục bộ trước khi spawn thread
 
         // Spawn thread riêng cho từng Sub-Agent
-        worker_threads_.emplace_back([this, id, func = config.task_func, in_q]() {
+        worker_threads_.emplace_back([this, id, func = std::move(task_func), in_q]() {
             std::cout << "[SubAgent:" << id << "] Thread đã khởi động.\n";
             try {
                 // Thực thi hàm công việc của Agent
@@ -49,7 +60,7 @@ void MultiAgentRunner::startAll() {
     }
 }
 
-void MultiAgentRunner::sendMessage(const Message& msg) {
+void MultiAgentRunner::sendMessage(const AgentMessage& msg) {
     if (msg.receiver == "broadcast") {
         for (auto& [id, queue] : in_queues_) {
             queue->push(msg);
@@ -75,7 +86,12 @@ void MultiAgentRunner::stopAndJoinAll() {
     }
     global_bus_.stop();
 
-    // 2. Join tất cả worker threads
+    // 2. Join thread điều phối (Dispatcher)
+    if (dispatcher_thread_.joinable()) {
+        dispatcher_thread_.join();
+    }
+
+    // 3. Join tất cả worker threads
     for (auto& t : worker_threads_) {
         if (t.joinable()) {
             t.join();

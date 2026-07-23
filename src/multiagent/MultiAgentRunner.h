@@ -51,7 +51,7 @@ public:
     /**
      * @brief Gửi tin nhắn đến một Agent cụ thể hoặc broadcast.
      */
-    void sendMessage(const Message& msg);
+    void sendMessage(const AgentMessage& msg);
 
     /**
      * @brief Chờ tất cả Sub-Agent hoàn thành nhiệm vụ và dọn dẹp threads.
@@ -69,6 +69,7 @@ private:
     MessageQueue global_bus_; // Bus tin nhắn chung
 
     std::vector<std::thread> worker_threads_;
+    std::thread dispatcher_thread_;
     std::atomic<bool> running_{false};
 };
 

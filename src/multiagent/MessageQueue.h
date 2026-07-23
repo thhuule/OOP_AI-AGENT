@@ -23,7 +23,7 @@ public:
     /**
      * @brief Gửi một tin nhắn vào hàng đợi.
      */
-    void push(Message msg) {
+    void push(AgentMessage msg) {
         {
             std::lock_guard<std::mutex> lock(mutex_);
             queue_.push(std::move(msg));
@@ -33,9 +33,9 @@ public:
 
     /**
      * @brief Lấy tin nhắn ra khỏi hàng đợi (chờ tối đa timeout_ms).
-     * @return Message nếu có, hoặc std::nullopt nếu hết thời gian chờ.
+     * @return AgentMessage nếu có, hoặc std::nullopt nếu hết thời gian chờ.
      */
-    std::optional<Message> pop(int timeout_ms = 500) {
+    std::optional<AgentMessage> pop(int timeout_ms = 500) {
         std::unique_lock<std::mutex> lock(mutex_);
         if (cv_.wait_for(lock, std::chrono::milliseconds(timeout_ms), [this] {
             return !queue_.empty() || stopped_;
@@ -43,7 +43,7 @@ public:
             if (stopped_ && queue_.empty()) {
                 return std::nullopt;
             }
-            Message msg = std::move(queue_.front());
+            AgentMessage msg = std::move(queue_.front());
             queue_.pop();
             return msg;
         }
@@ -80,7 +80,7 @@ public:
 private:
     mutable std::mutex mutex_;
     std::condition_variable cv_;
-    std::queue<Message> queue_;
+    std::queue<AgentMessage> queue_;
     bool stopped_ = false;
 };
 
