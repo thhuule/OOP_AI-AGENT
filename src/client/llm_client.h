@@ -29,10 +29,12 @@ struct Message {
 
 // 3. Khai báo cấu hình tham số
 struct LLMConfig {
-    std::string model_name = "gemma4"; 
-    std::string api_url = "http://localhost:11434/api/chat"; 
+    std::string provider = "gemini";           // "gemini" hoặc "ollama"
+    std::string model_name = "gemini-2.5-flash";
+    std::string api_url = "https://generativelanguage.googleapis.com/v1beta";
+    std::string api_key = "";                  // MỚI: cho Gemini
     float temperature = 0.7f;
-    int timeout_seconds = 30; 
+    int timeout_seconds = 60;                  // Tăng lên 60s vì Gemini có thể chậm hơn
 };
 
 // 4. Lớp giao tiếp cơ sở
