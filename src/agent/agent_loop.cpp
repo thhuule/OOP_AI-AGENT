@@ -1,6 +1,8 @@
 #include "agent/agent_loop.h"
 #include "tools/Tool.h"
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 namespace oop_agent {
 
@@ -16,6 +18,9 @@ std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
     conversation_history.push_back({"user", user_instruction, {}});
 
     for (int step = 0; step < max_steps; ++step) {
+        // Nghỉ 1 giây giữa các bước để đảm bảo tốc độ dưới 60 RPM
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
         auto response_result = client_->generate_chat(conversation_history);
         if (!response_result.has_value()) {
             std::cerr << "[AgentLoop] LLM Client Error!\n";

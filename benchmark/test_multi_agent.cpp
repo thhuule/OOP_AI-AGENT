@@ -17,7 +17,7 @@ int main() {
             std::cout << "[Coder] Nhận nhiệm vụ từ " << msg->sender << ": " << msg->content << "\n";
             // Xử lý và gửi kết quả cho Tester
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            out.push(Message("coder", "tester", "Đã viết xong hàm calculateSum()"));
+            out.push(AgentMessage("coder", "tester", "Đã viết xong hàm calculateSum()"));
         }
     });
 
@@ -34,7 +34,7 @@ int main() {
     runner.startAll();
 
     // Gửi tin nhắn khởi động cho Coder
-    runner.sendMessage(Message("user", "coder", "Hãy viết hàm tính tổng 2 số"));
+    runner.sendMessage(AgentMessage("user", "coder", "Hãy viết hàm tính tổng 2 số"));
 
     // Đợi hoàn thành
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
