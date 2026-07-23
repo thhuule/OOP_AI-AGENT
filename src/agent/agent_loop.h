@@ -28,11 +28,14 @@ public:
     // 2. Dành cho std::shared_ptr (như run_eval.cpp đang gọi)
     template <typename T>
     void register_tool(std::shared_ptr<T> tool) {
-        // Chuyển shared_ptr thành unique_ptr bằng cách wrap/thực thi qua ToolRegistry nếu cần
-        // Hoặc đơn giản tạo unique_ptr mới trỏ tới phiên bản kế thừa Tool
-        tools_.register_tool(std::unique_ptr<Tool>(tool.get())); 
-        // LƯU Ý: Nếu ToolRegistry quản lý quyền sở hữu unique_ptr, 
-        // cách an toàn nhất để khớp cả 2 là khởi tạo unique_ptr trực tiếp:
+        struct SharedToolWrapper : public Tool {
+            std::shared_ptr<T> tool_;
+            explicit SharedToolWrapper(std::shared_ptr<T> t) : tool_(std::move(t)) {}
+            [[nodiscard]] std::string_view get_name() const noexcept override { return tool_->get_name(); }
+            [[nodiscard]] std::string_view get_description() const noexcept override { return tool_->get_description(); }
+            std::expected<std::string, ToolError> execute(const std::string& args) override { return tool_->execute(args); }
+        };
+        tools_.register_tool(std::make_unique<SharedToolWrapper>(std::move(tool)));
     }
 
     void set_skill_loader(std::shared_ptr<SkillLoader> loader) { skill_loader_ = std::move(loader); }
@@ -43,8 +46,8 @@ public:
 private:
     std::shared_ptr<LLMClient> client_;
     ToolRegistry tools_;
-    std::shared_ptr<SkillLoader> skill_loader_;
-    StepHook step_hook_;
+    std::shared_ptr<SkillLoader> skill_loader_ = nullptr;
+    StepHook step_hook_ = nullptr;
     
     LoopDetector loop_detector_;
 };
