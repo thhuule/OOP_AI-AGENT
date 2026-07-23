@@ -26,6 +26,7 @@ std::string_view ExecTool::get_description() const noexcept
 std::expected<std::string, ToolError>
 ExecTool::execute(const std::string& arguments)
 {
+    try {
     if (arguments.empty())
         return std::unexpected(ToolError::InvalidArgument);
 
@@ -183,9 +184,15 @@ ExecTool::execute(const std::string& arguments)
         output.append(buffer,n);
     }
 
-    close(pipefd[0]);
+        close(pipefd[0]);
 
     return output;
+    }
+    catch (...)
+    {
+        return std::unexpected(
+            ToolError::ExecutionFailed);
+    }
 }
 
 }

@@ -23,10 +23,15 @@ TimeTool::get_description() const noexcept
 std::expected<std::string, ToolError>
 TimeTool::execute(const std::string& arguments)
 {
-    (void)arguments;
+    
 
     try
     {
+        if (!arguments.empty())
+        {
+            return std::unexpected(
+                ToolError::InvalidArgument);
+        }
         auto now =
             std::chrono::system_clock::now();
 

@@ -57,33 +57,47 @@ GitTool::run_command(
 std::expected<std::string, ToolError>
 GitTool::execute(
     const std::string& arguments)
-{
-    if(arguments=="status")
     {
-        return run_command(
-            "git status");
-    }
+        try
+        {
+            if (arguments.empty())
+            {
+                return std::unexpected(
+                    ToolError::InvalidArgument);
+            }
 
-    if(arguments=="branch")
-    {
-        return run_command(
-            "git branch");
-    }
+            if (arguments == "status")
+            {
+                return run_command(
+                    "git status");
+            }
 
-    if(arguments=="log")
-    {
-        return run_command(
-            "git log --oneline -10");
-    }
+            if (arguments == "branch")
+            {
+                return run_command(
+                    "git branch");
+            }
 
-    if(arguments=="diff")
-    {
-        return run_command(
-            "git diff");
-    }
+            if (arguments == "log")
+            {
+                return run_command(
+                    "git log --oneline -10");
+            }
 
-    return std::unexpected(
-        ToolError::InvalidArgument);
-}
+            if (arguments == "diff")
+            {
+                return run_command(
+                    "git diff");
+            }
+
+            return std::unexpected(
+                ToolError::InvalidArgument);
+        }
+        catch (...)
+        {
+            return std::unexpected(
+                ToolError::ExecutionFailed);
+        }
+    }
 
 }
