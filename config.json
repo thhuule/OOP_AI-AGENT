@@ -1,4 +1,7 @@
 {
-  "model_name": "gemma4:e4b",
-  "api_url": "https://oihnt-35-233-204-204.free.pinggy.net/api/chat"
+  "provider": "gemini",
+  "api_key": "YOUR_API_KEY",
+  "model": "gemini-2.5-flash",
+  "api_url": "https://generativelanguage.googleapis.com/v1beta",
+  "use_mock": false
 }
