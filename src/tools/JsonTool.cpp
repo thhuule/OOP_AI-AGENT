@@ -22,14 +22,14 @@ JsonTool::get_description() const noexcept
 std::expected<std::string, ToolError>
 JsonTool::execute(const std::string& arguments)
 {
-    if (arguments.empty())
-    {
-        return std::unexpected(
-            ToolError::InvalidArgument);
-    }
-
     try
     {
+        if (arguments.empty())
+        {
+            return std::unexpected(
+                ToolError::InvalidArgument);
+        }
+
         json j = json::parse(arguments);
 
         return j.dump(4);

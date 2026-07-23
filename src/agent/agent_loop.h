@@ -1,5 +1,6 @@
 #pragma once
 
+#include <variant>
 #include "client/llm_client.h"
 #include "agent/LoopDetector.h"
 #include "agent/SkillLoader.h"
@@ -15,6 +16,22 @@ namespace oop_agent {
 
 using StepHook = std::function<void(const std::string& thought, const std::string& action, const std::string& result)>;
 
+struct ToolCallAction
+{
+    std::string tool_name;
+    std::string args;
+};
+
+struct FinalAnswerAction
+{
+    std::string content;
+};
+
+using Action = std::variant<
+    ToolCallAction,
+    FinalAnswerAction
+>;
+
 class AgentLoop {
 public:
     explicit AgentLoop(std::shared_ptr<LLMClient> client) : client_(std::move(client)) {}
@@ -24,6 +41,7 @@ public:
     void register_tool(std::unique_ptr<Tool> tool) {
         tools_.register_tool(std::move(tool));
     }
+
 
     // 2. Dành cho std::shared_ptr (như run_eval.cpp đang gọi)
     template <typename T>
@@ -48,7 +66,7 @@ private:
     ToolRegistry tools_;
     std::shared_ptr<SkillLoader> skill_loader_ = nullptr;
     StepHook step_hook_ = nullptr;
-    
+    Action parse_llm_response(const std::string& llm_text);
     LoopDetector loop_detector_;
 };
 

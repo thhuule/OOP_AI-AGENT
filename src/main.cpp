@@ -25,6 +25,7 @@ int main() {
     // 2. Khởi tạo GeminiClient
     auto client = std::make_unique<oop_agent::GeminiClient>(api_key, model);
 
+    
     // 3. Tạo hội thoại test
     std::vector<oop_agent::Message> history = {
         {"system", "Ban la mot AI tro ly."},

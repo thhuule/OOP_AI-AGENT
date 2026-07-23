@@ -165,53 +165,66 @@ MemoryTool::search_memory(
 }
 
 std::expected<std::string, ToolError>
-MemoryTool::execute(
-    const std::string& arguments)
+MemoryTool::execute(const std::string& arguments)
 {
-    std::stringstream ss(arguments);
-
-    std::string command;
-
-    ss >> command;
-
-    if (command == "save")
+    try
     {
-        std::string text;
-
-        std::getline(ss, text);
-
-        if (!text.empty() &&
-            text.front() == ' ')
-        {
-            text.erase(0, 1);
-        }
-
-        if (text.empty())
+        if (arguments.empty())
         {
             return std::unexpected(
                 ToolError::InvalidArgument);
         }
 
-        return save_memory(text);
-    }
+        std::stringstream ss(arguments);
 
-    if (command == "search")
-    {
-        std::string keyword;
+        std::string command;
 
-        ss >> keyword;
+        ss >> command;
 
-        if (keyword.empty())
+        if (command == "save")
         {
-            return std::unexpected(
-                ToolError::InvalidArgument);
+            std::string text;
+
+            std::getline(ss, text);
+
+            if (!text.empty() &&
+                text.front() == ' ')
+            {
+                text.erase(0, 1);
+            }
+
+            if (text.empty())
+            {
+                return std::unexpected(
+                    ToolError::InvalidArgument);
+            }
+
+            return save_memory(text);
         }
 
-        return search_memory(keyword);
-    }
+        if (command == "search")
+        {
+            std::string keyword;
 
-    return std::unexpected(
-        ToolError::InvalidArgument);
+            ss >> keyword;
+
+            if (keyword.empty())
+            {
+                return std::unexpected(
+                    ToolError::InvalidArgument);
+            }
+
+            return search_memory(keyword);
+        }
+
+        return std::unexpected(
+            ToolError::InvalidArgument);
+    }
+    catch (...)
+    {
+        return std::unexpected(
+            ToolError::ExecutionFailed);
+    }
 }
 
 }

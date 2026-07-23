@@ -128,58 +128,65 @@ WebSearchTool::parse_response(
 }
 
 std::expected<std::string, ToolError>
-WebSearchTool::execute(
-    const std::string& arguments)
+WebSearchTool::execute(const std::string& arguments)
 {
-    if (arguments.empty())
+    try
     {
-        return std::unexpected(
-            ToolError::InvalidArgument);
-    }
+        if (arguments.empty())
+        {
+            return std::unexpected(
+                ToolError::InvalidArgument);
+        }
 
-    CURL* curl = curl_easy_init();
+        CURL* curl = curl_easy_init();
 
-    if (!curl)
-    {
-        return std::unexpected(
-            ToolError::ExecutionFailed);
-    }
+        if (!curl)
+        {
+            return std::unexpected(
+                ToolError::ExecutionFailed);
+        }
 
-    char* encoded =
-        curl_easy_escape(
-            curl,
-            arguments.c_str(),
-            static_cast<int>(arguments.size()));
+        char* encoded =
+            curl_easy_escape(
+                curl,
+                arguments.c_str(),
+                static_cast<int>(arguments.size()));
 
-    if (!encoded)
-    {
+        if (!encoded)
+        {
+            curl_easy_cleanup(curl);
+
+            return std::unexpected(
+                ToolError::ExecutionFailed);
+        }
+
+        std::ostringstream url;
+
+        url
+            << "https://api.duckduckgo.com/?q="
+            << encoded
+            << "&format=json"
+            << "&no_html=1";
+
+        curl_free(encoded);
+
         curl_easy_cleanup(curl);
 
+        auto response = http_get(url.str());
+
+        if (!response.has_value())
+        {
+            return std::unexpected(
+                response.error());
+        }
+
+        return parse_response(response.value());
+    }
+    catch (...)
+    {
         return std::unexpected(
             ToolError::ExecutionFailed);
     }
-
-    std::ostringstream url;
-
-    url
-        << "https://api.duckduckgo.com/?q="
-        << encoded
-        << "&format=json"
-        << "&no_html=1";
-
-    curl_free(encoded);
-
-    curl_easy_cleanup(curl);
-
-    auto response = http_get(url.str());
-
-    if (!response)
-    {
-        return std::unexpected(
-            response.error());
-    }
-
-    return parse_response(response.value());
 }
 
 } // namespace oop_agent

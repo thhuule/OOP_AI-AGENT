@@ -89,10 +89,8 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
         headers = curl_slist_append(headers, "Content-Type: application/json");
 
         // 💡 Bổ sung Header x-goog-api-key để chấp nhận định dạng Key mới
-        std::string key_header = "x-goog-api-key: " + api_key_;
-        headers = curl_slist_append(headers, key_header.c_str());
 
-        std::string url = build_url();
+        std::string url = build_url() + "?key=" + api_key_;
         json request_json = build_request_body(conversation_history, config);
         std::string request_data = request_json.dump();
 
@@ -110,6 +108,8 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
 
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
+        std::cout << "HTTP Code: " << http_code << '\n';
+        std::cout << "Response:\n" << read_buffer << '\n';
 
         if (res != CURLE_OK) {
             if (res == CURLE_OPERATION_TIMEDOUT) {
