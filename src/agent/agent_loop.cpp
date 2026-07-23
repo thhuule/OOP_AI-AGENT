@@ -1,246 +1,88 @@
-#include "agent_loop.h"
+#include "agent/agent_loop.h"
+#include "tools/Tool.h"
 #include <iostream>
-#include <regex>
-#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
 namespace oop_agent {
 
-void AgentLoop::register_tool(std::shared_ptr<Tool> tool) {
-    if (tool) {
-        tools_.push_back(tool);
-        std::cout << "[AgentLoop] Đã nạp công cụ: " << tool->get_name() << std::endl;
-    }
-}
+std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
+    loop_detector_.reset();
 
-bool AgentLoop::parse_tool_call(const std::string& llm_text, std::string& tool_name, std::string& tool_args) {
-    try {
-        // Tìm block JSON trong phản hồi của LLM
-        std::regex json_block_regex(R"(```(?:json)?\s*([\s\S]*?)\s*```)");
-        std::smatch match;
-        std::string json_str = llm_text;
-        
-        if (std::regex_search(llm_text, match, json_block_regex)) {
-            json_str = match[1].str();
+    std::vector<Message> conversation_history;
+    
+    // ToolRegistry không có phương thức get_tool_descriptions(), nên dùng Prompt tĩnh/đơn giản
+    std::string system_prompt = "You are a helpful AI Agent with access to tools.";
+
+    conversation_history.push_back({"system", system_prompt, {}});
+    conversation_history.push_back({"user", user_instruction, {}});
+
+    for (int step = 0; step < max_steps; ++step) {
+        auto response_result = client_->generate_chat(conversation_history);
+        if (!response_result.has_value()) {
+            std::cerr << "[AgentLoop] LLM Client Error!\n";
+            break;
         }
 
-        auto j = json::parse(json_str);
-        std::string args_key = "";
-        if (j.contains("args")) {
-            args_key = "args";
-        } else if (j.contains("arguments")) {
-            args_key = "arguments";
+        std::string llm_text = response_result.value();
+        conversation_history.push_back({"assistant", llm_text, {}});
+
+        std::string tool_name = ""; 
+        std::string tool_args = ""; 
+        bool is_final_answer = false;
+
+        size_t action_pos = llm_text.find("ACTION:");
+        if (action_pos != std::string::npos) {
+            std::string action_str = llm_text.substr(action_pos + 7);
+            size_t open_paren = action_str.find("(");
+            size_t close_paren = action_str.find(")");
+            if (open_paren != std::string::npos && close_paren != std::string::npos) {
+                tool_name = action_str.substr(0, open_paren);
+                tool_name.erase(0, tool_name.find_first_not_of(" \t\n\r"));
+                tool_name.erase(tool_name.find_last_not_of(" \t\n\r") + 1);
+                
+                tool_args = action_str.substr(open_paren + 1, close_paren - open_paren - 1);
+            }
+        } else {
+            is_final_answer = true;
         }
 
-        if (j.contains("tool") && !args_key.empty()) {
-            tool_name = j["tool"].get<std::string>();
-            if (j[args_key].is_string()) {
-                tool_args = j[args_key].get<std::string>();
+        // --- LOOP DETECTOR & TOOL EXECUTION ---
+        if (!is_final_answer && !tool_name.empty()) {
+            auto loop_status = loop_detector_.add_action(tool_name);
+
+            if (loop_status == LoopDetector::Status::Warning) {
+                std::cerr << "[AgentLoop] Warning: Loop detected for tool '" << tool_name << "'!\n";
+            } else if (loop_status == LoopDetector::Status::Critical) {
+                std::cerr << "[AgentLoop] Critical: Stopping agent due to infinite loop on tool '" << tool_name << "'!\n";
+                conversation_history.push_back({"user", "System Error: Infinite loop detected. Task aborted.", {}});
+                break;
+            }
+
+            // Kiểm tra xem Tool có được phép thực thi không trước khi gọi get_tool
+            if (!tools_.is_allowed(tool_name)) {
+                conversation_history.push_back({"user", "Error: Tool is not allowed: " + tool_name, {}});
+                continue;
+            }
+
+            // get_tool trả về con trỏ thô Tool*
+            Tool* tool = tools_.get_tool(tool_name);
+            if (tool) {
+                auto tool_res = tool->execute(tool_args);
+                std::string result_str = tool_res.has_value() ? tool_res.value() : "Tool Execution Error";
+                
+                if (step_hook_) {
+                    step_hook_(llm_text, tool_name, result_str);
+                }
+
+                conversation_history.push_back({"tool", result_str, {}});
             } else {
-                tool_args = j[args_key].dump();
+                conversation_history.push_back({"user", "Error: Tool not found: " + tool_name, {}});
             }
-            return true;
-        }
-    } catch (...) {
-        // Tự động chuyển sang phương án Fallback Regex nếu chuỗi JSON lỗi định dạng
-    }
-
-    // Fallback sang Regex quét mẫu {"tool": "...", "args/arguments": "..."}
-    std::regex tool_rgx(R"delim("tool"\s*:\s*"([^"]+)")delim");
-    std::regex args_rgx(R"delim("(?:args|arguments)"\s*:\s*"([^"]+)")delim");
-    std::smatch m;
-    if (std::regex_search(llm_text, m, tool_rgx)) tool_name = m[1].str();
-    if (std::regex_search(llm_text, m, args_rgx)) tool_args = m[1].str();
-
-    return !tool_name.empty();
-}
-std::shared_ptr<Tool>
-AgentLoop::find_tool(std::string_view name)
-{
-    for (auto& tool : tools_)
-    {
-        if (tool->get_name() == name)
-        {
-            return tool;
+        } else {
+            return llm_text;
         }
     }
 
-    return nullptr;
+    return "Agent reached maximum step limit or stopped due to loop.";
 }
 
-std::string AgentLoop::run(const std::string& instruction, int max_steps)
-{
-    std::cout << "[AgentLoop] Bắt đầu xử lý task: \""
-              << instruction << "\"\n";
-
-    memory_.clear();
-
-    std::string system_prompt = R"(Bạn là AI Agent.
-
-    Available tools:
-    - calculator
-    - memory
-    - time
-    - json
-    - git
-    - exec
-    - file
-    - websearch
-
-    Nếu cần sử dụng Tool hãy CHỈ trả về JSON:
-
-    {
-        "tool":"<tool_name>",
-        "arguments":"<arguments>"
-    }
-
-    Sau khi nhận được Observation từ Tool,
-    hãy trả lời người dùng bằng ngôn ngữ tự nhiên.
-
-    Không gọi Tool lần thứ hai nếu đã có Observation.)";
-
-    if (skill_loader_) {
-        system_prompt += "\n\nSkills/System Context:\n" + skill_loader_->getSystemPrompt();
-    }
-
-    memory_.push_back(
-        Message{
-            "system",
-            system_prompt,
-            {}
-        });
-
-    memory_.push_back(
-        Message{
-            "user",
-            instruction,
-            {}
-        });
-
-    int current_step = 0;
-    std::string final_answer = "Không có phản hồi.";
-
-    while (current_step < max_steps)
-    {
-        current_step++;
-
-        std::cout
-            << "\n===== Step "
-            << current_step
-            << " =====\n";
-
-        LLMConfig config;
-        config.model_name = "gemma4:e4b";
-        config.api_url =
-            "http://vcvou-34-26-174-246.run.pinggy-free.link/api/chat";
-
-        auto response =
-            client_->generate_chat(memory_, config);
-
-        if (!response)
-        {
-            std::cerr
-                << "[AgentLoop] LLM Error\n";
-
-            final_answer =
-                "LLM connection failed.";
-
-            break;
-        }
-
-        std::string llm_text =
-            response.value();
-
-        std::cout
-            << "[LLM]\n"
-            << llm_text
-            << '\n';
-
-        //----------------------------------------------------
-        // Thử parse JSON xem có phải Tool Call không
-        //----------------------------------------------------
-
-        std::string tool_name;
-        std::string arguments;
-        if (parse_tool_call(llm_text, tool_name, arguments))
-        {
-            auto tool =
-                find_tool(tool_name);
-
-            if (!tool)
-            {
-                final_answer =
-                    "Tool not found: " +
-                    tool_name;
-
-                break;
-            }
-
-            std::cout
-                << "[Agent] Execute Tool: "
-                << tool_name
-                << '\n';
-
-            auto result =
-                tool->execute(arguments);
-
-            if (!result)
-            {
-                final_answer =
-                    "Tool '" +
-                    tool_name +
-                    "' execution failed.";
-
-                break;
-            }
-
-            std::cout
-                << "[Observation]\n"
-                << result.value()
-                << '\n';
-
-            memory_.push_back(
-            Message{
-                "tool",
-                "Observation: " + result.value(),
-                {}
-            });
-
-            if (step_hook_)
-            {
-                step_hook_(llm_text, tool_name + "(" + arguments + ")", result.value());
-            }
-
-            // Tiếp tục vòng lặp để LLM đọc Observation
-            continue;
-        }
-        else
-        {
-            //------------------------------------------------
-            // Không phải JSON -> coi như câu trả lời cuối
-            //------------------------------------------------
-
-            memory_.push_back(
-                Message{
-                    "assistant",
-                    llm_text,
-                    {}
-                });
-
-            final_answer = llm_text;
-
-            if (step_hook_)
-            {
-                step_hook_(llm_text, "None", "");
-            }
-
-            break;
-        }
-    }
-
-    std::cout
-        << "[AgentLoop] Hoàn thành.\n";
-
-    return final_answer;
-}
 } // namespace oop_agent

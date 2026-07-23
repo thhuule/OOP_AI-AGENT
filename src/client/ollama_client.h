@@ -1,17 +1,17 @@
 #pragma once
 
 #include "client/llm_client.h"
-#include <string> // Cần thiết cho std::string
+#include <string>
 
 namespace oop_agent {
 
 class OllamaClient : public LLMClient {
 public:
-    // Cập nhật: Thêm constructor nhận tham số
+    // Constructor nhận url và model
     OllamaClient(const std::string& url, const std::string& model) 
         : base_url(url), model_name(model) {}
 
-    // Giữ lại constructor mặc định nếu cần
+    // Constructor mặc định
     OllamaClient() = default;
     
     ~OllamaClient() override = default;
@@ -22,7 +22,6 @@ public:
     ) override;
 
 private:
-    // Thêm các biến thành viên để lưu trữ cấu hình
     std::string base_url;
     std::string model_name;
 
