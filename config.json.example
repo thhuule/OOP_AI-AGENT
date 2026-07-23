@@ -1,7 +1,7 @@
 {
   "provider": "gemini",
-  "api_key": "YOUR_API_KEY",
-  "model": "gemini-2.5-flash",
+  "api_key": "API",
+  "model": "gemma-4-31b",
   "api_url": "https://generativelanguage.googleapis.com/v1beta",
   "use_mock": false
 }

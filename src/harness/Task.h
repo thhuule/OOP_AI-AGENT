@@ -16,6 +16,7 @@ struct Task {
     std::string eval_type;          // Loại evaluator sử dụng: "keyword", "functional", ...
     std::string expected_keywords;  // Các keyword kỳ vọng trong output (dùng cho eval_type="keyword")
     std::string eval_script;        // Script kiểm tra (dùng cho eval_type="functional")
+    std::string category;           // Phân loại độ khó: "simple", "medium", "hard"
     int max_steps = 10;             // Số bước tối đa Agent được phép thực hiện
 };
 

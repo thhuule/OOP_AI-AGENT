@@ -1,6 +1,8 @@
 #include "client/gemini_client.h"
 #include <curl/curl.h>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 using json = nlohmann::json;
 
@@ -76,66 +78,98 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
     const std::vector<Message>& conversation_history,
     const LLMConfig& config
 ) {
-    CURL* curl = curl_easy_init();
-    if (!curl) return std::unexpected(LLMError::UnknownError);
+    const int max_attempts = 2;
 
-    std::string read_buffer;
-    struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
+    for (int attempt = 0; attempt < max_attempts; ++attempt) {
+        CURL* curl = curl_easy_init();
+        if (!curl) return std::unexpected(LLMError::UnknownError);
 
-    // 💡 Bổ sung Header x-goog-api-key để chấp nhận định dạng Key mới
-    std::string key_header = "x-goog-api-key: " + api_key_;
-    headers = curl_slist_append(headers, key_header.c_str());
+        std::string read_buffer;
+        struct curl_slist* headers = nullptr;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
 
-    std::string url = build_url();
-    json request_json = build_request_body(conversation_history, config);
-    std::string request_data = request_json.dump();
+        // 💡 Bổ sung Header x-goog-api-key để chấp nhận định dạng Key mới
+        std::string key_header = "x-goog-api-key: " + api_key_;
+        headers = curl_slist_append(headers, key_header.c_str());
 
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_data.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, GeminiClient::write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, config.timeout_seconds);
+        std::string url = build_url();
+        json request_json = build_request_body(conversation_history, config);
+        std::string request_data = request_json.dump();
 
-    CURLcode res = curl_easy_perform(curl);
-    curl_slist_free_all(headers);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_data.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, GeminiClient::write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, config.timeout_seconds);
 
-    if (res != CURLE_OK) {
+        CURLcode res = curl_easy_perform(curl);
+
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+        curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
-        if (res == CURLE_OPERATION_TIMEDOUT) {
-            return std::unexpected(LLMError::Timeout);
-        }
-        return std::unexpected(LLMError::ConnectionRefused);
-    }
 
-    curl_easy_cleanup(curl);
-
-    try {
-        auto res_json = json::parse(read_buffer);
-
-        if (res_json.contains("error")) {
-            int err_code = res_json["error"].value("code", 0);
-            if (err_code == 429) {
-                return std::unexpected(LLMError::RateLimit);
+        if (res != CURLE_OK) {
+            if (res == CURLE_OPERATION_TIMEDOUT) {
+                return std::unexpected(LLMError::Timeout);
             }
-            return std::unexpected(LLMError::UnknownError);
+            return std::unexpected(LLMError::ConnectionRefused);
         }
 
-        if (res_json.contains("candidates") && !res_json["candidates"].empty()) {
-            const auto& candidate = res_json["candidates"][0];
-            if (candidate.contains("content") && candidate["content"].contains("parts")) {
-                const auto& parts = candidate["content"]["parts"];
-                if (!parts.empty() && parts[0].contains("text")) {
-                    return parts[0]["text"].get<std::string>();
+        bool is_429 = (http_code == 429);
+        json res_json;
+        bool parse_success = false;
+
+        try {
+            res_json = json::parse(read_buffer);
+            parse_success = true;
+            if (res_json.contains("error")) {
+                int err_code = res_json["error"].value("code", 0);
+                if (err_code == 429) {
+                    is_429 = true;
                 }
             }
+        } catch (...) {
+            if (!is_429) {
+                return std::unexpected(LLMError::MalformedJSON);
+            }
+        }
+
+        // Xử lý lỗi Rate Limit HTTP 429: sleep 2 giây rồi retry 1 lần
+        if (is_429) {
+            if (attempt == 0) {
+                std::cerr << "[GeminiClient] HTTP 429 (Rate Limit). Sleep 2s roi retry...\n";
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                continue;
+            } else {
+                return std::unexpected(LLMError::RateLimit);
+            }
+        }
+
+        if (parse_success) {
+            if (res_json.contains("error")) {
+                return std::unexpected(LLMError::UnknownError);
+            }
+
+            if (res_json.contains("candidates") && !res_json["candidates"].empty()) {
+                const auto& candidate = res_json["candidates"][0];
+                if (candidate.contains("content") && candidate["content"].contains("parts")) {
+                    const auto& parts = candidate["content"]["parts"];
+                    if (!parts.empty() && parts[0].contains("text")) {
+                        return parts[0]["text"].get<std::string>();
+                    }
+                }
+            }
+
+            return std::unexpected(LLMError::MalformedJSON);
         }
 
         return std::unexpected(LLMError::MalformedJSON);
-    } catch (...) {
-        return std::unexpected(LLMError::MalformedJSON);
     }
+
+    return std::unexpected(LLMError::RateLimit);
 }
 
 } // namespace oop_agent

@@ -21,6 +21,7 @@ file(GLOB_RECURSE SOURCE_FILES
     "src/client/*.cpp"
     "src/tools/*.cpp"
     "src/harness/*.cpp"
+    "src/multiagent/*.cpp"
 )
 
 # 1. Executable OopAgent (Liệt kê tường minh theo yêu cầu Tuần 6)
@@ -40,11 +41,17 @@ add_executable(OopAgent
     src/tools/TimeTool.cpp
     src/tools/JsonTool.cpp
     src/tools/GitTool.cpp
+    src/multiagent/MultiAgentRunner.cpp
 )
 
 # 2. Executable run_eval (Sử dụng toàn bộ SOURCE_FILES bao gồm cả Ollama và Gemini)
 add_executable(run_eval
     benchmark/run_eval.cpp
+    ${SOURCE_FILES}
+)
+
+add_executable(test_multi_agent
+    benchmark/test_multi_agent.cpp
     ${SOURCE_FILES}
 )
 
@@ -57,6 +64,7 @@ set(common_include_dirs
 
 target_include_directories(OopAgent PRIVATE ${common_include_dirs})
 target_include_directories(run_eval PRIVATE ${common_include_dirs})
+target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
 
 # Link Libraries
 target_link_libraries(OopAgent PRIVATE 
@@ -67,6 +75,13 @@ target_link_libraries(OopAgent PRIVATE
 )
 
 target_link_libraries(run_eval PRIVATE 
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
+
+target_link_libraries(test_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
