@@ -55,6 +55,11 @@ add_executable(test_multi_agent
     ${SOURCE_FILES}
 )
 
+add_executable(demo_multi_agent
+    benchmark/demo_multi_agent.cpp
+    ${SOURCE_FILES}
+)
+
 # Cấu hình Include Directories
 set(common_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -65,6 +70,7 @@ set(common_include_dirs
 target_include_directories(OopAgent PRIVATE ${common_include_dirs})
 target_include_directories(run_eval PRIVATE ${common_include_dirs})
 target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
+target_include_directories(demo_multi_agent PRIVATE ${common_include_dirs})
 
 # Link Libraries
 target_link_libraries(OopAgent PRIVATE 
@@ -82,6 +88,13 @@ target_link_libraries(run_eval PRIVATE
 )
 
 target_link_libraries(test_multi_agent PRIVATE 
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
+
+target_link_libraries(demo_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
     Threads::Threads
