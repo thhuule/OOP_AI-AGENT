@@ -73,8 +73,8 @@
   },
   {
     "id": "task_009",
-    "description": "Tìm thông tin từ web và tổng hợp tính toán",
-    "instruction": "Tìm số dân thành phố Hà Nội và Hồ Chí Minh, tính tổng rồi lưu vào hanoi_hcm.txt",
+    "description": "Multi-step: Tìm thông tin web, tính toán và lưu file",
+    "instruction": "Tìm dân số Hà Nội (8.5 triệu) và TP.HCM (9.3 triệu), tính tổng bằng calculator rồi ghi tổng kết vào file hanoi_hcm.txt",
     "eval_type": "functional",
     "eval_script": "test -f hanoi_hcm.txt && echo PASS",
     "category": "hard",
@@ -82,10 +82,10 @@
   },
   {
     "id": "task_010",
-    "description": "Phân tích file mã nguồn và tạo báo cáo summary",
-    "instruction": "Đọc tất cả file .h trong thư mục src/harness, đếm tổng số dòng code và ghi vào report.txt",
+    "description": "Error Recovery: Đọc file lỗi và retry tự động đọc file dự phòng",
+    "instruction": "Thử đọc file non_existent.txt. Khi không tìm thấy file, hãy tự động sửa lỗi bằng cách đọc file notes.txt thay thế và ghi kết quả vào recovery_report.txt",
     "eval_type": "functional",
-    "eval_script": "test -f report.txt && echo PASS",
+    "eval_script": "test -f recovery_report.txt && echo PASS",
     "category": "hard",
     "max_steps": 15
   }
