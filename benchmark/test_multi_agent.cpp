@@ -1,45 +1,37 @@
 #include "../src/multiagent/MultiAgentRunner.h"
 #include <iostream>
 #include <chrono>
+#include <string>
 
 using namespace oop_agent;
 
 int main() {
-    std::cout << "=== DEMO MULTI-AGENT FRAMEWORK ===\n\n";
+    std::cout << "=== TEST MULTI-AGENT FRAMEWORK ===\n\n";
 
     MultiAgentRunner runner;
 
-    // Agent 1: Coder
-    runner.registerAgent("coder", "Agent viết mã", [](MessageQueue& in, MessageQueue& out) {
-        // Nhận yêu cầu
+    runner.registerAgent("worker", "Agent kiểm thử message bus", [](MessageQueue& in, MessageQueue& out) {
         auto msg = in.pop(2000);
         if (msg) {
-            std::cout << "[Coder] Nhận nhiệm vụ từ " << msg->sender << ": " << msg->content << "\n";
-            // Xử lý và gửi kết quả cho Tester
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            out.push(AgentMessage("coder", "tester", "Đã viết xong hàm calculateSum()"));
+            out.push(AgentMessage("worker", "main", "RESULT:" + msg->content));
         }
     });
 
-    // Agent 2: Tester
-    runner.registerAgent("tester", "Agent kiểm thử", [](MessageQueue& in, MessageQueue& out) {
-        auto msg = in.pop(2000);
-        if (msg) {
-            std::cout << "[Tester] Nhận kết quả từ " << msg->sender << ": " << msg->content << "\n";
-            std::cout << "[Tester] Tiến hành chạy unit tests: ALL PASSED!\n";
-        }
-    });
-
-    // Bắt đầu các thread
     runner.startAll();
+    runner.sendMessage(AgentMessage("test", "worker", "ping"));
 
-    // Gửi tin nhắn khởi động cho Coder
-    runner.sendMessage(AgentMessage("user", "coder", "Hãy viết hàm tính tổng 2 số"));
-
-    // Đợi hoàn thành
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    auto result = runner.receiveMessage("main", 3000);
     runner.stopAndJoinAll();
 
-    std::cout << "\n=== DEMO KẾT THÚC THÀNH CÔNG ===\n";
+    if (!result || result->sender != "worker" || result->content != "RESULT:ping") {
+        std::cerr << "FAILED: dispatcher không chuyển đúng kết quả về main\n";
+        return 1;
+    }
+    if (runner.isRunning()) {
+        std::cerr << "FAILED: runner vẫn running sau stopAndJoinAll\n";
+        return 1;
+    }
+
+    std::cout << "ALL PASSED\n";
     return 0;
 }

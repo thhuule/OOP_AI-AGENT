@@ -73,19 +73,19 @@
   },
   {
     "id": "task_009",
-    "description": "Multi-step: Tìm thông tin web, tính toán và lưu file",
-    "instruction": "Tìm dân số Hà Nội (8.5 triệu) và TP.HCM (9.3 triệu), tính tổng bằng calculator rồi ghi tổng kết vào file hanoi_hcm.txt",
+    "description": "Multi-step: tính toán, lưu file, đọc lại verify",
+    "instruction": "Tính 123 * 456, lưu kết quả vào file calc.txt, sau đó đọc lại file và xác nhận kết quả đúng",
     "eval_type": "functional",
-    "eval_script": "test -f hanoi_hcm.txt && echo PASS",
+    "eval_script": "test -f calc.txt && grep 56088 calc.txt && echo PASS",
     "category": "hard",
     "max_steps": 15
   },
   {
     "id": "task_010",
-    "description": "Error Recovery: Đọc file lỗi và retry tự động đọc file dự phòng",
-    "instruction": "Thử đọc file non_existent.txt. Khi không tìm thấy file, hãy tự động sửa lỗi bằng cách đọc file notes.txt thay thế và ghi kết quả vào recovery_report.txt",
+    "description": "Error recovery: tìm file không tồn tại, tạo mới, ghi dữ liệu",
+    "instruction": "Đọc file data.txt (nếu không có thì tạo mới với nội dung 'initial data'), sau đó ghi thêm dòng 'appended' vào cuối file",
     "eval_type": "functional",
-    "eval_script": "test -f recovery_report.txt && echo PASS",
+    "eval_script": "test -f data.txt && grep appended data.txt && echo PASS",
     "category": "hard",
     "max_steps": 15
   }

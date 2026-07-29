@@ -28,6 +28,12 @@ void MultiAgentRunner::registerAgent(
 
 void MultiAgentRunner::startAll() {
     if (running_) return;
+
+    // Main cũng là một endpoint để nhận kết quả do các Sub-Agent gửi về.
+    if (!in_queues_.contains("main")) {
+        in_queues_["main"] = std::make_unique<MessageQueue>();
+    }
+
     running_ = true;
 
     std::cout << "[MultiAgentRunner] Khởi chạy " << agents_.size() << " Sub-Agents...\n";
@@ -44,20 +50,29 @@ void MultiAgentRunner::startAll() {
 
     for (auto& [id, config] : agents_) {
         auto* in_q = in_queues_[id].get();
-        auto task_func = config.task_func; // Copy task_func ra biến cục bộ trước khi spawn thread
+        auto func_copy = config.task_func;
 
         // Spawn thread riêng cho từng Sub-Agent
-        worker_threads_.emplace_back([this, id, func = std::move(task_func), in_q]() {
+        worker_threads_.emplace_back([this, id, func_copy, in_q]() {
             std::cout << "[SubAgent:" << id << "] Thread đã khởi động.\n";
             try {
                 // Thực thi hàm công việc của Agent
-                func(*in_q, global_bus_);
+                func_copy(*in_q, global_bus_);
             } catch (const std::exception& e) {
                 std::cerr << "[SubAgent:" << id << "] Lỗi ngoại lệ: " << e.what() << "\n";
             }
             std::cout << "[SubAgent:" << id << "] Thread kết thúc.\n";
         });
     }
+}
+
+std::optional<AgentMessage>
+MultiAgentRunner::receiveMessage(const std::string& receiver, int timeout_ms) {
+    auto it = in_queues_.find(receiver);
+    if (it == in_queues_.end()) {
+        return std::nullopt;
+    }
+    return it->second->pop(timeout_ms);
 }
 
 void MultiAgentRunner::sendMessage(const AgentMessage& msg) {
@@ -76,7 +91,7 @@ void MultiAgentRunner::sendMessage(const AgentMessage& msg) {
 }
 
 void MultiAgentRunner::stopAndJoinAll() {
-    if (!running_) return;
+    if (!running_.exchange(false)) return;
 
     std::cout << "[MultiAgentRunner] Đang dừng tất cả Sub-Agents...\n";
 
@@ -99,7 +114,6 @@ void MultiAgentRunner::stopAndJoinAll() {
     }
 
     worker_threads_.clear();
-    running_ = false;
 
     std::cout << "[MultiAgentRunner] Đã dừng toàn bộ Sub-Agents an toàn.\n";
 }
