@@ -4,6 +4,11 @@
 
 namespace oop_agent {
 
+struct HttpResponse {
+    int status_code = 0;
+    std::string body;
+};
+
 class GeminiClient : public LLMClient {
 public:
     GeminiClient(const std::string& api_key, const std::string& model = "gemini-2.5-flash");
@@ -17,16 +22,15 @@ public:
 private:
     std::string api_key_;
     std::string model_name_;
-    
-    // Build URL: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}
+
     std::string build_url() const;
-    
-    // Convert Message vector → Gemini JSON format
     nlohmann::json build_request_body(
-        const std::vector<Message>& history, 
+        const std::vector<Message>& history,
         const LLMConfig& config
     ) const;
-    
+
+    HttpResponse send_request_raw(const nlohmann::json& payload);
+    HttpResponse send_request(const nlohmann::json& payload);
     static size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp);
 };
 
