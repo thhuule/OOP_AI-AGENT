@@ -13,6 +13,7 @@
 #include <inplace_vector>
 
 namespace oop_agent {
+<<<<<<< HEAD
 
 constexpr std::string_view trim_sv(std::string_view sv) noexcept {
     auto start = sv.find_first_not_of(" \t\n\r");
@@ -68,6 +69,82 @@ Action AgentLoop::parse_llm_response(const std::string& llm_text) {
             std::string_view args_view = action_str.substr(open + 1, close - open - 1);
 
             return ToolCallAction{std::string(clean_tool_name), std::string(args_view)};
+=======
+Action AgentLoop::parse_llm_response(const std::string& llm_text)
+{
+    // ---------- ACTION: tool(args) ----------
+    size_t pos = llm_text.find("ACTION:");
+
+    if (pos != std::string::npos)
+    {
+        std::string action = llm_text.substr(pos + 7);
+
+        size_t open = action.find('(');
+        size_t close = action.rfind(')');
+
+        if (open != std::string::npos &&
+            close != std::string::npos &&
+            close > open)
+        {
+            std::string tool =
+                action.substr(0, open);
+
+            tool.erase(
+                0,
+                tool.find_first_not_of(" \t\r\n"));
+
+            tool.erase(
+                tool.find_last_not_of(" \t\r\n") + 1);
+
+            std::string args =
+                action.substr(
+                    open + 1,
+                    close - open - 1);
+
+            return ToolCallAction{
+                tool,
+                args
+            };
+        }
+    }
+
+    // ---------- call:provider:tool{...} ----------
+    pos = llm_text.find("call:");
+
+    if (pos != std::string::npos)
+    {
+        size_t provider =
+            llm_text.find(':', pos + 5);
+
+        if (provider != std::string::npos)
+        {
+            size_t brace =
+                llm_text.find('{', provider);
+
+            if (brace != std::string::npos)
+            {
+                std::string tool =
+                    llm_text.substr(
+                        provider + 1,
+                        brace - provider - 1);
+
+                size_t end =
+                    llm_text.find('}', brace);
+
+                if (end != std::string::npos)
+                {
+                    std::string args =
+                        llm_text.substr(
+                            brace + 1,
+                            end - brace - 1);
+
+                    return ToolCallAction{
+                        tool,
+                        args
+                    };
+                }
+            }
+>>>>>>> c7c67eb ([Week8-B] VLMEvaluator skeleton + integration bug fixes)
         }
     }
 
@@ -77,7 +154,47 @@ Action AgentLoop::parse_llm_response(const std::string& llm_text) {
 std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
     loop_detector_.reset();
 
+<<<<<<< HEAD
     std::inplace_vector<std::string, 10> recent_tool_calls;
+=======
+    std::vector<Message> conversation_history;
+    
+    // ToolRegistry không có phương thức get_tool_descriptions(), nên dùng Prompt tĩnh/đơn giản
+    std::string system_prompt = R"(You are an AI Agent with access to tools.
+
+            Available tools:
+
+            calculator
+            execute_shell
+            read_file
+            write_file
+            web_search
+            memory
+            time
+            json
+            git
+
+            When you need to use a tool, you MUST respond ONLY in this format:
+
+            ACTION: tool_name(arguments)
+
+            Examples:
+
+            ACTION: calculator(47 * 23)
+
+            ACTION: read_file(notes.txt)
+
+            ACTION: write_file(result.txt,1081)
+
+            Never use:
+
+            call:
+            default_api
+            google
+            JSON function call
+
+            If you already know the answer and do not need a tool, answer normally.)";
+>>>>>>> c7c67eb ([Week8-B] VLMEvaluator skeleton + integration bug fixes)
 
     std::vector<Message> conversation_history;
 

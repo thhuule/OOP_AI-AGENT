@@ -3,6 +3,10 @@
   "steps": [],
   "success": false,
   "task_id": "task_006",
+<<<<<<< HEAD
   "total_time_ms": 6326,
+=======
+  "total_time_ms": 7057,
+>>>>>>> c7c67eb ([Week8-B] VLMEvaluator skeleton + integration bug fixes)
   "total_tokens": 0
 }
