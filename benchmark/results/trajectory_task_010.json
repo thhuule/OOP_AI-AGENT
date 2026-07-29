@@ -1,8 +1,8 @@
 {
-  "model": "gemini-3.6-flash",
+  "model": "gemma-4-31b-it",
   "steps": [],
   "success": false,
   "task_id": "task_010",
-  "total_time_ms": 3770,
+  "total_time_ms": 33420,
   "total_tokens": 0
 }

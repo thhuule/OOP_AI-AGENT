@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <thread>
 
 namespace oop_agent {
 
@@ -104,6 +105,13 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
                   << " passed so far\n";
 
         results.push_back(std::move(result));
+
+        // Gemini free tier giới hạn request/phút; giãn nhịp giữa các task
+        // nhưng không trì hoãn sau task cuối cùng.
+        if (current < total) {
+            std::cout << "[RateLimit] Chờ 3 giây trước task tiếp theo...\n";
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
     }
 
     // ── Tổng kết theo category ──

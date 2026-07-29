@@ -54,6 +54,13 @@ public:
     void sendMessage(const AgentMessage& msg);
 
     /**
+     * @brief Nhận tin nhắn đã được dispatcher chuyển tới một receiver.
+     * @return Tin nhắn nếu nhận được trước timeout, std::nullopt nếu hết hạn.
+     */
+    [[nodiscard]] std::optional<AgentMessage>
+    receiveMessage(const std::string& receiver, int timeout_ms = 500);
+
+    /**
      * @brief Chờ tất cả Sub-Agent hoàn thành nhiệm vụ và dọn dẹp threads.
      */
     void stopAndJoinAll();
