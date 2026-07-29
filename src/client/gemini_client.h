@@ -11,7 +11,7 @@ struct HttpResponse {
 
 class GeminiClient : public LLMClient {
 public:
-    GeminiClient(const std::string& api_key, const std::string& model = "gemini-2.5-flash");
+    GeminiClient(const std::string& api_key, const std::string& model = "gemma-4-31b-it");
     ~GeminiClient() override = default;
 
     std::expected<std::string, LLMError> generate_chat(
