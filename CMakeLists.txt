@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(OopAiAgent VERSION 1.0.0 LANGUAGES CXX)
 
-# Bật chuẩn C++23
+# Bật chuẩn C++23 ở level CMake, nhưng ép dùng -std=c++26 cho compiler hỗ trợ inplace_vector
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -103,8 +103,10 @@ target_link_libraries(demo_multi_agent PRIVATE
 
 # Flag biên dịch nghiêm ngặt
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-    target_compile_options(run_eval PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
+    target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(run_eval PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(test_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(demo_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
     target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
