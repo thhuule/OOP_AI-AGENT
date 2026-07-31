@@ -10,10 +10,54 @@
 #include <thread>
 #include <type_traits>
 #include <variant>
+#if defined(__has_include)
+#if __has_include(<inplace_vector>)
 #include <inplace_vector>
+#endif
+#endif
 
 namespace oop_agent {
-<<<<<<< HEAD
+namespace {
+
+#if defined(__cpp_lib_inplace_vector)
+template <typename T, size_t Capacity>
+using FixedCapacityVector = std::inplace_vector<T, Capacity>;
+#else
+template <typename T, size_t Capacity>
+class FixedCapacityVector {
+public:
+    FixedCapacityVector() {
+        data_.reserve(Capacity);
+    }
+
+    void push_back(const T& value) {
+        data_.push_back(value);
+    }
+
+    void erase(typename std::vector<T>::iterator it) {
+        data_.erase(it);
+    }
+
+    [[nodiscard]] size_t size() const noexcept {
+        return data_.size();
+    }
+
+    [[nodiscard]] constexpr size_t capacity() const noexcept {
+        return Capacity;
+    }
+
+    auto begin() noexcept {
+        return data_.begin();
+    }
+
+    auto end() noexcept {
+        return data_.end();
+    }
+
+private:
+    std::vector<T> data_;
+};
+#endif
 
 constexpr std::string_view trim_sv(std::string_view sv) noexcept {
     auto start = sv.find_first_not_of(" \t\n\r");
@@ -22,6 +66,8 @@ constexpr std::string_view trim_sv(std::string_view sv) noexcept {
     return sv.substr(start, end - start + 1);
 }
 
+} // namespace
+
 void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messages) {
     if (history.empty()) return;
     if (history.size() <= max_messages) return;
@@ -29,7 +75,7 @@ void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messa
     constexpr size_t kHistoryCapacity = 12;
     const size_t effective_max_messages = std::min(max_messages, kHistoryCapacity);
 
-    std::inplace_vector<Message, kHistoryCapacity> truncated;
+    FixedCapacityVector<Message, kHistoryCapacity> truncated;
     truncated.push_back(history.front());
 
     size_t start_idx = history.size() - (effective_max_messages - 1);
@@ -69,82 +115,22 @@ Action AgentLoop::parse_llm_response(const std::string& llm_text) {
             std::string_view args_view = action_str.substr(open + 1, close - open - 1);
 
             return ToolCallAction{std::string(clean_tool_name), std::string(args_view)};
-=======
-Action AgentLoop::parse_llm_response(const std::string& llm_text)
-{
-    // ---------- ACTION: tool(args) ----------
-    size_t pos = llm_text.find("ACTION:");
-
-    if (pos != std::string::npos)
-    {
-        std::string action = llm_text.substr(pos + 7);
-
-        size_t open = action.find('(');
-        size_t close = action.rfind(')');
-
-        if (open != std::string::npos &&
-            close != std::string::npos &&
-            close > open)
-        {
-            std::string tool =
-                action.substr(0, open);
-
-            tool.erase(
-                0,
-                tool.find_first_not_of(" \t\r\n"));
-
-            tool.erase(
-                tool.find_last_not_of(" \t\r\n") + 1);
-
-            std::string args =
-                action.substr(
-                    open + 1,
-                    close - open - 1);
-
-            return ToolCallAction{
-                tool,
-                args
-            };
         }
     }
 
-    // ---------- call:provider:tool{...} ----------
-    pos = llm_text.find("call:");
-
-    if (pos != std::string::npos)
-    {
-        size_t provider =
-            llm_text.find(':', pos + 5);
-
-        if (provider != std::string::npos)
-        {
-            size_t brace =
-                llm_text.find('{', provider);
-
-            if (brace != std::string::npos)
-            {
-                std::string tool =
-                    llm_text.substr(
-                        provider + 1,
-                        brace - provider - 1);
-
-                size_t end =
-                    llm_text.find('}', brace);
-
-                if (end != std::string::npos)
-                {
-                    std::string args =
-                        llm_text.substr(
-                            brace + 1,
-                            end - brace - 1);
-
-                    return ToolCallAction{
-                        tool,
-                        args
-                    };
+    size_t call_pos = clean_text.find("call:");
+    if (call_pos != std::string::npos) {
+        size_t provider = clean_text.find(':', call_pos + 5);
+        if (provider != std::string::npos) {
+            size_t brace = clean_text.find('{', provider);
+            if (brace != std::string::npos) {
+                std::string tool = clean_text.substr(provider + 1, brace - provider - 1);
+                size_t end = clean_text.find('}', brace);
+                if (end != std::string::npos) {
+                    std::string args = clean_text.substr(brace + 1, end - brace - 1);
+                    return ToolCallAction{tool, args};
                 }
             }
->>>>>>> c7c67eb ([Week8-B] VLMEvaluator skeleton + integration bug fixes)
         }
     }
 
@@ -154,57 +140,21 @@ Action AgentLoop::parse_llm_response(const std::string& llm_text)
 std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
     loop_detector_.reset();
 
-<<<<<<< HEAD
-    std::inplace_vector<std::string, 10> recent_tool_calls;
-=======
-    std::vector<Message> conversation_history;
-    
-    // ToolRegistry không có phương thức get_tool_descriptions(), nên dùng Prompt tĩnh/đơn giản
-    std::string system_prompt = R"(You are an AI Agent with access to tools.
-
-            Available tools:
-
-            calculator
-            execute_shell
-            read_file
-            write_file
-            web_search
-            memory
-            time
-            json
-            git
-
-            When you need to use a tool, you MUST respond ONLY in this format:
-
-            ACTION: tool_name(arguments)
-
-            Examples:
-
-            ACTION: calculator(47 * 23)
-
-            ACTION: read_file(notes.txt)
-
-            ACTION: write_file(result.txt,1081)
-
-            Never use:
-
-            call:
-            default_api
-            google
-            JSON function call
-
-            If you already know the answer and do not need a tool, answer normally.)";
->>>>>>> c7c67eb ([Week8-B] VLMEvaluator skeleton + integration bug fixes)
+    FixedCapacityVector<std::string, 10> recent_tool_calls;
 
     std::vector<Message> conversation_history;
 
     // 2. Tối ưu System Prompt cho Gemini
    std::string system_prompt = 
         "You are an AI Agent equipped with tools to solve tasks.\n"
+        "Available tools: calculator, execute_shell, read_file, write_file, web_search, memory, time, json, git.\n"
         "CRITICAL RULES:\n"
         "1. When calling a tool, respond ONLY with standard JSON format:\n"
         "   {\"tool\": \"tool_name\", \"args\": \"arguments\"}\n"
-        "2. STRICT FINAL ANSWER REQUIREMENT:\n"
+        "   Example: {\"tool\": \"calculator\", \"args\": \"47 * 23\"}\n"
+        "   Example: {\"tool\": \"write_file\", \"args\": \"result.txt,1081\"}\n"
+        "2. Do not write planning-only text such as 'I will call a tool'. Actually call the tool using JSON.\n"
+        "3. STRICT FINAL ANSWER REQUIREMENT:\n"
         "   When you finish your task, your final textual response MUST directly include:\n"
         "   - Every exact filename, extension (.cpp, .h), or string content returned by tools.\n"
         "   - The literal word 'PASS' if any script or test execution output contains it.\n"
