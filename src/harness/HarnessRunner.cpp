@@ -1,355 +1,591 @@
 #include "HarnessRunner.h"
-#include "KeywordEvaluator.h"
 #include "FunctionalEvaluator.h"
+#include "KeywordEvaluator.h"
 #include "../tools/ExecTool.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <set>
+#include <sstream>
 #include <thread>
 
 namespace oop_agent {
+namespace {
 
-// ── Constructor ─────────────────────────────────────────────────────
+std::string toLower(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return value;
+}
+
+bool containsAny(const std::string& value,
+                 const std::initializer_list<std::string_view> needles) {
+    const std::string lower = toLower(value);
+    return std::ranges::any_of(needles, [&](std::string_view needle) {
+        return lower.find(needle) != std::string::npos;
+    });
+}
+
+bool isSafeArtifactPath(const std::filesystem::path& path) {
+    if (path.empty() || path.is_absolute())
+        return false;
+
+    for (const auto& component : path) {
+        if (component == "..")
+            return false;
+    }
+    return true;
+}
+
+std::string makeRunId() {
+    const auto now = std::chrono::system_clock::now();
+    const auto time = std::chrono::system_clock::to_time_t(now);
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            now.time_since_epoch()) %
+                        1000;
+    std::tm local_time{};
+#ifdef _WIN32
+    localtime_s(&local_time, &time);
+#else
+    localtime_r(&time, &local_time);
+#endif
+    std::ostringstream out;
+    out << std::put_time(&local_time, "run_%Y%m%d_%H%M%S")
+        << '_' << std::setw(3) << std::setfill('0') << millis.count();
+    return out.str();
+}
+
+std::string loadModelName() {
+    std::filesystem::path config_path = "config.json";
+    if (!std::filesystem::exists(config_path))
+        config_path = "../config.json";
+    if (!std::filesystem::exists(config_path))
+        return "unknown";
+
+    std::ifstream config(config_path);
+    if (!config.is_open())
+        return "unknown";
+
+    try {
+        const auto json = nlohmann::json::parse(config);
+        return json.value("model", json.value("model_name", "unknown"));
+    } catch (const nlohmann::json::exception&) {
+        return "unknown";
+    }
+}
+
+nlohmann::json parseAction(const std::string& action) {
+    try {
+        auto parsed = nlohmann::json::parse(action);
+        if (parsed.is_object())
+            return parsed;
+    } catch (const nlohmann::json::exception&) {
+    }
+
+    nlohmann::json parsed = {
+        {"type", "tool_call"},
+        {"tool", action},
+        {"args", ""}
+    };
+    const auto open_paren = action.find('(');
+    const auto close_paren = action.rfind(')');
+    if (open_paren != std::string::npos &&
+        close_paren != std::string::npos &&
+        close_paren > open_paren) {
+        parsed["tool"] = action.substr(0, open_paren);
+        parsed["args"] =
+            action.substr(open_paren + 1, close_paren - open_paren - 1);
+    }
+    return parsed;
+}
+
+} // namespace
 
 HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
                              const std::string& output_dir)
-    : tasks_json_path_(tasks_json_path)
-    , output_dir_(output_dir) {
-
-    // Đăng ký evaluator mặc định: keyword
+    : tasks_json_path_(tasks_json_path), output_dir_(output_dir) {
     registerEvaluator("keyword", std::make_unique<KeywordEvaluator>());
-    // Inject ExecTool vào FunctionalEvaluator (Dependency Injection)
     auto exec_tool = std::make_shared<ExecTool>();
-    registerEvaluator("functional", std::make_unique<FunctionalEvaluator>(exec_tool));
+    registerEvaluator("functional",
+                      std::make_unique<FunctionalEvaluator>(exec_tool));
 }
-
-// ── Phase 1: Setup ──────────────────────────────────────────────────
 
 bool HarnessRunner::loadTasks() {
     std::ifstream file(tasks_json_path_);
     if (!file.is_open()) {
-        std::cerr << "[HarnessRunner] Không thể mở file: "
+        std::cerr << "[HarnessRunner] Khong the mo file: "
                   << tasks_json_path_ << "\n";
         return false;
     }
 
-    // Parse JSON bằng nlohmann/json
-    nlohmann::json j;
+    nlohmann::json json;
     try {
-        j = nlohmann::json::parse(file);
-    } catch (const nlohmann::json::parse_error& e) {
-        std::cerr << "[HarnessRunner] JSON parse error: " << e.what() << "\n";
+        json = nlohmann::json::parse(file);
+    } catch (const nlohmann::json::exception& error) {
+        std::cerr << "[HarnessRunner] JSON parse error: "
+                  << error.what() << "\n";
+        return false;
+    }
+
+    if (!json.is_array()) {
+        std::cerr << "[HarnessRunner] tasks.json phai la mot JSON array\n";
         return false;
     }
 
     tasks_.clear();
-
-    if (!j.is_array()) {
-        std::cerr << "[HarnessRunner] JSON không phải mảng (expected top-level array)\n";
-        return false;
-    }
-
-    for (const auto& t : j) {
-        Task task;
-        task.id                = t.value("id", "");
-        task.description       = t.value("description", "");
-        task.instruction       = t.value("instruction", "");
-        task.eval_type         = t.value("eval_type", "");
-        task.expected_keywords = t.value("expected_keywords", "");
-        task.eval_script       = t.value("eval_script", "");
-        task.category          = t.value("category", "simple");
-        task.max_steps         = t.value("max_steps", 10);
-
-        if (!task.id.empty()) {
-            std::cout << "[HarnessRunner] Loaded task: " << task.id
-                      << " [" << task.category << "]\n";
-            tasks_.push_back(std::move(task));
+    std::set<std::string> task_ids;
+    for (std::size_t index = 0; index < json.size(); ++index) {
+        const auto& item = json[index];
+        if (!item.is_object()) {
+            std::cerr << "[HarnessRunner] Task #" << index
+                      << " khong phai JSON object\n";
+            return false;
         }
+
+        Task task;
+        task.id = item.value("id", "");
+        task.description = item.value("description", "");
+        task.instruction = item.value("instruction", "");
+        task.eval_type = item.value("eval_type", "");
+        task.expected_keywords = item.value("expected_keywords", "");
+        task.eval_script = item.value("eval_script", "");
+        task.category = item.value("category", "");
+        task.requires_tool = item.value("requires_tool", false);
+        task.max_steps = item.value("max_steps", 0);
+
+        if (item.contains("required_tools") && item["required_tools"].is_array())
+            task.required_tools =
+                item["required_tools"].get<std::vector<std::string>>();
+        if (item.contains("artifacts") && item["artifacts"].is_array())
+            task.artifacts = item["artifacts"].get<std::vector<std::string>>();
+
+        const bool evaluator_spec_valid =
+            (task.eval_type == "keyword" && !task.expected_keywords.empty()) ||
+            (task.eval_type == "functional" && !task.eval_script.empty());
+        const bool required_fields_valid =
+            !task.id.empty() && !task.description.empty() &&
+            !task.instruction.empty() && !task.category.empty() &&
+            task.max_steps > 0 && item.contains("requires_tool");
+        const bool tool_spec_valid =
+            !task.requires_tool || !task.required_tools.empty();
+        const bool artifacts_safe =
+            std::ranges::all_of(task.artifacts, [](const std::string& path) {
+                return isSafeArtifactPath(path);
+            });
+
+        if (!required_fields_valid || !evaluator_spec_valid ||
+            !tool_spec_valid || !artifacts_safe ||
+            !task_ids.insert(task.id).second) {
+            std::cerr << "[HarnessRunner] Task spec khong hop le tai index "
+                      << index << " (id='" << task.id << "')\n";
+            tasks_.clear();
+            return false;
+        }
+
+        std::cout << "[HarnessRunner] Loaded task: " << task.id
+                  << " [" << task.category << "]"
+                  << (task.requires_tool ? " [requires tool]" : "") << "\n";
+        tasks_.push_back(std::move(task));
     }
 
-    std::cout << "[HarnessRunner] Tổng cộng " << tasks_.size() << " task\n";
+    std::cout << "[HarnessRunner] Tong cong " << tasks_.size() << " task\n";
     return !tasks_.empty();
 }
 
 void HarnessRunner::registerEvaluator(const std::string& name,
-                                       std::unique_ptr<Evaluator> evaluator) {
-    std::cout << "[HarnessRunner] Đăng ký evaluator: " << name
+                                      std::unique_ptr<Evaluator> evaluator) {
+    if (!evaluator)
+        return;
+    std::cout << "[HarnessRunner] Dang ky evaluator: " << name
               << " (" << evaluator->get_name() << ")\n";
     evaluators_[name] = std::move(evaluator);
 }
-
-// ── Phase 2: Run ────────────────────────────────────────────────────
 
 std::vector<TaskRunResult> HarnessRunner::runAll() {
     std::vector<TaskRunResult> results;
     results.reserve(tasks_.size());
 
-    int total = static_cast<int>(tasks_.size());
-    int current = 0;
-    int running_passed = 0;
+    if (!cleanBenchmarkArtifacts()) {
+        std::cerr << "[HarnessRunner] Khong clean duoc benchmark artifacts; "
+                     "dung run de tranh false positive.\n";
+        for (const auto& task : tasks_) {
+            TaskRunResult result;
+            result.task_id = task.id;
+            result.category = task.category;
+            result.requires_tool = task.requires_tool;
+            result.failure_reason = "POST_CONDITION_FAIL";
+            result.eval_feedback = "Benchmark artifact cleanup failed";
+            results.push_back(std::move(result));
+        }
+        return results;
+    }
 
-    for (const auto& task : tasks_) {
-        current++;
-        std::cout << "\n────────────────────────────────────────\n";
-        std::cout << "[" << current << "/" << total << "] Running "
-                  << task.id << " — " << task.description
+    const int total = static_cast<int>(tasks_.size());
+    int final_passed = 0;
+    for (int index = 0; index < total; ++index) {
+        const auto& task = tasks_[static_cast<std::size_t>(index)];
+        std::cout << "\n[" << index + 1 << "/" << total << "] Running "
+                  << task.id << " - " << task.description
                   << " [" << task.category << "]\n";
 
         auto result = runSingle(task);
-        if (result.eval_success) running_passed++;
-
-        std::cout << "[Progress] " << running_passed << "/" << current
-                  << " passed so far\n";
-
+        if (result.success)
+            ++final_passed;
+        std::cout << "[Progress] " << final_passed << "/" << index + 1
+                  << " final PASS\n";
         results.push_back(std::move(result));
 
-        // Gemini free tier giới hạn request/phút; giãn nhịp giữa các task
-        // nhưng không trì hoãn sau task cuối cùng.
-        if (current < total) {
-            std::cout << "[RateLimit] Chờ 3 giây trước task tiếp theo...\n";
+        if (index + 1 < total) {
+            std::cout << "[RateLimit] Cho 3 giay truoc task tiep theo...\n";
             std::this_thread::sleep_for(std::chrono::seconds(3));
         }
     }
 
-    // ── Tổng kết theo category ──
-    std::cout << "\n════════════════════════════════════════\n";
-    std::cout << "           BENCHMARK SUMMARY\n";
-    std::cout << "════════════════════════════════════════\n";
-
-    // Đếm pass/total cho mỗi category
-    auto count_category = [&](const std::string& cat) -> std::pair<int,int> {
-        int passed = 0, total_cat = 0;
-        for (size_t i = 0; i < results.size(); ++i) {
-            if (tasks_[i].category == cat) {
-                total_cat++;
-                if (results[i].eval_success) passed++;
+    const auto print_category = [&](std::string_view category) {
+        int passed = 0;
+        int count = 0;
+        for (const auto& result : results) {
+            if (result.category == category) {
+                ++count;
+                if (result.success)
+                    ++passed;
             }
         }
-        return {passed, total_cat};
+        std::cout << "  " << category << ": " << passed << "/" << count
+                  << "\n";
     };
 
-    auto [simple_pass, simple_total]   = count_category("simple");
-    auto [medium_pass, medium_total]   = count_category("medium");
-    auto [hard_pass, hard_total]       = count_category("hard");
-
-    if (simple_total > 0)
-        std::cout << "  Simple tasks:  " << simple_pass << "/" << simple_total << " passed\n";
-    if (medium_total > 0)
-        std::cout << "  Medium tasks:  " << medium_pass << "/" << medium_total << " passed\n";
-    if (hard_total > 0)
-        std::cout << "  Hard tasks:    " << hard_pass   << "/" << hard_total   << " passed\n";
-
-    float success_rate = computeSuccessRate(results);
-    std::cout << "  ────────────────────────────────\n";
-    std::cout << "  Total: " << (simple_pass + medium_pass + hard_pass)
-              << "/" << results.size()
-              << " passed (" << static_cast<int>(success_rate * 100) << "%)\n";
-    std::cout << "════════════════════════════════════════\n";
-
+    std::cout << "\n========== BENCHMARK SUMMARY ==========\n";
+    print_category("simple");
+    print_category("medium");
+    print_category("hard");
+    std::cout << "  evaluator_score: "
+              << computeEvaluatorScore(results) * 100.0f << "%\n";
+    std::cout << "  action_level_score: "
+              << computeActionLevelScore(results) * 100.0f << "%\n";
+    std::cout << "  final_success_rate: "
+              << computeSuccessRate(results) * 100.0f << "%\n";
+    std::cout << "=======================================\n";
     return results;
 }
 
 TaskRunResult HarnessRunner::runSingle(const Task& task) {
     TaskRunResult result;
     result.task_id = task.id;
+    result.category = task.category;
+    result.requires_tool = task.requires_tool;
 
-    // Xóa trajectory cũ
     current_trajectory_.clear();
+    last_step_time_ = std::chrono::steady_clock::now();
+    const auto start = last_step_time_;
 
-    auto start = std::chrono::steady_clock::now();
-
-    // ── Gọi AgentLoop thực thi task.instruction ──
-    if (agent_) {
+    if (agent_)
         result.agent_output = agent_->run(task.instruction, task.max_steps);
+    else
+        result.agent_output = "Agent is not connected";
+
+    const auto end = std::chrono::steady_clock::now();
+    result.latency_ms =
+        std::chrono::duration<double, std::milli>(end - start).count();
+    result.trajectory = current_trajectory_;
+    result.tool_steps_count = result.trajectory.size();
+
+    const auto evaluator = findEvaluator(task.eval_type);
+    if (!evaluator) {
+        result.eval_feedback = "Evaluator khong hop le: " + task.eval_type;
     } else {
-        result.agent_output = "[placeholder] Agent chưa được kết nối";
+        const std::string& expected =
+            task.eval_type == "functional"
+                ? task.eval_script
+                : task.expected_keywords;
+        const auto evaluated = evaluator.value()->evaluate(result.agent_output,
+                                                           expected);
+        if (evaluated) {
+            result.evaluator_success = evaluated->is_passed;
+            result.evaluator_score = evaluated->score;
+            result.eval_feedback = evaluated->feedback;
+        } else {
+            result.eval_feedback = "Evaluator error: " +
+                                   std::to_string(
+                                       static_cast<int>(evaluated.error()));
+        }
     }
 
-    auto end = std::chrono::steady_clock::now();
-    result.latency_ms = std::chrono::duration<double, std::milli>(end - start).count();
-
-    // ── Evaluate (std::optional) ──
-    auto opt_evaluator = findEvaluator(task.eval_type);
-    if (!opt_evaluator.has_value()) {
-        std::cerr << "[HarnessRunner] Không tìm thấy evaluator: "
-                  << task.eval_type << "\n";
-        result.eval_feedback = "Evaluator không hợp lệ: " + task.eval_type;
-        result.trajectory = current_trajectory_;
-        return result;
-    }
-
-    std::string expected_param = (task.eval_type == "functional") ? task.eval_script : task.expected_keywords;
-    auto eval_result = opt_evaluator.value()->evaluate(result.agent_output, expected_param);
-    if (eval_result.has_value()) {
-        result.eval_success  = eval_result->is_passed;
-        result.eval_score    = eval_result->score;
-        result.eval_feedback = eval_result->feedback;
-    } else {
-        result.eval_feedback = "Evaluator lỗi (EvalError)";
-    }
+    result.action_level_success =
+        !task.requires_tool || hasRelevantSuccessfulToolStep(task);
+    result.action_level_score = result.action_level_success ? 1.0f : 0.0f;
+    result.success =
+        result.evaluator_success && result.action_level_success;
+    result.failure_reason = classifyFailure(result);
 
     std::cout << "[HarnessRunner] " << task.id
-              << " → score=" << result.eval_score
-              << " | " << (result.eval_success ? "PASS" : "FAIL")
-              << " | " << result.eval_feedback << "\n";
-
-    result.trajectory = current_trajectory_;
+              << " | evaluator="
+              << (result.evaluator_success ? "PASS" : "FAIL")
+              << " | action="
+              << (result.action_level_success ? "PASS" : "FAIL")
+              << " | final=" << (result.success ? "PASS" : "FAIL")
+              << " | reason=" << result.failure_reason << "\n";
     return result;
 }
 
-// ── Phase 3: Record ─────────────────────────────────────────────────
-
-bool HarnessRunner::exportResults(const std::vector<TaskRunResult>& results) const {
-    // Tạo thư mục output nếu chưa có
-    std::filesystem::create_directories(output_dir_);
-
-    // 1. Xuất tổng kết eval_results.json
-    std::string filepath = output_dir_ + "/eval_results.json";
-    std::ofstream out(filepath);
-    if (!out.is_open()) {
-        std::cerr << "[HarnessRunner] Không thể tạo file: " << filepath << "\n";
+bool HarnessRunner::exportResults(
+    const std::vector<TaskRunResult>& results) const {
+    const std::filesystem::path run_dir =
+        std::filesystem::path(output_dir_) / makeRunId();
+    std::error_code error;
+    std::filesystem::create_directories(run_dir, error);
+    if (error) {
+        std::cerr << "[HarnessRunner] Khong tao duoc output directory: "
+                  << run_dir.string() << "\n";
         return false;
     }
 
-    nlohmann::json j;
-    j["success_rate"] = computeSuccessRate(results);
-    j["total_tasks"]  = results.size();
+    nlohmann::json summary;
+    summary["total_tasks"] = results.size();
+    summary["evaluator_score"] = computeEvaluatorScore(results);
+    summary["action_level_score"] = computeActionLevelScore(results);
+    summary["final_success_rate"] = computeSuccessRate(results);
 
-    nlohmann::json results_arr = nlohmann::json::array();
-    for (const auto& r : results) {
-        results_arr.push_back({
-            {"task_id",      r.task_id},
-            {"passed",       r.eval_success},
-            {"score",        r.eval_score},
-            {"latency_ms",   r.latency_ms},
-            {"feedback",     r.eval_feedback},
-            {"agent_output", r.agent_output}
+    nlohmann::json category_scores;
+    for (const std::string category : {"simple", "medium", "hard"}) {
+        int passed = 0;
+        int total = 0;
+        for (const auto& result : results) {
+            if (result.category == category) {
+                ++total;
+                if (result.success)
+                    ++passed;
+            }
+        }
+        category_scores[category] = {{"passed", passed}, {"total", total}};
+    }
+    summary["category_scores"] = std::move(category_scores);
+
+    nlohmann::json result_array = nlohmann::json::array();
+    for (const auto& result : results) {
+        result_array.push_back({
+            {"task_id", result.task_id},
+            {"category", result.category},
+            {"success", result.success},
+            {"requires_tool", result.requires_tool},
+            {"tool_steps_count", result.tool_steps_count},
+            {"failure_reason", result.failure_reason},
+            {"evaluator_success", result.evaluator_success},
+            {"evaluator_score", result.evaluator_score},
+            {"action_level_success", result.action_level_success},
+            {"action_level_score", result.action_level_score},
+            {"total_time_ms", result.latency_ms},
+            {"feedback", result.eval_feedback},
+            {"agent_output", result.agent_output}
         });
     }
-    j["results"] = results_arr;
-    out << j.dump(2) << "\n";
-    std::cout << "[HarnessRunner] Kết quả tổng kết đã lưu tại: " << filepath << "\n";
+    summary["results"] = std::move(result_array);
 
-    // 2. Xuất trajectory_{task_id}.json cho từng task
-    for (const auto& r : results) {
-        nlohmann::json traj_json;
-        traj_json["task_id"] = r.task_id;
+    const auto summary_path = run_dir / "eval_results.json";
+    std::ofstream summary_file(summary_path);
+    if (!summary_file.is_open())
+        return false;
+    summary_file << summary.dump(2) << "\n";
 
-        // Đọc model name từ config.json thay vì hardcode
-        std::string model_name = "gemini-2.5-flash";
-        {
-            std::string cfg_path = "config.json";
-            if (!std::filesystem::exists(cfg_path)) cfg_path = "../config.json";
-            if (std::filesystem::exists(cfg_path)) {
-                std::ifstream cfg(cfg_path);
-                if (cfg.is_open()) {
-                    try {
-                        auto j_cfg = nlohmann::json::parse(cfg);
-                        if (j_cfg.contains("model")) model_name = j_cfg["model"].get<std::string>();
-                        else if (j_cfg.contains("model_name")) model_name = j_cfg["model_name"].get<std::string>();
-                    } catch (...) {}
-                }
-            }
-        }
-        traj_json["model"] = model_name;
-        traj_json["success"] = r.eval_success;
+    const std::string model = loadModelName();
+    for (const auto& result : results) {
+        nlohmann::json trajectory = {
+            {"task_id", result.task_id},
+            {"model", model},
+            {"success", result.success},
+            {"requires_tool", result.requires_tool},
+            {"tool_steps_count", result.tool_steps_count},
+            {"failure_reason", result.failure_reason},
+            {"evaluator_score", result.evaluator_score},
+            {"action_level_score", result.action_level_score},
+            {"total_time_ms", result.latency_ms}
+        };
 
         int total_tokens = 0;
-        nlohmann::json steps_arr = nlohmann::json::array();
-
-        for (size_t i = 0; i < r.trajectory.size(); ++i) {
-            const auto& step = r.trajectory[i];
+        nlohmann::json steps = nlohmann::json::array();
+        for (std::size_t index = 0;
+             index < result.trajectory.size(); ++index) {
+            const auto& step = result.trajectory[index];
             total_tokens += step.tokens_used;
-
-            nlohmann::json step_json;
-            step_json["step_id"] = static_cast<int>(i);
-            step_json["thought"] = step.thought;
-
-            // Parse action to check if it's JSON or formatted like calculator("15*17")
-            nlohmann::json action_obj;
-            std::string act = step.action;
-            try {
-                auto parsed_act = nlohmann::json::parse(act);
-                if (parsed_act.is_object()) {
-                    action_obj = parsed_act;
-                } else {
-                    throw std::runtime_error("not object");
-                }
-            } catch (...) {
-                size_t open_paren = act.find('(');
-                size_t close_paren = act.rfind(')');
-                if (open_paren != std::string::npos && close_paren != std::string::npos && close_paren > open_paren) {
-                    std::string tool = act.substr(0, open_paren);
-                    std::string args = act.substr(open_paren + 1, close_paren - open_paren - 1);
-                    action_obj["type"] = "tool_call";
-                    action_obj["tool"] = tool;
-                    action_obj["args"] = args;
-                } else {
-                    action_obj["type"] = "tool_call";
-                    action_obj["tool"] = act;
-                    action_obj["args"] = "";
-                }
-            }
-
-            step_json["action"] = action_obj;
-            step_json["tool_result"] = step.result;
-            step_json["tokens_used"] = step.tokens_used;
-            step_json["latency_ms"] = step.latency_ms;
-
-            steps_arr.push_back(step_json);
+            steps.push_back({
+                {"step_id", index + 1},
+                {"thought", step.thought},
+                {"action", parseAction(step.action)},
+                {"tool_result", step.result},
+                {"latency_ms", step.latency_ms},
+                {"tokens_used", step.tokens_used}
+            });
         }
+        trajectory["total_tokens"] = total_tokens;
+        trajectory["steps"] = std::move(steps);
 
-        traj_json["total_tokens"] = total_tokens;
-        traj_json["total_time_ms"] = static_cast<int>(r.latency_ms);
-        traj_json["steps"] = steps_arr;
-
-        std::string task_file_path = output_dir_ + "/trajectory_" + r.task_id + ".json";
-        std::ofstream task_out(task_file_path);
-        if (task_out.is_open()) {
-            task_out << traj_json.dump(2) << "\n";
-            std::cout << "[HarnessRunner] Đã xuất trajectory cho task " << r.task_id << " tại: " << task_file_path << "\n";
-        } else {
-            std::cerr << "[HarnessRunner] Không thể tạo file: " << task_file_path << "\n";
-        }
+        const auto path =
+            run_dir / ("trajectory_" + result.task_id + ".json");
+        std::ofstream trajectory_file(path);
+        if (!trajectory_file.is_open())
+            return false;
+        trajectory_file << trajectory.dump(2) << "\n";
     }
 
+    const auto report_path = run_dir / "benchmark_summary.txt";
+    std::ofstream report(report_path);
+    if (!report.is_open())
+        return false;
+    report << "ROLE C BENCHMARK SUMMARY\n"
+           << "========================\n"
+           << "Evaluator score: "
+           << computeEvaluatorScore(results) << "\n"
+           << "Action-level score: "
+           << computeActionLevelScore(results) << "\n"
+           << "Final success rate: "
+           << computeSuccessRate(results) << "\n\n";
+    for (const auto& result : results) {
+        report << result.task_id << " [" << result.category << "] "
+               << (result.success ? "PASS" : "FAIL")
+               << " | tool_steps=" << result.tool_steps_count
+               << " | reason=" << result.failure_reason << "\n";
+    }
+
+    std::cout << "[HarnessRunner] Da luu ket qua run tai: "
+              << run_dir.string() << "\n";
     return true;
 }
 
-// ── Accessors ───────────────────────────────────────────────────────
-
 float HarnessRunner::computeSuccessRate(
-        const std::vector<TaskRunResult>& results) {
-    if (results.empty()) return 0.0f;
+    const std::vector<TaskRunResult>& results) {
+    if (results.empty())
+        return 0.0f;
+    const auto passed = std::ranges::count_if(
+        results, [](const TaskRunResult& result) { return result.success; });
+    return static_cast<float>(passed) /
+           static_cast<float>(results.size());
+}
 
-    int passed = 0;
-    for (const auto& r : results) {
-        if (r.eval_success) ++passed;
-    }
-    return static_cast<float>(passed) / static_cast<float>(results.size());
+float HarnessRunner::computeEvaluatorScore(
+    const std::vector<TaskRunResult>& results) {
+    if (results.empty())
+        return 0.0f;
+    const auto score = std::ranges::count_if(
+        results,
+        [](const TaskRunResult& result) { return result.evaluator_success; });
+    return static_cast<float>(score) /
+           static_cast<float>(results.size());
+}
+
+float HarnessRunner::computeActionLevelScore(
+    const std::vector<TaskRunResult>& results) {
+    if (results.empty())
+        return 0.0f;
+    const auto score = std::ranges::count_if(
+        results,
+        [](const TaskRunResult& result) {
+            return result.action_level_success;
+        });
+    return static_cast<float>(score) /
+           static_cast<float>(results.size());
 }
 
 StepHook HarnessRunner::createStepHook() {
-    // Trả về lambda capture this — khi AgentLoop gọi hook,
-    // mỗi step sẽ được ghi vào current_trajectory_
     return [this](const std::string& thought,
                   const std::string& action,
                   const std::string& result) {
-        current_trajectory_.push_back({thought, action, result});
+        const auto now = std::chrono::steady_clock::now();
+        const double latency_ms =
+            std::chrono::duration<double, std::milli>(
+                now - last_step_time_).count();
+        current_trajectory_.push_back(
+            {thought, action, result, 0, latency_ms});
+        last_step_time_ = now;
     };
 }
 
-// ── Private ─────────────────────────────────────────────────────────
+std::optional<Evaluator*>
+HarnessRunner::findEvaluator(const std::string& evaluator_type) const {
+    const auto evaluator = evaluators_.find(evaluator_type);
+    if (evaluator == evaluators_.end())
+        return std::nullopt;
+    return evaluator->second.get();
+}
 
-std::optional<Evaluator*> HarnessRunner::findEvaluator(const std::string& evaluator_type) const {
-    auto it = evaluators_.find(evaluator_type);
-    if (it != evaluators_.end()) {
-        return it->second.get();
+bool HarnessRunner::cleanBenchmarkArtifacts() const {
+    std::set<std::filesystem::path> artifacts = {
+        "notes.txt", "result.txt", "capital.txt",
+        "output.txt", "calc.txt", "data.txt"
+    };
+    for (const auto& task : tasks_) {
+        for (const auto& artifact : task.artifacts)
+            artifacts.emplace(artifact);
     }
-    return std::nullopt;
+
+    for (const auto& artifact : artifacts) {
+        if (!isSafeArtifactPath(artifact))
+            return false;
+
+        std::error_code error;
+        const bool removed = std::filesystem::remove(artifact, error);
+        if (error) {
+            std::cerr << "[HarnessRunner] Clean artifact failed: "
+                      << artifact.string() << " (" << error.message()
+                      << ")\n";
+            return false;
+        }
+        if (removed)
+            std::cout << "[HarnessRunner] Removed stale artifact: "
+                      << artifact.string() << "\n";
+    }
+    return true;
 }
 
+bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
+    for (const auto& step : current_trajectory_) {
+        const std::string action = toLower(step.action);
+        const bool relevant = task.required_tools.empty() ||
+            std::ranges::any_of(
+                task.required_tools,
+                [&](const std::string& tool) {
+                    return action == toLower(tool);
+                });
+        const bool successful = !containsAny(
+            step.result,
+            {"error", "failed", "invalid", "not found",
+             "denied", "timeout"});
+        if (relevant && successful)
+            return true;
+    }
+    return false;
 }
+
+std::string HarnessRunner::classifyFailure(
+    const TaskRunResult& result) {
+    if (result.success)
+        return "NONE";
+
+    std::string evidence =
+        result.agent_output + " " + result.eval_feedback;
+    for (const auto& step : result.trajectory)
+        evidence += " " + step.result;
+
+    if (containsAny(evidence, {"rate limit", "429", "resource exhausted"}))
+        return "RATE_LIMIT";
+    if (containsAny(evidence, {"timeout", "timed out"}))
+        return "TIMEOUT";
+    if (containsAny(evidence, {"tool not found", "unknown tool"}))
+        return "TOOL_NOT_FOUND";
+    if (containsAny(evidence, {"invalid argument", "invalid args"}))
+        return "INVALID_ARGS";
+    if (result.requires_tool && result.tool_steps_count == 0)
+        return "NO_TOOL_EXECUTION";
+    if (!result.action_level_success)
+        return "NO_TOOL_EXECUTION";
+    if (!result.evaluator_success)
+        return "POST_CONDITION_FAIL";
+    return "PARSER_FAIL";
+}
+
+} // namespace oop_agent

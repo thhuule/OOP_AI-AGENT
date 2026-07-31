@@ -6,15 +6,21 @@
     "eval_type": "keyword",
     "expected_keywords": ".cpp, .h",
     "category": "simple",
+    "requires_tool": true,
+    "required_tools": ["exec", "execute_shell", "list_files"],
+    "artifacts": [],
     "max_steps": 10
   },
   {
     "id": "task_002",
     "description": "Ghi nội dung mới vào file",
     "instruction": "Tạo file notes.txt với nội dung 'Agent test run'",
-    "eval_type": "keyword",
-    "expected_keywords": "Agent test run",
+    "eval_type": "functional",
+    "eval_script": "test -f notes.txt && grep -F 'Agent test run' notes.txt && echo PASS",
     "category": "simple",
+    "requires_tool": true,
+    "required_tools": ["file", "write_file", "create_file"],
+    "artifacts": ["notes.txt"],
     "max_steps": 10
   },
   {
@@ -24,6 +30,9 @@
     "eval_type": "keyword",
     "expected_keywords": "Agent test run",
     "category": "simple",
+    "requires_tool": true,
+    "required_tools": ["file", "read_file"],
+    "artifacts": [],
     "max_steps": 10
   },
   {
@@ -33,6 +42,9 @@
     "eval_type": "functional",
     "eval_script": "bash hello.sh | grep Hello && echo PASS",
     "category": "simple",
+    "requires_tool": true,
+    "required_tools": ["exec", "execute_shell"],
+    "artifacts": [],
     "max_steps": 10
   },
   {
@@ -42,6 +54,9 @@
     "eval_type": "functional",
     "eval_script": "test -f result.txt && grep 1081 result.txt && echo PASS",
     "category": "medium",
+    "requires_tool": true,
+    "required_tools": ["calculator", "file", "write_file", "exec", "execute_shell"],
+    "artifacts": ["result.txt"],
     "max_steps": 10
   },
   {
@@ -51,6 +66,9 @@
     "eval_type": "functional",
     "eval_script": "test -f capital.txt && grep -i tokyo capital.txt && echo PASS",
     "category": "medium",
+    "requires_tool": true,
+    "required_tools": ["web_search", "file", "write_file", "exec", "execute_shell"],
+    "artifacts": ["capital.txt"],
     "max_steps": 10
   },
   {
@@ -58,8 +76,11 @@
     "description": "Đọc file và tính tổng",
     "instruction": "Đọc file notes.txt, đếm số từ trong đó rồi in ra kết quả",
     "eval_type": "keyword",
-    "expected_keywords": "words, count",
+    "expected_keywords": "3",
     "category": "medium",
+    "requires_tool": true,
+    "required_tools": ["file", "read_file", "exec", "execute_shell"],
+    "artifacts": [],
     "max_steps": 10
   },
   {
@@ -69,6 +90,9 @@
     "eval_type": "functional",
     "eval_script": "test -f output.txt && grep Hello output.txt && echo PASS",
     "category": "medium",
+    "requires_tool": true,
+    "required_tools": ["exec", "execute_shell", "file", "write_file"],
+    "artifacts": ["output.txt"],
     "max_steps": 10
   },
   {
@@ -78,6 +102,9 @@
     "eval_type": "functional",
     "eval_script": "test -f calc.txt && grep 56088 calc.txt && echo PASS",
     "category": "hard",
+    "requires_tool": true,
+    "required_tools": ["calculator", "file", "write_file", "read_file", "exec", "execute_shell"],
+    "artifacts": ["calc.txt"],
     "max_steps": 15
   },
   {
@@ -87,6 +114,9 @@
     "eval_type": "functional",
     "eval_script": "test -f data.txt && grep appended data.txt && echo PASS",
     "category": "hard",
+    "requires_tool": true,
+    "required_tools": ["file", "read_file", "write_file", "exec", "execute_shell"],
+    "artifacts": ["data.txt"],
     "max_steps": 15
   }
 ]

@@ -1,0 +1,16 @@
+ROLE C BENCHMARK SUMMARY
+========================
+Evaluator score: 0.2
+Action-level score: 0
+Final success rate: 0
+
+task_001 [simple] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_002 [simple] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_003 [simple] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_004 [simple] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_005 [medium] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_006 [medium] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_007 [medium] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_008 [medium] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_009 [hard] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
+task_010 [hard] FAIL | tool_steps=0 | reason=NO_TOOL_EXECUTION
