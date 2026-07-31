@@ -1,0 +1,258 @@
+BAO CAO SUA LOI ROLE C - EVAL / INFRA
+======================================
+
+Tai lieu doi chieu:
+filephanchiacv/FIX_LOI_ROLE_ABC_BENCHMARK.md
+
+Pham vi da sua:
+- HarnessRunner va task loading.
+- Kiem tra action-level de loai benchmark PASS gia.
+- Clean artifact cu truoc moi batch benchmark.
+- Trajectory va summary report.
+- Cau hinh 10 task benchmark.
+- Entry point run_eval.
+- Kiem tra multi-agent demo.
+
+
+1. FILE: src/harness/Task.h
+---------------------------
+
+Da them cac field:
+- requires_tool: task co bat buoc agent goi tool that hay khong.
+- required_tools: danh sach tool duoc xem la lien quan den task.
+- artifacts: danh sach file output can xoa truoc benchmark.
+
+Ly do sua:
+Task spec cu chi co evaluator. Harness khong biet task nao bat buoc goi tool,
+khong biet tool nao lien quan, va khong biet file nao la artifact cu. Vi vay
+planning text hoac file ton tai tu run truoc co the lam task PASS gia.
+
+
+2. FILE: benchmark/tasks.json
+-----------------------------
+
+Da sua ca 10 task:
+- Them requires_tool cho tung task.
+- Them required_tools cho tung task.
+- Them artifacts cho cac task tao file.
+- Giu du id, description, instruction, eval_type, category va max_steps.
+
+Hai thay doi evaluator cu the:
+- task_002 doi tu keyword sang functional:
+  test -f notes.txt && grep -F 'Agent test run' notes.txt && echo PASS
+  Ly do: output chi lap lai "Agent test run" khong chung minh file da duoc tao.
+- task_007 doi expected keyword tu "words, count" thanh "3".
+  Ly do: "words" va "count" xuat hien ngay trong planning text. Ket qua dung cua
+  file "Agent test run" phai la 3 tu.
+
+Artifact duoc khai bao:
+- notes.txt
+- result.txt
+- capital.txt
+- output.txt
+- calc.txt
+- data.txt
+
+
+3. FILE: src/harness/HarnessRunner.h
+------------------------------------
+
+Da tach TaskRunResult thanh ba lop ket qua:
+- evaluator_success / evaluator_score:
+  Ket qua evaluator doc lap, co the van PASS gia.
+- action_level_success / action_level_score:
+  Agent co thuc thi tool lien quan va tool co tra ket qua thanh cong hay khong.
+- success:
+  Ket qua cuoi cung, chi PASS khi ca evaluator va action-level deu PASS.
+
+Da them metadata:
+- category
+- requires_tool
+- tool_steps_count
+- failure_reason
+
+Da them API:
+- computeEvaluatorScore()
+- computeActionLevelScore()
+- cleanBenchmarkArtifacts()
+- hasRelevantSuccessfulToolStep()
+- classifyFailure()
+
+Da them last_step_time_ de do latency cua moi step tu Observer hook.
+
+Ly do sua:
+Neu chi co mot bien eval_success thi report khong the phan biet "evaluator nhin
+thay keyword" voi "agent da lam hanh dong that". Tach ba lop giup success rate
+khong con gay hieu nham.
+
+
+4. FILE: src/harness/HarnessRunner.cpp
+--------------------------------------
+
+4.1. loadTasks()
+
+- Validate top-level JSON array.
+- Validate field bat buoc cua moi task.
+- Validate eval_type phai co expected_keywords hoac eval_script tuong ung.
+- Task requires_tool phai co required_tools.
+- Chan task id trung.
+- Chan artifact path tuyet doi hoac path co "..".
+
+Ly do:
+Task spec sai phai fail ngay luc setup, khong nen chay nua benchmark roi tao
+report khong dang tin.
+
+4.2. cleanBenchmarkArtifacts()
+
+- Xoa mot lan truoc khi bat dau ca batch:
+  notes.txt, result.txt, capital.txt, output.txt, calc.txt, data.txt.
+- Lay them artifact task-specific tu tasks.json.
+- Chi cho phep relative path an toan.
+- Neu clean that bai, dung batch de tranh artifact cu lam PASS gia.
+
+Ly do:
+Clean mot lan truoc batch vua loai file cu, vua giu duoc quan he task_002 tao
+notes.txt de task_003 doc trong cung run.
+
+4.3. runSingle()
+
+Luong cham mot task:
+1) Reset trajectory.
+2) Chay AgentLoop.
+3) Chay evaluator va luu raw evaluator score.
+4) Kiem tra trajectory co successful tool step lien quan.
+5) Tinh final success = evaluator_success && action_level_success.
+6) Gan failure_reason.
+
+Failure reason co the xuat:
+- PARSER_FAIL
+- TOOL_NOT_FOUND
+- INVALID_ARGS
+- NO_TOOL_EXECUTION
+- POST_CONDITION_FAIL
+- RATE_LIMIT
+- TIMEOUT
+
+Ly do:
+Mot functional script co the PASS doc lap, nhung task van phai FAIL neu agent
+khong goi tool. Day la cho chan false positive quan trong nhat cua role C.
+
+4.4. createStepHook()
+
+- Van dung Observer/Hook, AgentLoop khong phu thuoc HarnessRunner.
+- Moi callback ghi thought, action, tool_result va latency_ms.
+
+Ly do:
+Giu dung kien truc de bai va bo sung du du lieu trajectory ma khong tao include
+nguoc tu AgentLoop sang harness.
+
+4.5. runAll() va summary
+
+- Hien score theo category simple/medium/hard.
+- Hien rieng evaluator_score, action_level_score, final_success_rate.
+- Progress dung final success, khong dung raw evaluator success.
+
+4.6. exportResults()
+
+- Moi run tao thu muc timestamp:
+  benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
+- Khong ghi de ket qua run cu.
+- Xuat:
+  eval_results.json
+  benchmark_summary.txt
+  trajectory_task_001.json ... trajectory_task_010.json
+- Moi trajectory co task_id, model, success, total_time_ms, failure_reason,
+  score va steps.
+- Moi step co thought, action, tool_result, latency_ms va tokens_used.
+
+Ly do:
+Co the doi chieu nhieu lan chay, khong mat lich su benchmark va khong nham ket
+qua cu voi ket qua moi.
+
+
+5. FILE: benchmark/run_eval.cpp
+-------------------------------
+
+Da them:
+- Dung chuong trinh voi exit code 1 neu loadTasks() that bai.
+- Dung chuong trinh voi exit code 1 neu exportResults() that bai.
+
+Ly do:
+Truoc day entry point bo qua loi setup/export va van return 0, khien pipeline co
+the bao thanh cong du tasks khong load hoac report khong duoc ghi.
+
+
+6. FILE: benchmark/demo_multi_agent.cpp
+---------------------------------------
+
+Khong sua noi dung file nay trong dot role C nay vi file dang co thay doi san tu
+truoc va conflict marker da duoc resolve.
+
+Da verify:
+- Khong con <<<<<<<, =======, >>>>>>> trong benchmark/ va src/.
+- demo_multi_agent chay thanh cong.
+- report.txt co ca "1081" va "Tokyo".
+
+
+LUONG CHAY SAU KHI SUA
+======================
+
+run_eval.cpp
+  -> HarnessRunner::loadTasks()
+     -> parse + validate 10 task
+  -> inject StepHook vao AgentLoop
+  -> HarnessRunner::runAll()
+     -> clean artifact cu mot lan
+     -> voi moi task:
+        -> AgentLoop::run()
+        -> StepHook ghi trajectory neu tool thuc su chay
+        -> Evaluator cham post-condition/keyword
+        -> Harness kiem tra action-level
+        -> final PASS chi khi hai lop deu PASS
+        -> gan failure_reason neu FAIL
+  -> HarnessRunner::exportResults()
+     -> tao thu muc timestamp
+     -> ghi JSON trajectory + JSON summary + TXT summary
+
+
+KET QUA KIEM THU
+================
+
+1. Build:
+- CMake configure: PASS.
+- Build C++26: PASS.
+- Targets OopAgent, run_eval, test_multi_agent, demo_multi_agent: PASS.
+- Warning con lai den tu nlohmann/json dung std::is_trivial deprecated;
+  khong phai loi cua role C.
+
+2. Multi-agent:
+- test_multi_agent: ALL PASSED.
+- demo_multi_agent: PASS.
+- report.txt: co 1081 va Tokyo.
+
+3. Full benchmark model that:
+- Provider: Gemini.
+- Model: gemma-4-31b-it.
+- Output:
+  benchmark/results/run_20260729_154405_342/
+- Simple: 0/4 final PASS.
+- Medium: 0/4 final PASS.
+- Hard: 0/2 final PASS.
+- evaluator_score: 2/10.
+- action_level_score: 0/10.
+- final_success_rate: 0/10.
+
+Ket qua nay la dung theo tieu chi role C:
+- task_004 va task_007 duoc evaluator raw cham PASS.
+- Ca hai van final FAIL vi trajectory steps rong.
+- Ca 10 task co failure_reason = NO_TOOL_EXECUTION.
+- Khong con bao 2/10 hay 3/10 nhu mot success rate that.
+
+
+VAN DE CON LAI NGOAI PHAM VI ROLE C
+===================================
+
+Model van tra planning text nhu "I should use..." hoac "Plan:" thay vi tool-call
+protocol. Role C da phat hien va bao dung loi nay, nhung de tang final success
+rate can tiep tuc sua Role A (prompt/parser/Gemini functionCall) va sau do Role B
+(canonical tool name/alias/args parsing).

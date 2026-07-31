@@ -17,6 +17,9 @@ struct Task {
     std::string expected_keywords;  // Các keyword kỳ vọng trong output (dùng cho eval_type="keyword")
     std::string eval_script;        // Script kiểm tra (dùng cho eval_type="functional")
     std::string category;           // Phân loại độ khó: "simple", "medium", "hard"
+    bool requires_tool = false;      // Task có bắt buộc thực thi tool thật hay không
+    std::vector<std::string> required_tools; // Ít nhất một tool trong danh sách phải chạy thành công
+    std::vector<std::string> artifacts;      // File sinh ra trong benchmark, dùng để clean state
     int max_steps = 10;             // Số bước tối đa Agent được phép thực hiện
 };
 
