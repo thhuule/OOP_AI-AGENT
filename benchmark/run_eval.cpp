@@ -93,7 +93,10 @@ int main() {
         }
     }
     oop_agent::HarnessRunner harness(tasks_path, output_dir);
-    harness.loadTasks();
+    if (!harness.loadTasks()) {
+        std::cerr << "[ERROR] Khong load duoc benchmark task spec." << std::endl;
+        return 1;
+    }
 
     // -------------------------------------------------------------
     // 5. Inject StepHook & Chạy Benchmark
@@ -103,7 +106,10 @@ int main() {
 
     // 6. Chạy benchmark
     auto results = harness.runAll();
-    harness.exportResults(results);
+    if (!harness.exportResults(results)) {
+        std::cerr << "[ERROR] Khong export duoc benchmark results." << std::endl;
+        return 1;
+    }
 
     return 0;
 }

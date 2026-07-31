@@ -3,10 +3,12 @@
 #include "../agent/agent_loop.h"
 #include "Task.h"
 #include "evaluator.h"
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace oop_agent {
@@ -28,9 +30,16 @@ struct TrajectoryStep {
  */
 struct TaskRunResult {
   std::string task_id;                    // ID của task đã chạy
+  std::string category;                   // Nhóm simple/medium/hard
   std::string agent_output;               // Output thực tế từ Agent
-  bool eval_success = false;              // Evaluator chấm đạt hay không
-  float eval_score = 0.0f;                // Điểm từ Evaluator (0.0 – 1.0)
+  bool evaluator_success = false;         // Kết quả thô từ Evaluator
+  float evaluator_score = 0.0f;           // Điểm thô từ Evaluator (0.0 - 1.0)
+  bool action_level_success = false;       // Agent có thực thi tool liên quan hay không
+  float action_level_score = 0.0f;         // Điểm hành động (0.0 hoặc 1.0)
+  bool success = false;                    // PASS cuối: evaluator và action-level đều đạt
+  bool requires_tool = false;
+  std::size_t tool_steps_count = 0;
+  std::string failure_reason = "NONE";
   std::string eval_feedback;              // Nhận xét chi tiết từ Evaluator
   double latency_ms = 0.0;                // Thời gian chạy task (milliseconds)
   std::vector<TrajectoryStep> trajectory; // Trajectory của task này
@@ -137,6 +146,12 @@ public:
   [[nodiscard]] static float
   computeSuccessRate(const std::vector<TaskRunResult> &results);
 
+  [[nodiscard]] static float
+  computeEvaluatorScore(const std::vector<TaskRunResult> &results);
+
+  [[nodiscard]] static float
+  computeActionLevelScore(const std::vector<TaskRunResult> &results);
+
   /**
    * @brief Tạo step_hook để inject vào AgentLoop (Observer Pattern).
    * Harness sẽ ghi lại mọi step (thought/action/result) vào trajectory nội bộ.
@@ -152,6 +167,11 @@ private:
   [[nodiscard]] std::optional<Evaluator *>
   findEvaluator(const std::string &evaluator_type) const;
 
+  bool cleanBenchmarkArtifacts() const;
+  [[nodiscard]] bool hasRelevantSuccessfulToolStep(const Task &task) const;
+  [[nodiscard]] static std::string
+  classifyFailure(const TaskRunResult &result);
+
   AgentLoop *agent_ = nullptr; // Con trỏ tới Agent để chạy task
 
   std::string tasks_json_path_; // Đường dẫn tới tasks.json
@@ -163,6 +183,7 @@ private:
   std::unordered_map<std::string, std::unique_ptr<Evaluator>> evaluators_;
 
   std::vector<TrajectoryStep> current_trajectory_;
+  std::chrono::steady_clock::time_point last_step_time_;
 };
 
 } // namespace oop_agent

@@ -6,7 +6,6 @@
 #include <vector>
 #include <functional>
 #include <expected>        // [C++23] Standard Expected for error handling
-#include <inplace_vector>  // [C++26] Fixed-capacity stack vector
 
 #include "client/llm_client.h"
 #include "agent/LoopDetector.h"
