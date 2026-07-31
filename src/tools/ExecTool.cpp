@@ -15,12 +15,12 @@ namespace oop_agent
 
 std::string_view ExecTool::get_name() const noexcept
 {
-    return "exec";
+    return "execute_shell";
 }
 
 std::string_view ExecTool::get_description() const noexcept
 {
-    return "Execute a shell command.";
+    return "Execute an allowed shell command. Example: pwd";
 }
 
 std::expected<std::string, ToolError>

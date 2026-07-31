@@ -4,7 +4,13 @@
 
 namespace oop_agent
 {
-
+ToolRegistry::ToolRegistry()
+{
+    aliases_["calculate"] = "calculator";
+    aliases_["exec"] = "execute_shell";
+    aliases_["google_search"] = "web_search";
+    aliases_["create_file"] = "write_file";
+}
 void ToolRegistry::register_tool(
     std::unique_ptr<Tool> tool)
 {
@@ -20,8 +26,16 @@ void ToolRegistry::register_tool(
 Tool* ToolRegistry::get_tool(
     std::string_view name) const
 {
-    auto it = tools_.find(
-        std::string(name));
+    std::string tool_name(name);
+
+    auto alias = aliases_.find(tool_name);
+
+    if (alias != aliases_.end())
+    {
+        tool_name = alias->second;
+    }
+
+    auto it = tools_.find(tool_name);
 
     if (it == tools_.end())
     {
@@ -57,7 +71,12 @@ bool ToolRegistry::is_allowed(
     std::string_view name) const
 {
     std::string tool_name(name);
+    auto alias = aliases_.find(tool_name);
 
+    if (alias != aliases_.end())
+    {
+        tool_name = alias->second;
+    }
     // Nếu Allow List không rỗng thì chỉ Tool
     // nằm trong danh sách mới được phép chạy.
     if (!allow_list_.empty())

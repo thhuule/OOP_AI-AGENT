@@ -17,6 +17,7 @@ class ToolRegistry
 {
 public:
 
+    ToolRegistry();
     /**
      * @brief Đăng ký Tool vào hệ thống.
      */
@@ -59,7 +60,7 @@ private:
     > tools_;
 
     std::unordered_set<std::string> allow_list_;
-
+    std::unordered_map<std::string, std::string> aliases_;
     std::unordered_set<std::string> deny_list_;
 };
 
