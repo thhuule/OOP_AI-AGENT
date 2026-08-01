@@ -27,20 +27,50 @@ nlohmann::json GeminiClient::build_request_body(
     const std::vector<Message>& history,
     const LLMConfig& config
 ) const {
-    (void)config;
     nlohmann::json request = nlohmann::json::object();
     nlohmann::json contents = nlohmann::json::array();
+    nlohmann::json system_parts = nlohmann::json::array();
 
     for (const auto& msg : history) {
+        // FIX (Bug 2): Gemini's REST API has no "system" role inside `contents`.
+        // System prompts must go into `systemInstruction`, otherwise the API
+        // either drops them or the model behaves unpredictably (native
+        // function-calling attempts with no declared tools -> MALFORMED_FUNCTION_CALL).
+        if (msg.role == "system") {
+            nlohmann::json part = nlohmann::json::object();
+            part["text"] = msg.content;
+            system_parts.push_back(part);
+            continue;
+        }
+
+        // Role mapping: assistant -> model, tool -> user (observation goes
+        // back to the model as a user turn), user -> user.
+        std::string gemini_role = msg.role;
+        if (gemini_role == "assistant") gemini_role = "model";
+        else if (gemini_role == "tool") gemini_role = "user";
+        else gemini_role = "user";
+
         nlohmann::json part = nlohmann::json::object();
         part["text"] = msg.content;
+
         nlohmann::json content_entry = nlohmann::json::object();
-        content_entry["role"] = msg.role;
+        content_entry["role"] = gemini_role;
         content_entry["parts"] = nlohmann::json::array({part});
         contents.push_back(content_entry);
     }
 
     request["contents"] = contents;
+
+    if (!system_parts.empty()) {
+        nlohmann::json system_instruction = nlohmann::json::object();
+        system_instruction["parts"] = system_parts;
+        request["systemInstruction"] = system_instruction;
+    }
+
+    nlohmann::json generation_config = nlohmann::json::object();
+    generation_config["temperature"] = config.temperature;
+    request["generationConfig"] = generation_config;
+
     return request;
 }
 
@@ -131,11 +161,53 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
         }
 
         const auto& first_candidate = res_json["candidates"][0];
-        if (!first_candidate.contains("content") || !first_candidate["content"].contains("parts") || first_candidate["content"]["parts"].empty()) {
+        if (!first_candidate.contains("content") ||
+            !first_candidate["content"].contains("parts")) {
             return std::unexpected(LLMError::MalformedJSON);
         }
 
-        return first_candidate["content"]["parts"][0]["text"].get<std::string>();
+        const auto& parts = first_candidate["content"]["parts"];
+
+        // FIX (Bug 1): scan ALL parts instead of blindly taking parts[0].
+        // A "thought" text part often comes before the actual functionCall
+        // part; grabbing parts[0] silently threw every tool call away.
+        std::string accumulated_text;
+
+        for (const auto& part : parts) {
+            // Some Gemini "thinking" outputs mark internal reasoning with
+            // "thought": true — skip those, they are not meant to be acted on.
+            const bool is_thought = part.contains("thought") && part["thought"].get<bool>();
+
+            if (part.contains("functionCall") && !is_thought) {
+                const auto& fc = part["functionCall"];
+                nlohmann::json tool_call = nlohmann::json::object();
+                tool_call["tool"] = fc.value("name", "");
+                if (fc.contains("args") && !fc["args"].is_null()) {
+                    // Tool::execute() takes a single string; downstream tools
+                    // (Role B) parse JSON args, so stringify the object here.
+                    tool_call["args"] = fc["args"].dump();
+                } else {
+                    tool_call["args"] = "";
+                }
+                // Returning this as the "llm_text" lets AgentLoop's existing
+                // JSON-tool-call regex in parse_llm_response() pick it up
+                // without needing a separate Action variant for native calls.
+                return tool_call.dump();
+            }
+
+            if (part.contains("text") && !is_thought) {
+                accumulated_text += part["text"].get<std::string>();
+            }
+        }
+
+        if (!accumulated_text.empty()) {
+            return accumulated_text;
+        }
+
+        // Nothing usable came back (e.g. finishReason == MALFORMED_FUNCTION_CALL
+        // with only thought parts). Surface it as malformed so AgentLoop can
+        // retry instead of silently returning "".
+        return std::unexpected(LLMError::MalformedJSON);
     } catch (...) {
         return std::unexpected(LLMError::MalformedJSON);
     }

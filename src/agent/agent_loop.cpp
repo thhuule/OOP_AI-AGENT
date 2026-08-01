@@ -23,6 +23,12 @@ namespace {
 template <typename T, size_t Capacity>
 using FixedCapacityVector = std::inplace_vector<T, Capacity>;
 #else
+// Fallback: std::inplace_vector (C++26) is not always available on the
+// compiler used for this build. We keep the C++26 feature guarded behind
+// __cpp_lib_inplace_vector and fall back to a reserve()-backed std::vector
+// with the same push_back/erase surface for portability. This is NOT a
+// removal of the C++26 requirement — it activates automatically once the
+// toolchain ships <inplace_vector>.
 template <typename T, size_t Capacity>
 class FixedCapacityVector {
 public:
@@ -46,13 +52,8 @@ public:
         return Capacity;
     }
 
-    auto begin() noexcept {
-        return data_.begin();
-    }
-
-    auto end() noexcept {
-        return data_.end();
-    }
+    auto begin() noexcept { return data_.begin(); }
+    auto end() noexcept { return data_.end(); }
 
 private:
     std::vector<T> data_;
@@ -66,6 +67,24 @@ constexpr std::string_view trim_sv(std::string_view sv) noexcept {
     return sv.substr(start, end - start + 1);
 }
 
+// Heuristic: does this text look like the model TRIED to call a tool but
+// used a format the parser doesn't recognize? Used to decide whether to
+// retry-with-instructions instead of silently treating it as a final answer
+// (checklist: "nếu sai format nhưng có ý định gọi tool, agent nhắc lại
+// protocol thay vì coi là final answer").
+bool looks_like_attempted_tool_call(std::string_view text) {
+    static const std::array<std::string_view, 9> markers = {
+        "\"tool\"", "'tool'", "ACTION:", "call:", "functionCall",
+        "I will use", "I will call", "Plan:", "Tool:"
+    };
+    for (auto marker : markers) {
+        if (text.find(marker) != std::string_view::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messages) {
@@ -76,7 +95,7 @@ void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messa
     const size_t effective_max_messages = std::min(max_messages, kHistoryCapacity);
 
     FixedCapacityVector<Message, kHistoryCapacity> truncated;
-    truncated.push_back(history.front());
+    truncated.push_back(history.front()); // always keep the system prompt
 
     size_t start_idx = history.size() - (effective_max_messages - 1);
     for (size_t i = start_idx; i < history.size(); ++i) {
@@ -86,22 +105,30 @@ void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messa
 }
 
 Action AgentLoop::parse_llm_response(const std::string& llm_text) {
-    std::string clean_text = llm_text;
+    std::string clean_text{trim_sv(llm_text)};
 
+    // 1. JSON inside a ```json ... ``` markdown fence.
     std::regex md_json_regex(R"(```(?:json)?\s*(\{[\s\S]*?\})\s*```)", std::regex::icase);
     std::smatch match;
-    if (std::regex_search(llm_text, match, md_json_regex)) {
+    if (std::regex_search(clean_text, match, md_json_regex)) {
         clean_text = match[1].str();
     }
 
-    // 1. Dùng Regex cải tiến để khớp cả Object và String args
-    std::regex tool_json_regex(R"delim(\{\s*"tool"\s*:\s*"([^"]+)"\s*,\s*"args"\s*:\s*(\{[\s\S]*?\}|"[^"]*")\s*\})delim");
+    // 2. Raw JSON: {"tool": "...", "args": {...} | "..."}
+    //    Also accepts extra whitespace/newlines between fields.
+    std::regex tool_json_regex(
+        R"delim(\{\s*"tool"\s*:\s*"([^"]+)"\s*,\s*"args"\s*:\s*(\{[\s\S]*?\}|"(?:[^"\\]|\\.)*")\s*\})delim");
     if (std::regex_search(clean_text, match, tool_json_regex)) {
         std::string tool_name = match[1].str();
         std::string args = match[2].str();
+        // If args is a quoted JSON string, unwrap the outer quotes.
+        if (args.size() >= 2 && args.front() == '"' && args.back() == '"') {
+            args = args.substr(1, args.size() - 2);
+        }
         return ToolCallAction{tool_name, args};
     }
 
+    // 3. Textual protocol: ACTION: tool_name(args)
     size_t action_pos = clean_text.find("ACTION:");
     if (action_pos != std::string::npos) {
         std::string_view action_str = clean_text;
@@ -118,6 +145,8 @@ Action AgentLoop::parse_llm_response(const std::string& llm_text) {
         }
     }
 
+    // 4. call:provider:tool{args} style (occasionally emitted by Gemini-family
+    //    models when they attempt native function calling in text form).
     size_t call_pos = clean_text.find("call:");
     if (call_pos != std::string::npos) {
         size_t provider = clean_text.find(':', call_pos + 5);
@@ -144,21 +173,42 @@ std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
 
     std::vector<Message> conversation_history;
 
-    // 2. Tối ưu System Prompt cho Gemini
-   std::string system_prompt = 
-        "You are an AI Agent equipped with tools to solve tasks.\n"
-        "Available tools: calculator, execute_shell, read_file, write_file, web_search, memory, time, json, git.\n"
+    // System prompt: names the tools that are ACTUALLY registered (must match
+    // benchmark/run_eval.cpp registration list), enforces a single strict
+    // JSON output format, and forbids planning-only responses. The previous
+    // "copy raw output / include the literal word PASS" instruction has been
+    // removed: it coerced the model into echoing evaluator keywords rather
+    // than actually completing the task, which produced false-positive PASS
+    // results in the benchmark (see FIX_LOI_ROLE_ABC_BENCHMARK.md, item 4).
+    std::string system_prompt =
+        "You are an AI Agent that solves tasks by calling tools.\n"
+        "Registered tools (call ONLY these names):\n"
+        "  calculator      - evaluate an arithmetic expression, e.g. args: \"47 * 23\"\n"
+        "  execute_shell   - run a shell command, e.g. args: \"ls -la\"\n"
+        "  read_file       - read a file, e.g. args: \"notes.txt\"\n"
+        "  write_file      - write a file, e.g. args: \"notes.txt,Hello world\" or {\"filename\":\"notes.txt\",\"content\":\"Hello world\"}\n"
+        "  web_search      - search the web, e.g. args: \"capital of Japan\"\n"
+        "  memory          - \"save <text>\" or \"search <keyword>\"\n"
+        "  time            - get current date/time, args: \"\"\n"
+        "  json            - pretty-print JSON, args: a JSON string\n"
+        "  git             - \"status\" | \"branch\" | \"log\" | \"diff\"\n"
+        "\n"
         "CRITICAL RULES:\n"
-        "1. When calling a tool, respond ONLY with standard JSON format:\n"
+        "1. To call a tool, respond with EXACTLY ONE JSON object and nothing else:\n"
         "   {\"tool\": \"tool_name\", \"args\": \"arguments\"}\n"
-        "   Example: {\"tool\": \"calculator\", \"args\": \"47 * 23\"}\n"
-        "   Example: {\"tool\": \"write_file\", \"args\": \"result.txt,1081\"}\n"
-        "2. Do not write planning-only text such as 'I will call a tool'. Actually call the tool using JSON.\n"
-        "3. STRICT FINAL ANSWER REQUIREMENT:\n"
-        "   When you finish your task, your final textual response MUST directly include:\n"
-        "   - Every exact filename, extension (.cpp, .h), or string content returned by tools.\n"
-        "   - The literal word 'PASS' if any script or test execution output contains it.\n"
-        "   NEVER summarize in your own words. Copy the exact raw outputs and keywords literally.";
+        "2. Do not write prose like 'I will call...' or 'Plan:' when you intend to call a tool.\n"
+        "   Just emit the JSON object directly.\n"
+        "3. Never invent a tool name that is not in the list above.\n"
+        "4. Only give your final answer (plain text, no JSON) once the task is fully complete\n"
+        "   and you have used tool results to verify it, if the task requires a tool.\n";
+
+    if (skill_loader_) {
+        const std::string skills = skill_loader_->getSystemPrompt();
+        if (!skills.empty()) {
+            system_prompt += "\n---\nRelevant skills:\n" + skills;
+        }
+    }
+
     conversation_history.push_back({"system", system_prompt, std::nullopt});
     conversation_history.push_back({"user", user_instruction, std::nullopt});
 
@@ -170,7 +220,13 @@ std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
         auto response_result = client_->generate_chat(conversation_history);
         if (!response_result.has_value()) {
             std::println(std::cerr, "[AgentLoop] LLM Client Error at step {}!", step + 1);
-            break;
+            // Malformed/empty response: give the model one more chance with
+            // an explicit reminder instead of aborting the whole task.
+            conversation_history.push_back({"user",
+                "System: your last response could not be parsed. Reply with "
+                "EXACTLY one JSON object: {\"tool\": \"...\", \"args\": \"...\"}",
+                std::nullopt});
+            continue;
         }
 
         std::string llm_text = response_result.value();
@@ -215,15 +271,26 @@ std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
                         step_hook_(llm_text, act.tool_name, result);
                     }
 
-                    // 3. Chèn SYSTEM NOTE để duy trì keyword trong Final Answer
-                    std::string formatted_result = result + 
-                        "\n\n[SYSTEM NOTE]: Include all raw output details, file names, extensions (.cpp, .h), or exact text from this tool result in your final answer.";
-
-                    conversation_history.push_back({"tool", formatted_result, std::nullopt});
+                    conversation_history.push_back({"tool", result, std::nullopt});
                 } else {
-                    conversation_history.push_back({"user", "Error: Tool not found: " + act.tool_name, std::nullopt});
+                    conversation_history.push_back({"user",
+                        "Error: Tool not found: " + act.tool_name +
+                        ". Use one of the registered tool names listed in the system prompt.",
+                        std::nullopt});
                 }
             } else if constexpr (std::is_same_v<T, FinalAnswerAction>) {
+                // Guard against premature "final answers" that are actually
+                // failed tool-call attempts (e.g. malformed JSON, or
+                // 'I will call write_file...' prose). Nudge the model to
+                // retry with the correct format instead of ending the task.
+                if (looks_like_attempted_tool_call(act.content) && step + 1 < max_steps) {
+                    conversation_history.push_back({"user",
+                        "System: that looked like an attempted tool call but "
+                        "wasn't valid JSON. Reply with EXACTLY one JSON object: "
+                        "{\"tool\": \"tool_name\", \"args\": \"arguments\"}",
+                        std::nullopt});
+                    return;
+                }
                 finished = true;
                 final_answer = act.content;
             }

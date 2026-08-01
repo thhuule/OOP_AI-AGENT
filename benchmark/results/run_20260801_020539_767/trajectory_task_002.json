@@ -1,0 +1,26 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 0.0,
+  "failure_reason": "POST_CONDITION_FAIL",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "",
+        "tool": "write_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 4853.648104,
+      "step_id": 1,
+      "thought": "{\"tool\": \"write_file\", \"args\": \"notes.txt,Agent test run\"}",
+      "tokens_used": 0,
+      "tool_result": "OK"
+    }
+  ],
+  "success": false,
+  "task_id": "task_002",
+  "tool_steps_count": 1,
+  "total_time_ms": 12572.486713,
+  "total_tokens": 0
+}
