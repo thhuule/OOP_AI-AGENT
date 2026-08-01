@@ -170,7 +170,7 @@ private:
   bool cleanBenchmarkArtifacts() const;
   [[nodiscard]] bool hasRelevantSuccessfulToolStep(const Task &task) const;
   [[nodiscard]] static std::string
-  classifyFailure(const TaskRunResult &result);
+  classifyFailure(const Task &task, const TaskRunResult &result);
 
   AgentLoop *agent_ = nullptr; // Con trỏ tới Agent để chạy task
 

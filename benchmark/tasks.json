@@ -4,7 +4,7 @@
     "description": "Xem danh sách file trong thư mục",
     "instruction": "Liệt kê tất cả file trong thư mục hiện tại",
     "eval_type": "keyword",
-    "expected_keywords": ".cpp, .h",
+    "expected_keywords": "CMakeLists.txt, README.md",
     "category": "simple",
     "requires_tool": true,
     "required_tools": ["exec", "execute_shell", "list_files"],
@@ -112,10 +112,10 @@
     "description": "Error recovery: tìm file không tồn tại, tạo mới, ghi dữ liệu",
     "instruction": "Đọc file data.txt (nếu không có thì tạo mới với nội dung 'initial data'), sau đó ghi thêm dòng 'appended' vào cuối file",
     "eval_type": "functional",
-    "eval_script": "test -f data.txt && grep appended data.txt && echo PASS",
+    "eval_script": "test -f data.txt && grep -F 'initial data' data.txt && grep -F 'appended' data.txt && echo PASS",
     "category": "hard",
     "requires_tool": true,
-    "required_tools": ["file", "read_file", "write_file", "exec", "execute_shell"],
+    "required_tools": ["file", "read_file", "write_file", "append_file", "exec", "execute_shell"],
     "artifacts": ["data.txt"],
     "max_steps": 15
   }

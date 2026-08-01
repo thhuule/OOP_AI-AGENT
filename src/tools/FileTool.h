@@ -45,7 +45,26 @@ public:
 
     [[nodiscard]]
     std::string_view
-    get_description() const noexcept override { return "Write a file. Example: hello.txt Hello world"; }
+    get_description() const noexcept override {
+        return "Overwrite a file. Args: filename,content or JSON {\"filename\":\"...\",\"content\":\"...\"}.";
+    }
+
+    std::expected<std::string, ToolError>
+    execute(const std::string& arguments) override;
+};
+
+class FileAppendTool final : public Tool
+{
+public:
+    [[nodiscard]]
+    std::string_view
+    get_name() const noexcept override { return "append_file"; }
+
+    [[nodiscard]]
+    std::string_view
+    get_description() const noexcept override {
+        return "Append content to a file. Args: filename,content or JSON {\"filename\":\"...\",\"content\":\"...\"}.";
+    }
 
     std::expected<std::string, ToolError>
     execute(const std::string& arguments) override;

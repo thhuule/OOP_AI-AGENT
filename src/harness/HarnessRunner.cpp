@@ -105,6 +105,13 @@ nlohmann::json parseAction(const std::string& action) {
     return parsed;
 }
 
+std::string actionToolName(const std::string& action) {
+    const auto parsed = parseAction(action);
+    if (parsed.contains("tool") && parsed["tool"].is_string())
+        return toLower(parsed["tool"].get<std::string>());
+    return {};
+}
+
 } // namespace
 
 HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
@@ -322,7 +329,7 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
     result.action_level_score = result.action_level_success ? 1.0f : 0.0f;
     result.success =
         result.evaluator_success && result.action_level_success;
-    result.failure_reason = classifyFailure(result);
+    result.failure_reason = classifyFailure(task, result);
 
     std::cout << "[HarnessRunner] " << task.id
               << " | evaluator="
@@ -544,7 +551,7 @@ bool HarnessRunner::cleanBenchmarkArtifacts() const {
 
 bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
     for (const auto& step : current_trajectory_) {
-        const std::string action = toLower(step.action);
+        const std::string action = actionToolName(step.action);
         const bool relevant = task.required_tools.empty() ||
             std::ranges::any_of(
                 task.required_tools,
@@ -562,7 +569,7 @@ bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
 }
 
 std::string HarnessRunner::classifyFailure(
-    const TaskRunResult& result) {
+    const Task& task, const TaskRunResult& result) {
     if (result.success)
         return "NONE";
 
@@ -579,12 +586,24 @@ std::string HarnessRunner::classifyFailure(
         return "TOOL_NOT_FOUND";
     if (containsAny(evidence, {"invalid argument", "invalid args"}))
         return "INVALID_ARGS";
+    if (containsAny(evidence, {"infinite loop", "loop detected"}))
+        return "LOOP_DETECTED";
     if (result.requires_tool && result.tool_steps_count == 0)
         return "NO_TOOL_EXECUTION";
     if (!result.action_level_success)
         return "NO_TOOL_EXECUTION";
-    if (!result.evaluator_success)
+    if (!result.evaluator_success) {
+        for (const auto& artifact : task.artifacts) {
+            if (!std::filesystem::exists(artifact))
+                return "ARTIFACT_MISSING";
+        }
+        if (!task.artifacts.empty())
+            return "ARTIFACT_CONTENT_MISMATCH";
+        if (containsAny(result.agent_output,
+                        {"maximum step", "stopped", "could not", "unable"}))
+            return "INCOMPLETE_TASK";
         return "POST_CONDITION_FAIL";
+    }
     return "PARSER_FAIL";
 }
 
