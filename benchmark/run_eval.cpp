@@ -63,6 +63,7 @@ int main() {
     agent.register_tool(std::make_shared<oop_agent::FileTool>());
     agent.register_tool(std::make_shared<oop_agent::FileReadTool>());
     agent.register_tool(std::make_shared<oop_agent::FileWriteTool>());
+    agent.register_tool(std::make_shared<oop_agent::FileAppendTool>());
     agent.register_tool(std::make_shared<oop_agent::WebSearchTool>());
     agent.register_tool(std::make_shared<oop_agent::MemoryTool>());
     agent.register_tool(std::make_shared<oop_agent::TimeTool>());

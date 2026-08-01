@@ -1,0 +1,62 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 1.0,
+  "failure_reason": "NONE",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "data.txt",
+        "tool": "read_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 7402.434124,
+      "step_id": 1,
+      "thought": "{\"tool\": \"read_file\", \"args\": \"data.txt\"}",
+      "tokens_used": 0,
+      "tool_result": "ToolError: NotFound."
+    },
+    {
+      "action": {
+        "args": "{\"content\":\"initial data\",\"filename\":\"data.txt\"}",
+        "tool": "write_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 6702.544138,
+      "step_id": 2,
+      "thought": "{\"tool\": \"write_file\", \"args\": {\"content\": \"initial data\", \"filename\": \"data.txt\"}}",
+      "tokens_used": 0,
+      "tool_result": "OK: wrote data.txt"
+    },
+    {
+      "action": {
+        "args": "data.txt,\nappended",
+        "tool": "append_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 7104.542565,
+      "step_id": 3,
+      "thought": "{\"tool\": \"append_file\", \"args\": \"data.txt,\\nappended\"}",
+      "tokens_used": 0,
+      "tool_result": "OK: appended data.txt"
+    },
+    {
+      "action": {
+        "args": "data.txt",
+        "tool": "read_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 6923.243809,
+      "step_id": 4,
+      "thought": "{\"tool\": \"read_file\", \"args\": \"data.txt\"}",
+      "tokens_used": 0,
+      "tool_result": "initial data\nappended"
+    }
+  ],
+  "success": true,
+  "task_id": "task_010",
+  "tool_steps_count": 4,
+  "total_time_ms": 34596.128713,
+  "total_tokens": 0
+}
