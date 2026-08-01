@@ -1,0 +1,38 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 1.0,
+  "failure_reason": "NONE",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "bash hello.sh > output.txt",
+        "tool": "execute_shell",
+        "type": "tool_call"
+      },
+      "latency_ms": 37032.960788,
+      "step_id": 1,
+      "thought": "{\"tool\": \"execute_shell\", \"args\": \"bash hello.sh > output.txt\"}",
+      "tokens_used": 0,
+      "tool_result": ""
+    },
+    {
+      "action": {
+        "args": "output.txt",
+        "tool": "read_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 6734.577124,
+      "step_id": 2,
+      "thought": "{\"tool\": \"read_file\", \"args\": \"output.txt\"}",
+      "tokens_used": 0,
+      "tool_result": "Hello from agent script\n"
+    }
+  ],
+  "success": true,
+  "task_id": "task_008",
+  "tool_steps_count": 2,
+  "total_time_ms": 48859.570611,
+  "total_tokens": 0
+}
