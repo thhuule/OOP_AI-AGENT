@@ -1,0 +1,50 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 0.0,
+  "failure_reason": "POST_CONDITION_FAIL",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "",
+        "tool": "web_search",
+        "type": "tool_call"
+      },
+      "latency_ms": 5249.397272,
+      "step_id": 1,
+      "thought": "{\"tool\": \"web_search\", \"args\": \"thủ đô của Nhật Bản\"}",
+      "tokens_used": 0,
+      "tool_result": "Tool Execution Error"
+    },
+    {
+      "action": {
+        "args": "",
+        "tool": "web_search",
+        "type": "tool_call"
+      },
+      "latency_ms": 11812.029899,
+      "step_id": 2,
+      "thought": "{\"tool\": \"web_search\", \"args\": \"capital of Japan\"}",
+      "tokens_used": 0,
+      "tool_result": "The capital of Japan is Tokyo. Throughout history, the national capital of Japan has been in locations other than Tokyo. The oldest capital is Nara."
+    },
+    {
+      "action": {
+        "args": "",
+        "tool": "write_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 5190.562604,
+      "step_id": 3,
+      "thought": "{\"tool\": \"write_file\", \"args\": \"capital.txt,Tokyo\"}",
+      "tokens_used": 0,
+      "tool_result": "OK"
+    }
+  ],
+  "success": false,
+  "task_id": "task_006",
+  "tool_steps_count": 3,
+  "total_time_ms": 26443.287588,
+  "total_tokens": 0
+}
