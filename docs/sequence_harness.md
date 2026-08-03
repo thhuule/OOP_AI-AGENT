@@ -1,6 +1,6 @@
 # Sequence Diagram — Batch Evaluation
 
-The diagram below represents the current implementation of `benchmark/run_eval.cpp` and `HarnessRunner`. Cleanup runs once before the batch; the tasks then run sequentially in the same working directory.
+Diagram dưới đây mô tả code hiện tại của `benchmark/run_eval.cpp` và `HarnessRunner`. Cleanup diễn ra một lần trước batch; các task sau đó chạy tuần tự trong cùng working directory.
 
 ```mermaid
 sequenceDiagram
@@ -83,28 +83,28 @@ sequenceDiagram
     end
 ```
 
-## Verified Render
+## Bản render đã kiểm chứng
 
 ![Sequence diagram batch evaluation](sequence_harness.png)
 
-Standalone Mermaid source for reproducible rendering: [`sequence_harness.mmd`](sequence_harness.mmd).
+Nguồn Mermaid độc lập để render lại: [`sequence_harness.mmd`](sequence_harness.mmd).
 
-## Verification Notes
+## Ghi chú đối chiếu
 
-- Strategy: `HarnessRunner` selects `KeywordEvaluator` or `FunctionalEvaluator` according to `eval_type`.
-- Observer/Hook: `AgentLoop` only invokes a callback; it neither includes nor depends on `HarnessRunner`.
-- Tool arguments are packaged in the JSON action before being sent through the hook.
-- The hook currently records tool steps only. The LLM's final answer does not have a separate trajectory step.
-- `tokens_used` is currently set to `0`, which means it has not been measured.
-- If a tool does not exist, `AgentLoop` adds the error to the history so the model can retry; the current code does not invoke the hook on the tool-not-found path.
-- `runAll()` waits three seconds between tasks to reduce rate-limit pressure.
+- Strategy: `HarnessRunner` chọn `KeywordEvaluator` hoặc `FunctionalEvaluator` bằng `eval_type`.
+- Observer/Hook: `AgentLoop` chỉ gọi callback; nó không include hay phụ thuộc `HarnessRunner`.
+- Tool args được đóng gói trong JSON action trước khi gửi qua hook.
+- Hook hiện chỉ ghi tool step. Lần LLM tạo final answer chưa có trajectory step riêng.
+- `tokens_used` đang được gán `0`; đây là trạng thái chưa đo.
+- Nếu một tool không tồn tại, AgentLoop đưa lỗi vào history để model thử lại; code hiện không gọi hook ở nhánh tool-not-found.
+- `runAll()` chờ ba giây giữa hai task để giảm áp lực rate limit.
 
-## Remaining Tests
+## Điều cần kiểm thử
 
-`benchmark/test_harness.cpp` currently covers task specifications, IDs and paths, Strategy selection, stale-artifact cleanup, tool-argument preservation, missing artifacts, content mismatches, invalid/tool/evaluator errors, required tool steps, and score aggregation.
+`benchmark/test_harness.cpp` hiện đã kiểm tra task spec/ID/path, Strategy selection, cleanup artifact cũ, bảo toàn tool args, artifact missing/content mismatch, invalid/tool/evaluator error, bắt buộc tool step và tổng hợp điểm.
 
-Add the following checks after the related interfaces stabilize:
+Các kiểm tra còn lại sau khi interface liên quan ổn định:
 
-1. The harness uses an `Environment` abstraction instead of accessing the filesystem directly.
-2. A cleanup failure produced by a fake environment stops the batch.
-3. Rate limits, timeouts, and loop detection are classified with independent fixtures.
+1. Harness dùng `Environment` abstraction thay vì filesystem trực tiếp.
+2. Cleanup failure được tạo bằng fake environment và phải dừng batch.
+3. Rate limit, timeout và loop detection được phân loại bằng fixture độc lập.
