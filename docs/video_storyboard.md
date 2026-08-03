@@ -1,26 +1,26 @@
-# Storyboard video demo
+# Demo Video Storyboard
 
-Mục tiêu: chứng minh yêu cầu đồ án bằng một video ngắn, tái lập được và không lộ secret. Video được tải lên YouTube ở chế độ **Unlisted**.
+Goal: demonstrate the project requirements with a short, reproducible video that does not expose secrets. Upload the video to YouTube as **Unlisted**.
 
-## Thời lượng đề xuất: 8–10 phút
+## Suggested Duration: 8–10 Minutes
 
-| Thời gian | Nội dung hình ảnh | Lời trình bày chính | Bằng chứng |
+| Time | Visuals | Main Talking Points | Evidence |
 |---|---|---|---|
-| 0:00–0:30 | Tiêu đề, thành viên, mục tiêu | AI Agent C++, ReAct, tools, skills và evaluation | Slide mở đầu |
-| 0:30–1:30 | Component/class diagram | Ba layer A/B/C và abstraction chính | Mermaid diagram |
-| 1:30–2:15 | README + terminal WSL | Dependency và quy trình build | Lệnh CMake |
-| 2:15–3:15 | Source `AgentLoop` và một tool call | LLM trả action, registry tìm tool, loop nhận observation | Sequence agent run |
-| 3:15–4:00 | Tool inventory | File, exec, web, memory, calculator và tool bổ sung | Báo cáo tools |
-| 4:00–5:00 | `benchmark/tasks.json` + sequence harness | 10 task, evaluator Strategy, StepHook, artifact cleanup | Sequence batch eval |
-| 5:00–6:15 | Chạy `test_harness`, `test_multi_agent` và mở test source | Harness validation/trajectory đạt; message bus chuyển đúng kết quả và shutdown sạch | Hai test đều pass |
-| 6:15–7:30 | Run benchmark xác nhận đã được chuẩn bị | Điểm tổng, category, trajectory task 005/010 | Thư mục run mới |
-| 7:30–8:20 | So sánh run 2/10 và 10/10 | Giải thích lỗi parsing artifact và cách evidence thay đổi | Báo cáo evaluation |
-| 8:20–9:00 | Limitations/backlog | Token chưa đo, VLM skeleton, Harness chưa tích hợp sub-agent | Phần giới hạn |
-| 9:00–9:30 | Kết luận | Tóm tắt OOP, độ tái lập và kết quả đã xác minh | Checklist cuối |
+| 0:00–0:30 | Title, team members, and goal | C++ AI Agent, ReAct, tools, skills, and evaluation | Opening slide |
+| 0:30–1:30 | Component and class diagrams | The three A/B/C layers and their main abstractions | Mermaid diagrams |
+| 1:30–2:15 | README and WSL terminal | Dependencies and build process | CMake commands |
+| 2:15–3:15 | `AgentLoop` source and one tool call | The LLM returns an action, the registry finds the tool, and the loop receives the observation | Agent-run sequence diagram |
+| 3:15–4:00 | Tool inventory | File, exec, web, memory, calculator, and additional tools | Tools report |
+| 4:00–5:00 | `benchmark/tasks.json` and harness sequence | 10 tasks, evaluator Strategy, `StepHook`, and artifact cleanup | Batch-evaluation sequence diagram |
+| 5:00–6:15 | Run `test_harness` and `test_multi_agent`, then open the test source | Harness validation and trajectories pass; the message bus delivers the correct result and shuts down cleanly | Both tests pass |
+| 6:15–7:30 | Prepared confirmation benchmark run | Total score, categories, and trajectories for tasks 005 and 010 | New run directory |
+| 7:30–8:20 | Compare the 2/10 and 10/10 runs | Explain the artifact-parsing failure and how the evidence changed | Evaluation report |
+| 8:20–9:00 | Limitations and backlog | Tokens are not measured, VLM is a skeleton, and the harness does not integrate sub-agents | Limitations section |
+| 9:00–9:30 | Conclusion | Summarize OOP design, reproducibility, and verified results | Final checklist |
 
-## Kịch bản thao tác terminal
+## Terminal Script
 
-Chuẩn bị trước khi quay; không chạy cài package dài trong video:
+Prepare before recording; do not show lengthy package installation in the video:
 
 ```bash
 cmake -S . -B build
@@ -29,49 +29,49 @@ cmake --build build -j2
 ./build/test_multi_agent
 ```
 
-Chỉ quay `run_eval` thật nếu:
+Record a real `run_eval` execution only if:
 
-- nhóm đã đồng ý dùng quota/chi phí;
-- `config.json` đã được kiểm tra nhưng không hiển thị;
-- artifact cũ không cần giữ;
-- đủ thời gian chờ cả 10 task.
+- the team has approved the quota or cost;
+- `config.json` has been checked but will not be displayed;
+- old artifacts do not need to be preserved;
+- there is enough time to wait for all 10 tasks.
 
-Nếu benchmark thật dài, có thể trình bày thư mục của một run xác nhận sạch đã chạy ngay trước buổi quay. Phải nói rõ run ID và thời điểm; không dựng kết quả giả hoặc dùng run lịch sử như thể vừa chạy.
+If the real benchmark takes too long, present the directory from a clean confirmation run completed immediately before recording. State its run ID and timestamp clearly; do not fabricate results or present a historical run as a new one.
 
-## Hai trajectory nên mở
+## Two Trajectories to Show
 
 ### Task 005
 
-Chỉ ra ba hành động:
+Show these three actions:
 
-1. `calculator` với `47 * 23` → `1081`;
-2. `write_file` với `result.txt,1081`;
-3. `read_file` để xác minh lại artifact.
+1. `calculator` with `47 * 23` → `1081`;
+2. `write_file` with `result.txt,1081`;
+3. `read_file` to verify the artifact.
 
 ### Task 010
 
-Chỉ ra recovery flow:
+Show the recovery flow:
 
-1. `read_file(data.txt)` trả `ToolError: NotFound`;
-2. tạo file với `initial data`;
-3. append dòng `appended`;
-4. đọc lại nội dung cuối.
+1. `read_file(data.txt)` returns `ToolError: NotFound`;
+2. create the file with `initial data`;
+3. append the line `appended`;
+4. read the final content again.
 
-## Điều không được quay hoặc tuyên bố
+## Do Not Show or Claim
 
-- Không hiển thị `config.json`, API key, token hay credential.
-- Không nói `tokens_used = 0` nghĩa là model không dùng token; phải nói chưa đo.
-- Không gọi `VLMEvaluator` là evaluator ảnh hoàn chỉnh.
-- Không gọi demo `MultiAgentRunner` là tích hợp sub-agent trong Harness.
-- Không nói `OopAgent --chat`; executable hiện chỉ là smoke test Gemini.
-- Không dùng action-level score một mình làm bằng chứng hoàn thành task.
-- Không đưa demo live Tuần 13 trở lại như yêu cầu bắt buộc.
+- Do not display `config.json`, API keys, tokens, or credentials.
+- Do not say `tokens_used = 0` means the model used no tokens; say that token usage is not measured.
+- Do not describe `VLMEvaluator` as a complete image evaluator.
+- Do not describe the `MultiAgentRunner` demo as sub-agent integration in the harness.
+- Do not mention `OopAgent --chat`; the executable is currently only a Gemini smoke test.
+- Do not use the action-level score alone as proof that a task is complete.
+- Do not reintroduce a Week 13 live demo as a mandatory requirement.
 
-## Checklist trước upload
+## Pre-Upload Checklist
 
-- [ ] Chữ terminal đủ lớn và không có thông tin cá nhân nhạy cảm.
-- [ ] Âm thanh nghe rõ; tên class/file đọc đúng.
-- [ ] Run ID và model trong phần benchmark khớp artifact.
-- [ ] Video không có đoạn chờ dài hoặc lỗi chưa giải thích.
-- [ ] Link đặt ở chế độ Unlisted và mở được khi không đăng nhập.
-- [ ] Link cuối được thêm vào báo cáo/nơi nộp theo yêu cầu giảng viên.
+- [ ] Terminal text is large enough and contains no sensitive personal information.
+- [ ] Audio is clear, and class and file names are pronounced correctly.
+- [ ] The run ID and model shown in the benchmark section match the artifacts.
+- [ ] The video contains no long waits or unexplained errors.
+- [ ] The link is Unlisted and opens while signed out.
+- [ ] The final link is added to the report or submission location required by the instructor.
