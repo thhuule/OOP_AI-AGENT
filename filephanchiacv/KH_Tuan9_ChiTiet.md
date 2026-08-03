@@ -64,6 +64,9 @@ Xây dựng một AI Agent framework bằng C++ có khả năng kết nối LLM,
 | Class Diagram | A | `docs/class_diagram.md` | Mermaid render được; đúng inheritance, ownership và dependency |
 | Sequence — agent run | A | `docs/sequence_agent_run.md` | Có tool success/error, final answer, `max_steps` và loop detection |
 | Sequence — batch eval | A/C | `docs/sequence_harness.md` | Có load, cleanup, run, evaluate và export theo từng task |
+| Class Diagram | A | `docs/class_diagram.md` | Mermaid render được; đúng inheritance, ownership và dependency |
+| Sequence — agent run | A | `docs/sequence_agent_run.md` | Có tool success/error, final answer, `max_steps` và loop detection |
+| Sequence — batch eval | A/C | `docs/sequence_harness.md` | Có load, cleanup, run, evaluate và export theo từng task |
 | Component Diagram | A | `docs/component_diagram.md` | Không tạo dependency ngược giữa Agent, Tool và Harness |
 | Báo cáo OOP | A | `docs/report_oop_design.md` | Mỗi nhận định có class/file minh chứng; không gắn pattern sai |
 | Báo cáo Tools | B | `docs/report_tools.md` | Đủ tool, alias, args, policy, dependency và error handling |
@@ -185,13 +188,17 @@ Các dependency bị cấm:
 ### 4.2 Class diagram bắt buộc
 
 Chia diagram thành bốn package:
+Chia diagram thành bốn package:
 
 1. **Client/Core:** `LLMClient`, `GeminiClient`, `OllamaClient`, `LLMConfig`, `Message`, `AgentLoop`, `SkillLoader`, `LoopDetector`, `ToolCallAction`, `FinalAnswerAction`.
+2. **Tools:** `Tool`, `ToolRegistry`, `Registry<T>` và toàn bộ concrete tool.
+3. **Harness:** `Evaluator`, ba concrete evaluator, `HarnessRunner`, `Task`, `TaskRunResult`, `TrajectoryStep`.
 2. **Tools:** `Tool`, `ToolRegistry`, `Registry<T>` và toàn bộ concrete tool.
 3. **Harness:** `Evaluator`, ba concrete evaluator, `HarnessRunner`, `Task`, `TaskRunResult`, `TrajectoryStep`.
 4. **Multi-agent:** `MultiAgentRunner`, `SubAgentConfig`, `MessageQueue`, `AgentMessage`.
 5. **Environment:** `Environment` (abstract), `NativeEnvironment`, `SandboxEnvironment`. Đây là class hierarchy tối thiểu trong đề mới và source hiện chưa có, nên phải triển khai trước khi khóa UML.
 
+Quan hệ phải khớp code:
 Quan hệ phải khớp code:
 
 - `LLMClient <|-- GeminiClient`, `LLMClient <|-- OllamaClient`.
@@ -224,13 +231,18 @@ Không được chốt báo cáo “đủ 4 pattern” cho đến khi focused te
 ```text
 Caller -> AgentLoop::run(instruction, max_steps)
 AgentLoop -> SkillLoader: chọn skill và dựng system prompt
+AgentLoop -> SkillLoader: chọn skill và dựng system prompt
 loop mỗi step
   AgentLoop -> LLMClient::generate_chat(history)
   AgentLoop -> parse_llm_response(text)
   alt ToolCallAction
     AgentLoop -> ToolRegistry: normalize alias + policy + lookup
+    AgentLoop -> ToolRegistry: normalize alias + policy + lookup
     AgentLoop -> Tool::execute(args)
     Tool --> AgentLoop: expected<string, ToolError>
+    AgentLoop -> StepHook: thought, tool, args, result/error, latency
+    AgentLoop -> LoopDetector: tool_name + normalized args
+    AgentLoop -> history: observation thành công hoặc lỗi cụ thể
     AgentLoop -> StepHook: thought, tool, args, result/error, latency
     AgentLoop -> LoopDetector: tool_name + normalized args
     AgentLoop -> history: observation thành công hoặc lỗi cụ thể
@@ -241,7 +253,23 @@ end
 ```
 
 Sequence diagram phải có các nhánh: LLM error, parser fail, tool không tồn tại, policy từ chối, `ToolError`, đạt `max_steps`, loop detected và final answer. Lỗi tool phải được đưa lại vào history để model có cơ hội phục hồi.
+Sequence diagram phải có các nhánh: LLM error, parser fail, tool không tồn tại, policy từ chối, `ToolError`, đạt `max_steps`, loop detected và final answer. Lỗi tool phải được đưa lại vào history để model có cơ hội phục hồi.
 
+### 5.2 Parse và thực thi file tool
+
+Hai input hợp lệ của `write_file`/`append_file`:
+
+```json
+{"filename":"notes.txt","content":"Agent test run"}
+```
+
+```text
+notes.txt,Agent test run
+```
+
+Với dạng chuỗi, split tại dấu phẩy đầu tiên để content vẫn có thể chứa dấu phẩy. Với JSON, dùng parser thật, kiểm tra type và field. Chỉ ghi sau khi filename/content hợp lệ. `append_file` phải bảo toàn nội dung cũ và trả lỗi rõ ràng khi thao tác thất bại.
+
+### 5.3 Luồng batch evaluation
 ### 5.2 Parse và thực thi file tool
 
 Hai input hợp lệ của `write_file`/`append_file`:
@@ -263,11 +291,13 @@ run_eval -> HarnessRunner::loadTasks()
 run_eval -> AgentLoop: set_step_hook(...)
 run_eval -> HarnessRunner: set_agent(...), runAll()
 HarnessRunner -> HarnessRunner: cleanBenchmarkArtifacts(task)
+HarnessRunner -> HarnessRunner: cleanBenchmarkArtifacts(task)
 loop 10 task
   HarnessRunner -> AgentLoop::run(task.instruction, task.max_steps)
   AgentLoop -> StepHook: trajectory từng bước
   HarnessRunner -> findEvaluator(task.eval_type)
   HarnessRunner -> Evaluator::evaluate(output, expected)
+  HarnessRunner -> HarnessRunner: kiểm tra tool step + hậu điều kiện + failure reason
   HarnessRunner -> HarnessRunner: kiểm tra tool step + hậu điều kiện + failure reason
 end
 run_eval -> HarnessRunner::exportResults(results)
@@ -325,9 +355,12 @@ run_eval -> HarnessRunner::exportResults(results)
 - Commit đề xuất: `[Week9-C] Evaluation report and reproducible README`.
 
 ### 6.3 README bắt buộc
+### 6.3 README bắt buộc
 
 README cần có: Overview, Architecture, Prerequisites, Build, Configuration, Executables, Benchmark Output, Security và Troubleshooting.
+README cần có: Overview, Architecture, Prerequisites, Build, Configuration, Executables, Benchmark Output, Security và Troubleshooting.
 
+Lệnh chuẩn trên WSL/Linux:
 Lệnh chuẩn trên WSL/Linux:
 
 ```bash
