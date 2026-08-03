@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(OopAiAgent VERSION 1.0.0 LANGUAGES CXX)
 
+include(CTest)
+
 # Bật chuẩn C++23 ở level CMake, nhưng ép dùng -std=c++26 cho compiler hỗ trợ inplace_vector
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -55,10 +57,20 @@ add_executable(test_multi_agent
     ${SOURCE_FILES}
 )
 
+add_executable(test_harness
+    benchmark/test_harness.cpp
+    ${SOURCE_FILES}
+)
+
 add_executable(demo_multi_agent
     benchmark/demo_multi_agent.cpp
     ${SOURCE_FILES}
 )
+
+if(BUILD_TESTING)
+    add_test(NAME harness COMMAND test_harness)
+    add_test(NAME multi_agent COMMAND test_multi_agent)
+endif()
 
 # Cấu hình Include Directories
 set(common_include_dirs
@@ -70,6 +82,7 @@ set(common_include_dirs
 target_include_directories(OopAgent PRIVATE ${common_include_dirs})
 target_include_directories(run_eval PRIVATE ${common_include_dirs})
 target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
+target_include_directories(test_harness PRIVATE ${common_include_dirs})
 target_include_directories(demo_multi_agent PRIVATE ${common_include_dirs})
 
 # Link Libraries
@@ -94,6 +107,13 @@ target_link_libraries(test_multi_agent PRIVATE
     SQLite::SQLite3
 )
 
+target_link_libraries(test_harness PRIVATE
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
+
 target_link_libraries(demo_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
@@ -106,8 +126,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(OopAgent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(run_eval PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(test_harness PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(demo_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
     target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
+    target_compile_options(test_harness PRIVATE /W4 /std:c++latest)
 endif()
