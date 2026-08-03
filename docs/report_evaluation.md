@@ -1,129 +1,129 @@
-# Evaluation and Benchmark Report
+# Báo cáo Evaluation và Benchmark
 
-## 1. Scope
+## 1. Phạm vi
 
-This document describes the current Evaluation/Infrastructure implementation: task sources, the benchmark lifecycle, evaluators, trajectories, scoring, historical run evidence, multi-agent support, and unresolved limitations.
+Tài liệu này mô tả phần Evaluation/Infra theo code hiện tại: nguồn task, vòng đời benchmark, evaluator, trajectory, cách tính điểm, bằng chứng run lịch sử, multi-agent và các giới hạn chưa đóng.
 
-Sources of truth:
+Nguồn sự thật:
 
-- Tasks: [`../benchmark/tasks.json`](../benchmark/tasks.json)
+- Task: [`../benchmark/tasks.json`](../benchmark/tasks.json)
 - Harness: [`../src/harness/HarnessRunner.h`](../src/harness/HarnessRunner.h), [`../src/harness/HarnessRunner.cpp`](../src/harness/HarnessRunner.cpp)
-- Evaluator interface: [`../src/harness/evaluator.h`](../src/harness/evaluator.h)
+- Evaluator: [`../src/harness/evaluator.h`](../src/harness/evaluator.h)
 - Entrypoint: [`../benchmark/run_eval.cpp`](../benchmark/run_eval.cpp)
-- Historical results: `../benchmark/results/run_20260801_212302_253/` and `../benchmark/results/run_20260801_220549_361/`
+- Kết quả lịch sử: `../benchmark/results/run_20260801_212302_253/` và `../benchmark/results/run_20260801_220549_361/`
 
-The figures below are historical evidence stored in the repository. They do not replace a final verification run from a clean state of the current revision.
+Các số liệu bên dưới là bằng chứng lịch sử trong repository. Chúng không thay cho run xác nhận cuối từ trạng thái code sạch hiện tại.
 
-## 2. Benchmark Suite
+## 2. Bộ benchmark
 
-`benchmark/tasks.json` currently contains 10 tasks:
+`benchmark/tasks.json` hiện có 10 task:
 
-| Category | Count | Tasks |
+| Nhóm | Số task | Task |
 |---|---:|---|
 | Simple | 4 | `task_001`–`task_004` |
 | Medium | 4 | `task_005`–`task_008` |
 | Hard | 2 | `task_009`–`task_010` |
 
-Each task declares an `id`, instruction, evaluator type, category, `requires_tool`, accepted tools, artifacts, and `max_steps`. `HarnessRunner::loadTasks()` rejects tasks with missing required fields, invalid evaluator specifications, empty required-tool specifications, unsafe artifact paths, or duplicate IDs.
+Mỗi task khai báo `id`, instruction, loại evaluator, category, `requires_tool`, danh sách tool được chấp nhận, artifact và `max_steps`. `HarnessRunner::loadTasks()` từ chối task thiếu trường bắt buộc, evaluator spec sai, tool spec rỗng, artifact path không an toàn hoặc ID trùng.
 
-Two complete evaluators are currently used:
+Hai evaluator hoàn chỉnh đang được dùng:
 
-- `KeywordEvaluator`: splits comma-separated keywords, calculates the match ratio, and passes only when every keyword is present.
-- `FunctionalEvaluator`: runs an `eval_script` through `ExecTool` and passes when the output contains `PASS`.
+- `KeywordEvaluator`: tách danh sách keyword theo dấu phẩy, tính tỉ lệ khớp và chỉ pass khi đủ tất cả keyword.
+- `FunctionalEvaluator`: chạy `eval_script` qua `ExecTool` và pass khi output chứa `PASS`.
 
-`VLMEvaluator` currently always fails with a not-implemented message. It must not be described as a complete visual evaluator.
+`VLMEvaluator` hiện chỉ trả fail với thông báo chưa triển khai. Vì vậy tài liệu không xem đây là evaluator thị giác hoàn chỉnh.
 
-## 3. Harness Lifecycle
+## 3. Vòng đời Harness
 
-The implemented flow is:
+Luồng thực tế:
 
-1. `run_eval` reads `config.json` and creates either `GeminiClient` or `OllamaClient` through `LLMClient`.
-2. Tools are registered and Markdown skills are loaded.
-3. `HarnessRunner` loads `benchmark/tasks.json`.
-4. A `StepHook` is injected into `AgentLoop`, allowing the harness to record tool steps without creating a reverse dependency from the agent to the harness.
-5. `runAll()` removes known benchmark artifacts once before the batch.
-6. Tasks run sequentially through `AgentLoop::run()` with a three-second delay between tasks.
-7. The harness selects an evaluator using `eval_type`, then calculates evaluator, action-level, and final results.
-8. `exportResults()` creates a timestamped run directory containing summary JSON, summary text, and one trajectory per task.
+1. `run_eval` đọc `config.json` và tạo `GeminiClient` hoặc `OllamaClient` qua `LLMClient`.
+2. Đăng ký tool và nạp skill Markdown.
+3. `HarnessRunner` nạp `benchmark/tasks.json`.
+4. `StepHook` được inject vào `AgentLoop` để Harness thu tool step mà không tạo dependency ngược từ Agent sang Harness.
+5. `runAll()` dọn các artifact benchmark đã biết một lần trước batch.
+6. Mỗi task chạy tuần tự qua `AgentLoop::run()`; giữa hai task có khoảng chờ ba giây.
+7. Harness chọn evaluator theo `eval_type`, tính evaluator score, action-level score và kết quả cuối.
+8. `exportResults()` tạo thư mục run có timestamp, summary JSON, summary text và trajectory từng task.
 
-See [`sequence_harness.md`](sequence_harness.md) for the detailed sequence.
+Sequence chi tiết nằm tại [`sequence_harness.md`](sequence_harness.md).
 
-### 3.1 Artifact Cleanup and Isolation
+### 3.1 Artifact cleanup và isolation
 
-The harness currently removes `notes.txt`, `result.txt`, `capital.txt`, `output.txt`, `calc.txt`, and `data.txt`, together with artifacts declared by tasks. Absolute paths and paths containing `..` are rejected. If cleanup fails, the batch stops so an old file cannot create a false positive.
+Harness hiện xóa `notes.txt`, `result.txt`, `capital.txt`, `output.txt`, `calc.txt`, `data.txt` cùng các artifact khai báo trong task. Path tuyệt đối hoặc path chứa `..` bị từ chối. Nếu xóa thất bại, batch dừng để tránh file cũ làm task pass giả.
 
-An important limitation is that cleanup runs **once before the entire batch**. The implementation does not create an independent workspace for each task. Tasks share a working directory; `task_003` and `task_007` also use the `notes.txt` produced by `task_002` in the same batch. This is batch-level cleanup, not complete per-task isolation.
+Giới hạn cần nói rõ: cleanup hiện diễn ra **một lần trước cả batch**, chưa có workspace riêng cho từng task. Các task chạy cùng working directory; `task_003` và `task_007` còn sử dụng `notes.txt` do `task_002` tạo trong cùng batch. Vì vậy đây là batch cleanup, chưa phải isolation độc lập theo từng task.
 
-## 4. Scoring
+## 4. Cách chấm điểm
 
-The harness stores three result layers for every task:
+Với mỗi task, Harness lưu ba lớp kết quả:
 
-| Metric | Current condition |
+| Chỉ số | Điều kiện hiện tại |
 |---|---|
-| Evaluator score | `KeywordEvaluator` or `FunctionalEvaluator` returns pass |
-| Action-level score | The task does not require a tool, or a recorded step uses one of `required_tools` and its result does not contain a known error marker |
-| Final success | Evaluator passes **and** action-level evaluation passes |
+| Evaluator score | `KeywordEvaluator` hoặc `FunctionalEvaluator` trả pass |
+| Action-level score | Task không yêu cầu tool, hoặc có tool step thuộc `required_tools` và result không chứa dấu hiệu lỗi phổ biến |
+| Final success | Evaluator pass **và** action-level pass |
 
-Each batch score is the number of tasks that satisfy the corresponding condition divided by the total number of tasks.
+Điểm toàn batch là số task đạt từng tiêu chí chia cho tổng số task.
 
-Action-level evaluation is still a heuristic. It checks the tool name and result text but does not independently verify every artifact post-condition. File post-conditions are protected by the evaluator and affect `final_success`. Therefore, action-level score alone must not be used to claim that a task completed correctly.
+Action-level hiện là heuristic: nó kiểm tra tên tool và chuỗi result, chưa tự xác minh toàn bộ hậu điều kiện artifact. Hậu điều kiện file được bảo vệ ở lớp evaluator và chỉ ảnh hưởng `final_success`. Vì vậy không được dùng action-level score một mình để tuyên bố task đã hoàn thành đúng.
 
-## 5. Trajectory and Export
+## 5. Trajectory và export
 
-Each recorded tool step currently contains:
+Mỗi tool step hiện có:
 
-- `thought`: the LLM response that produced the tool call;
-- `action`: an object containing `type`, `tool`, and `args`;
-- `tool_result`: the result or `ToolError`;
-- `latency_ms`: elapsed time since the previous hook event;
-- `tokens_used`: a placeholder field that is not currently measured.
+- `thought`: phản hồi LLM tạo ra tool call;
+- `action`: object gồm `type`, `tool`, `args`;
+- `tool_result`: kết quả hoặc `ToolError`;
+- `latency_ms`: thời gian từ lần hook trước;
+- `tokens_used`: trường dự phòng, hiện chưa được đo.
 
-Exported files:
+Các file xuất:
 
-| File | Contents |
+| File | Nội dung |
 |---|---|
-| `eval_results.json` | Aggregate scores, category results, and per-task results |
-| `trajectory_task_XXX.json` | Steps, action arguments, tool results, latency, and token fields |
-| `benchmark_summary.txt` | A human-readable pass/fail summary |
+| `eval_results.json` | Điểm tổng, điểm theo category và kết quả từng task |
+| `trajectory_task_XXX.json` | Step, action args, tool result, latency và token field |
+| `benchmark_summary.txt` | Tóm tắt pass/fail dễ đọc |
 
-### 5.1 Token Limitation
+### 5.1 Giới hạn token
 
-`HarnessRunner::createStepHook()` currently assigns `tokens_used = 0`. `LLMClient::generate_chat()` returns only response text, so Gemini `usageMetadata` and Ollama token-count fields do not reach the harness.
+`HarnessRunner::createStepHook()` hiện gán `tokens_used = 0`. `LLMClient::generate_chat()` chỉ trả nội dung dạng chuỗi; Gemini `usageMetadata` và các trường đếm token của Ollama chưa được truyền qua interface.
 
-Therefore:
+Do đó:
 
-> `tokens_used = 0` means **not measured**; it does not mean that the model used zero tokens.
+> `tokens_used = 0` nghĩa là **chưa đo**, không có nghĩa model dùng 0 token.
 
-Real token collection is deferred to the Week 10 backlog: add response metadata to `LLMClient`, parse provider usage, pass it through `AgentLoop` and its hook, and include the final-answer LLM call in the total. Character-count estimates must not be reported as official token counts.
+Đo token thật được để vào backlog Tuần 10: bổ sung response metadata cho `LLMClient`, parse usage của từng provider, truyền qua `AgentLoop`/hook và cộng cả lần gọi tạo final answer. Không dùng ước lượng ký tự như số token chính thức.
 
-## 6. Failure Taxonomy
+## 6. Failure taxonomy
 
-`HarnessRunner::classifyFailure()` can currently produce:
+`HarnessRunner::classifyFailure()` hiện có thể xuất:
 
-| Code | Meaning |
+| Mã | Ý nghĩa |
 |---|---|
-| `NONE` | The task reached final success |
-| `RATE_LIMIT` | Evidence contains 429 or resource-exhausted markers |
-| `TIMEOUT` | The LLM, tool, or evaluator timed out |
-| `TOOL_NOT_FOUND` | The agent requested a tool that does not exist |
-| `INVALID_ARGS` | Tool arguments were invalid |
-| `TOOL_EXECUTION_FAILED` | A tool returned ExecutionFailed, AccessDenied, or UnknownError |
-| `LOOP_DETECTED` | The loop detector stopped the agent |
-| `EVALUATOR_ERROR` | The evaluator could not produce a valid evaluation result |
-| `NO_TOOL_EXECUTION` | A tool-required task had no relevant successful tool step |
-| `ARTIFACT_MISSING` | A required artifact does not exist |
-| `ARTIFACT_CONTENT_MISMATCH` | The artifact exists, but its content fails evaluation |
-| `INCOMPLETE_TASK` | The agent stopped without completing the request |
-| `POST_CONDITION_FAIL` | Evaluation failed without a more specific classification |
-| `PARSER_FAIL` | Fallback when evaluator success and final result state conflict |
+| `NONE` | Task đạt kết quả cuối |
+| `RATE_LIMIT` | Có dấu hiệu 429/resource exhausted |
+| `TIMEOUT` | LLM/tool/evaluator hết thời gian |
+| `TOOL_NOT_FOUND` | Agent gọi tool không tồn tại |
+| `INVALID_ARGS` | Args tool không hợp lệ |
+| `TOOL_EXECUTION_FAILED` | Tool trả ExecutionFailed, AccessDenied hoặc UnknownError |
+| `LOOP_DETECTED` | Agent bị loop detector dừng |
+| `EVALUATOR_ERROR` | Evaluator không thể tạo kết quả chấm hợp lệ |
+| `NO_TOOL_EXECUTION` | Task yêu cầu tool nhưng không có tool step phù hợp thành công |
+| `ARTIFACT_MISSING` | Artifact bắt buộc không tồn tại |
+| `ARTIFACT_CONTENT_MISMATCH` | Có artifact nhưng nội dung không đạt evaluator |
+| `INCOMPLETE_TASK` | Agent dừng mà chưa hoàn thành yêu cầu |
+| `POST_CONDITION_FAIL` | Evaluator fail nhưng chưa phân loại cụ thể hơn |
+| `PARSER_FAIL` | Nhánh fallback khi evaluator đạt nhưng kết quả tổng vẫn lỗi |
 
-The classifier normalizes evidence and recognizes compact enum forms such as `InvalidArgument` and `ExecutionFailed`. Classification still relies on text evidence; a future implementation should preserve typed errors across layers instead of relying only on strings.
+Classifier đọc evidence đã normalize, bao gồm cả dạng enum liền chữ như `InvalidArgument` và `ExecutionFailed`. Việc phân loại vẫn dựa trên evidence text; về dài hạn nên truyền lỗi có kiểu xuyên suốt thay vì chỉ dựa vào chuỗi.
 
-## 7. Historical Run Comparison
+## 7. So sánh hai run lịch sử
 
-| Metric | `run_20260801_212302_253` | `run_20260801_220549_361` |
+| Chỉ số | `run_20260801_212302_253` | `run_20260801_220549_361` |
 |---|---:|---:|
-| Tasks passed | 2/10 | 10/10 |
+| Task pass | 2/10 | 10/10 |
 | Evaluator score | 0.2 | 1.0 |
 | Action-level score | 1.0 | 1.0 |
 | Final success rate | 0.2 | 1.0 |
@@ -131,36 +131,36 @@ The classifier normalizes evidence and recognizes compact enum forms such as `In
 | Medium | 1/4 | 4/4 |
 | Hard | 0/2 | 2/2 |
 
-### 7.1 Failed Run `212302_253`
+### 7.1 Run lỗi `212302_253`
 
-The old run had an action-level score of 1.0 but a final success rate of only 0.2. Historical analysis traced the main cause to incorrect `FileWriteTool` argument parsing: the tool reported `OK` while creating the wrong filename or content. This demonstrates that the old action-level score was too optimistic when considered by itself.
+Run cũ cho thấy action-level score 1.0 nhưng final success chỉ 0.2. Nguyên nhân chính được truy vết trong phân tích lịch sử là `FileWriteTool` parse sai args: tool báo `OK` nhưng tạo sai filename/nội dung. Điều này chứng minh action-level score cũ quá lạc quan nếu đứng riêng.
 
-Observed symptoms:
+Các triệu chứng quan sát được:
 
-- `task_002`, `005`, `006`, and `009`: incorrect artifact name or content;
-- `task_003` and `007`: cascading failures from `notes.txt`;
-- `task_009`: stopped by loop detection;
-- `task_010`: append operation was incomplete;
-- `task_001`: the old instruction and evaluator did not match the files at the repository root.
+- `task_002`, `005`, `006`, `009`: artifact sai tên hoặc sai nội dung;
+- `task_003`, `007`: lỗi dây chuyền từ `notes.txt`;
+- `task_009`: agent dừng do loop;
+- `task_010`: chưa hoàn tất append;
+- `task_001`: instruction/evaluator phiên bản cũ không đồng bộ với danh sách file gốc.
 
-### 7.2 Passing Run `220549_361`
+### 7.2 Run đạt `220549_361`
 
-The historical artifact records 10/10. Two important trajectories are:
+Artifact lịch sử ghi nhận 10/10. Hai trajectory quan trọng:
 
-- `task_005`: preserves the arguments `47 * 23`, `result.txt,1081`, and `result.txt`; calculator, write, and read steps succeed.
-- `task_010`: preserves `ToolError: NotFound`, then writes, appends, and reads back `initial data\nappended`.
+- `task_005`: giữ args `47 * 23`, `result.txt,1081`, `result.txt`; calculator, write và read đều thành công.
+- `task_010`: giữ `ToolError: NotFound`, sau đó write, append và read lại `initial data\nappended`.
 
-This run provides evidence that real arguments were preserved in trajectories and that task 010 completed its recovery path. However, it remains historical evidence and must not be used to claim that the current revision passes 10/10 without a new clean run.
+Run mới cung cấp bằng chứng rằng args thật đã có trong trajectory và luồng recovery của task 010 hoàn tất. Tuy nhiên thư mục run vẫn chỉ là bằng chứng lịch sử; không dùng nó để khẳng định commit hiện tại đạt 10/10 nếu chưa chạy lại sạch.
 
-## 8. Multi-Agent Support
+## 8. Multi-agent
 
-`MultiAgentRunner` provides worker registration, dedicated threads, a dispatcher, message queues, receive timeouts, and `stopAndJoinAll()`. `test_multi_agent` verifies that `ping` becomes `RESULT:ping` and that the runner stops completely. `demo_multi_agent` runs calculator and search workers, then combines their results into `report.txt`.
+`MultiAgentRunner` cung cấp đăng ký worker, thread riêng, dispatcher, message queue, timeout nhận tin và `stopAndJoinAll()`. `test_multi_agent` kiểm tra message `ping` được chuyển thành `RESULT:ping` và runner dừng hoàn toàn. `demo_multi_agent` chạy worker calculator và search rồi gộp kết quả vào `report.txt`.
 
-This is an independent extension. `HarnessRunner` does not currently call `MultiAgentRunner`, so the demo is not sufficient evidence for the sub-agent integration bonus.
+Đây là phần mở rộng độc lập. `HarnessRunner` hiện chưa gọi `MultiAgentRunner`; vì vậy demo này chưa đủ bằng chứng cho bonus tích hợp sub-agent trong benchmark harness.
 
-## 9. Final Verification Procedure
+## 9. Quy trình xác nhận cuối
 
-Do not run a real-provider benchmark merely to update documentation. After Roles A and B freeze their code and the team approves quota and cost:
+Không chạy real-provider benchmark chỉ để cập nhật tài liệu. Khi A/B đã freeze code và nhóm đồng ý quota/chi phí:
 
 ```bash
 cmake -S . -B build
@@ -170,49 +170,49 @@ cmake --build build -j2
 ./build/run_eval
 ```
 
-Post-run checklist:
+Checklist sau run:
 
-1. The new run contains exactly 10 tasks with the 4/4/2 distribution.
-2. The log confirms successful cleanup before the batch.
-3. Every tool-required task has a real relevant tool step with a non-error result.
-4. File tasks create the exact required filename and content during the current run.
-5. Task 005 and 010 trajectories preserve real arguments.
-6. The report identifies the correct provider and model without exposing an API key.
-7. Token value `0` is never described as actual usage.
+1. Run mới có đúng 10 task và đúng phân bố 4/4/2.
+2. Log xác nhận cleanup thành công trước batch.
+3. Task yêu cầu tool có tool step thật, tool phù hợp và result không lỗi.
+4. Task file có đúng filename và content trong chính run hiện tại.
+5. Trajectory task 005/010 giữ args thật.
+6. Báo cáo provider/model đúng với config đã dùng nhưng không lộ API key.
+7. Không gọi token bằng `0` là mức sử dụng thật.
 
-## 10. Current Focused Tests
+## 10. Focused test hiện có
 
-`benchmark/test_harness.cpp` is an offline executable that uses a fake LLM, fake evaluators, and temporary directories. It currently verifies:
+`benchmark/test_harness.cpp` là executable không mạng, dùng fake LLM/evaluator và thư mục tạm. Bộ test hiện kiểm tra:
 
-- valid task loading;
-- rejection of artifact paths containing `..` and duplicate task IDs;
-- evaluator Strategy selection with preserved scores and feedback;
-- StepHook preservation of action type, tool name, arguments, result, and latency;
-- removal of stale batch artifacts in an isolated test directory;
-- distinction between `ARTIFACT_MISSING` and `ARTIFACT_CONTENT_MISMATCH`;
-- distinction between `INVALID_ARGS`, `TOOL_EXECUTION_FAILED`, and `EVALUATOR_ERROR`;
-- rejection of a final answer that skips a required tool;
-- evaluator, action-level, and final score aggregation.
+- task hợp lệ được load;
+- artifact path có `..` và task ID trùng bị từ chối;
+- evaluator Strategy đăng ký theo tên được chọn và giữ nguyên score/feedback;
+- StepHook giữ đúng action type, tool name, args, result và latency;
+- batch cleanup xóa artifact cũ trong thư mục test cô lập;
+- phân biệt `ARTIFACT_MISSING` và `ARTIFACT_CONTENT_MISMATCH`;
+- phân biệt `INVALID_ARGS`, `TOOL_EXECUTION_FAILED` và `EVALUATOR_ERROR`;
+- task bắt buộc tool không thể pass chỉ bằng final answer;
+- tổng hợp evaluator/action/final score.
 
-Run it with:
+Lệnh xác minh:
 
 ```bash
 ./build/test_harness
 ```
 
-A passing run ends with `ALL HARNESS TESTS PASSED`. The suite does not yet prove that the harness uses an `Environment` abstraction because that hierarchy does not exist. Add those tests after Role A supplies the interface.
+Kết quả đạt kết thúc bằng `ALL HARNESS TESTS PASSED`. Test hiện chưa chứng minh Harness dùng `Environment` abstraction vì hierarchy này chưa tồn tại; phần đó phải bổ sung sau khi A cung cấp interface.
 
-CMake also registers the `harness` and `multi_agent` tests with CTest:
+CMake cũng đăng ký `harness` và `multi_agent` với CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-## 11. Backlog After Week 9
+## 11. Backlog sau Tuần 9
 
-- Collect real token metadata from Gemini and Ollama.
-- Test the harness through the `Environment` abstraction and inject intentional cleanup failures.
-- Extend failure-taxonomy tests for rate limits, timeouts, and loop detection.
-- Separate `tool_steps_count` from total LLM steps when trajectories begin recording final answers.
-- Consider isolated workspaces or explicit fixtures to reduce task-order dependencies.
-- Implement `HarnessRunner → MultiAgentRunner → MessageQueue` integration only if the team commits to the bonus objective.
+- Thu thập token metadata thật cho Gemini/Ollama.
+- Bổ sung test Harness qua `Environment` abstraction và cleanup failure được inject có chủ đích.
+- Mở rộng failure taxonomy test cho rate limit, timeout và loop detection.
+- Tách `tool_steps_count` khỏi tổng số LLM step khi trajectory bắt đầu ghi cả final answer.
+- Cân nhắc workspace riêng hoặc fixture setup rõ ràng để giảm phụ thuộc thứ tự task.
+- Chỉ làm integration `HarnessRunner → MultiAgentRunner → MessageQueue` nếu nhóm chọn mục tiêu bonus.
