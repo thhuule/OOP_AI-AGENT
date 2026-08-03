@@ -1,53 +1,53 @@
-# Packaging and Submission Checklist
+# Checklist đóng gói và nộp bài
 
-Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes the design, source code, final report, and an Unlisted YouTube video link. There is no longer a Week 11 submission milestone or a Week 13 live demo.
+Mốc nộp theo kế hoạch hiện hành: **trước 21:00 Chủ nhật Tuần 12**. Sản phẩm gồm thiết kế, source code, báo cáo hoàn chỉnh và link video YouTube ở chế độ Unlisted. Không còn mốc nộp Tuần 11 hoặc demo live Tuần 13.
 
-## 1. Required Deliverables
+## 1. Nội dung bắt buộc
 
-- [ ] The Mermaid class diagram is rendered and matches the source.
-- [ ] The agent-run sequence diagram is rendered.
-- [ ] The batch-evaluation sequence diagram is rendered.
-- [ ] The component diagram is rendered and has no invalid reverse dependency between layers.
-- [ ] The source builds on WSL/Linux.
-- [ ] The OOP report provides evidence for the design patterns and C++ techniques.
-- [ ] The tools report covers canonical names, aliases, arguments, policies, dependencies, and tests.
-- [ ] The evaluation report covers failed and successful runs, scoring, trajectories, and the failure taxonomy.
-- [ ] The README enables a new user to build, configure, and run the correct executables.
-- [ ] The Unlisted YouTube link opens in a signed-out browser window.
+- [ ] Class diagram Mermaid đã render và khớp source.
+- [ ] Sequence diagram agent run đã render.
+- [ ] Sequence diagram batch evaluation đã render.
+- [ ] Component diagram đã render và không có dependency ngược sai layer.
+- [ ] Source build được trên WSL/Linux.
+- [ ] Báo cáo OOP có bằng chứng cho pattern và kỹ thuật C++.
+- [ ] Báo cáo tools có canonical name, alias, args, policy, dependency và test.
+- [ ] Báo cáo evaluation có run hỏng/run đạt, scoring, trajectory và failure taxonomy.
+- [ ] README cho phép người mới build, cấu hình và chạy đúng executable.
+- [ ] Link YouTube Unlisted mở được bằng cửa sổ không đăng nhập.
 
-## 2. Technical Verification
+## 2. Kiểm chứng kỹ thuật
 
-- [ ] `cmake -S . -B build` succeeds.
-- [ ] `cmake --build build -j2` succeeds for every target.
-- [ ] `./build/test_harness` prints `ALL HARNESS TESTS PASSED`.
-- [ ] `./build/test_multi_agent` prints `ALL PASSED`.
-- [ ] The final benchmark evidence comes from a new clean-state run that the team approved for quota use.
-- [ ] The run contains 10 tasks: 4 simple, 4 medium, and 2 hard.
-- [ ] A task that requires a tool contains a real and relevant tool step.
-- [ ] Each artifact has the exact required filename and content in the current run.
-- [ ] The trajectories for tasks 005 and 010 preserve the actual arguments.
-- [ ] Provider and model results are recorded correctly without exposing the API key.
-- [ ] A token count of `0` is identified as not measured.
+- [ ] `cmake -S . -B build` thành công.
+- [ ] `cmake --build build -j2` thành công cho mọi target.
+- [ ] `./build/test_harness` in `ALL HARNESS TESTS PASSED`.
+- [ ] `./build/test_multi_agent` in `ALL PASSED`.
+- [ ] Benchmark xác nhận cuối là run mới từ trạng thái sạch và được nhóm cho phép dùng quota.
+- [ ] Run có 10 task: 4 simple, 4 medium, 2 hard.
+- [ ] Task yêu cầu tool có tool step thật và phù hợp.
+- [ ] Artifact được tạo đúng filename/content trong run hiện tại.
+- [ ] Trajectory task 005 và 010 giữ args thật.
+- [ ] Kết quả provider/model được ghi đúng, không lộ API key.
+- [ ] Token bằng `0` được chú thích là chưa đo.
 
-## 3. Cross-Review
+## 3. Review chéo
 
-- [ ] Role A reviews the harness sequence diagram and the LLM/`AgentLoop` content in the README.
-- [ ] Role B reviews tool names, aliases, arguments, and policies in the report and README.
-- [ ] Role C reviews benchmark figures, output paths, and run commands.
-- [ ] Every relative Markdown link opens the correct file.
-- [ ] All four Mermaid diagrams render without errors.
-- [ ] `VLMEvaluator` is not described as a completed feature.
-- [ ] The multi-agent demo is not described as benchmark-harness integration.
+- [ ] A review sequence harness và nội dung LLM/AgentLoop trong README.
+- [ ] B review tên tool, alias, args và policy trong báo cáo/README.
+- [ ] C review số liệu benchmark, output path và lệnh chạy.
+- [ ] Mọi link Markdown tương đối đều mở đúng file.
+- [ ] Bốn Mermaid diagram render không lỗi.
+- [ ] Không mô tả `VLMEvaluator` như tính năng hoàn chỉnh.
+- [ ] Không mô tả multi-agent demo như benchmark harness integration.
 
-## 4. Secret and Artifact Checks
+## 4. Kiểm tra secret và artifact
 
-- [ ] The staged files do not contain `config.json` or an API key.
-- [ ] The staged files do not contain `build/`, databases, or generated task artifacts.
-- [ ] The commit does not contain a new benchmark run unless the team agreed to preserve it.
-- [ ] The ZIP does not contain `.git`, caches, compiler output, or secrets.
-- [ ] The README uses placeholders such as `YOUR_API_HERE` only.
+- [ ] Không có `config.json` hoặc API key trong staged files.
+- [ ] Không có `build/`, database hoặc file task phát sinh trong staged files.
+- [ ] Không có run benchmark mới trong commit nếu nhóm chưa thống nhất lưu.
+- [ ] ZIP không chứa `.git`, cache, compiler output hoặc secret.
+- [ ] README chỉ dùng placeholder như `YOUR_API_HERE`.
 
-Run these checks before packaging:
+Lệnh kiểm tra trước khi đóng gói:
 
 ```bash
 git status --short
@@ -55,20 +55,20 @@ git diff --check
 git ls-files config.json build memory.db notes.txt result.txt capital.txt calc.txt data.txt output.txt
 ```
 
-## 5. ZIP Name and Contents
+## 5. Tên và nội dung ZIP
 
-Suggested name:
+Tên đề xuất:
 
 ```text
 MSSV1_MSSV2_MSSV3_OopAgent.zip
 ```
 
-According to the plan, the `OopAgent` suffix may be omitted if the name still contains all three student IDs. At minimum, the ZIP must contain the source code, `CMakeLists.txt`, `benchmark/tasks.json`, documentation, and README.
+Theo kế hoạch, hậu tố `OopAgent` có thể bỏ nếu tên vẫn chứa đủ ba MSSV. ZIP phải có tối thiểu source, `CMakeLists.txt`, `benchmark/tasks.json`, tài liệu và README.
 
-## 6. Final Confirmation
+## 6. Xác nhận cuối
 
-- [ ] One team member extracts the ZIP into a new directory.
-- [ ] Rebuild the project by following the README exactly.
-- [ ] Run `test_multi_agent` from the extracted copy.
-- [ ] Check the video, submission link, and private-repository access.
-- [ ] Submit before the deadline instead of waiting until nearly 21:00.
+- [ ] Một thành viên giải nén ZIP vào thư mục mới.
+- [ ] Build lại theo đúng README.
+- [ ] Chạy `test_multi_agent` từ bản giải nén.
+- [ ] Kiểm tra video, link nộp và quyền truy cập repository private.
+- [ ] Nộp trước thời hạn, không đợi sát 21:00.
