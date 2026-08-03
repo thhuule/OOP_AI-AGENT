@@ -1,57 +1,57 @@
 # OOP AI Agent
 
-A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, Markdown skills, loop detection, a benchmark harness, and a multi-agent coordination demo.
+Framework AI Agent viết bằng C++ với LLM client thay thế được, vòng lặp gọi tool, skill Markdown, phát hiện lặp, benchmark harness và demo phối hợp nhiều agent.
 
-## Architecture Overview
+## Tổng quan kiến trúc
 
-| Component | Responsibility | Location |
+| Thành phần | Trách nhiệm | Vị trí |
 |---|---|---|
-| LLM client | Sends conversation history to Gemini or Ollama | `src/client/` |
-| Agent loop | Coordinates prompts, LLM responses, tool calls, and stopping conditions | `src/agent/` |
-| Tool registry | Registers, resolves, and executes tools | `src/tools/` |
-| Skill system | Loads Markdown instructions into the system prompt | `src/skills/` |
-| Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories | `src/harness/`, `benchmark/` |
-| Multi-agent | Provides worker threads, a dispatcher, and message queues | `src/multiagent/` |
+| LLM client | Gửi lịch sử hội thoại tới Gemini hoặc Ollama | `src/client/` |
+| Agent loop | Điều phối prompt, phản hồi LLM, tool call và điều kiện dừng | `src/agent/` |
+| Tool registry | Đăng ký, tìm và thực thi tool | `src/tools/` |
+| Skill system | Nạp hướng dẫn Markdown vào system prompt | `src/skills/` |
+| Evaluation harness | Nạp task, chạy agent, chấm điểm và xuất trajectory | `src/harness/`, `benchmark/` |
+| Multi-agent | Worker thread, dispatcher và message queue | `src/multiagent/` |
 
-The main layers communicate through the `LLMClient`, `Tool`, and `Evaluator` abstractions. `AgentLoop` does not depend on `HarnessRunner`; the harness records trajectories through `StepHook`.
+Các lớp chính giao tiếp qua abstraction `LLMClient`, `Tool` và `Evaluator`. `AgentLoop` không phụ thuộc `HarnessRunner`; Harness thu trajectory qua `StepHook`.
 
-## Prerequisites
+## Yêu cầu môi trường
 
-The supported build environment is WSL/Linux. For example, on Ubuntu:
+Môi trường build được hỗ trợ là WSL/Linux. Ví dụ trên Ubuntu:
 
 ```bash
 sudo apt update
 sudo apt install cmake g++ libcurl4-openssl-dev nlohmann-json3-dev libsqlite3-dev
 ```
 
-The project requires CMake 3.28 or newer. GNU and Clang builds use `-std=c++26`, so the compiler must support the C++ features used by the source code.
+Project cần CMake 3.28 trở lên. GNU/Clang được biên dịch với `-std=c++26`; vì vậy compiler phải hỗ trợ các tính năng C++ mới được source sử dụng.
 
 ## Build
 
-Run the following commands from the repository root inside WSL:
+Chạy từ thư mục gốc repository trong WSL:
 
 ```bash
 cmake -S . -B build
 cmake --build build -j2
 ```
 
-The build produces five executables in `build/`:
+Năm executable được tạo trong `build/`:
 
-- `OopAgent`: performs one Gemini smoke-test request. It is not an interactive chat mode and does not support `--chat`.
-- `run_eval`: runs the 10-task batch from `benchmark/tasks.json` and exports results.
-- `test_harness`: runs local focused tests for task validation, evaluator Strategy selection, StepHook recording, cleanup, failure taxonomy, and score aggregation; it does not require an LLM API.
-- `test_multi_agent`: runs local tests for the dispatcher, message queue, and clean shutdown; it does not require an LLM API.
-- `demo_multi_agent`: runs calculator and search workers, then creates `report.txt`. Its web-search path may use the network.
+- `OopAgent`: smoke test một yêu cầu Gemini. Đây không phải chế độ chat và không hỗ trợ cờ `--chat`.
+- `run_eval`: chạy batch 10 task trong `benchmark/tasks.json` và xuất kết quả.
+- `test_harness`: focused test local cho task validation, evaluator Strategy, StepHook, cleanup, failure taxonomy và cách tổng hợp điểm; không cần LLM API.
+- `test_multi_agent`: test local cho dispatcher, message queue và shutdown; không cần LLM API.
+- `demo_multi_agent`: demo hai worker tính toán/tìm kiếm rồi tạo `report.txt`. Nhánh web search có thể dùng mạng.
 
-## Configuration
+## Cấu hình
 
-Create a local configuration file:
+Tạo file cấu hình cục bộ:
 
 ```bash
 cp config.json.example config.json
 ```
 
-Gemini example:
+Ví dụ Gemini:
 
 ```json
 {
@@ -63,7 +63,7 @@ Gemini example:
 }
 ```
 
-Ollama example:
+Ví dụ Ollama:
 
 ```json
 {
@@ -75,61 +75,61 @@ Ollama example:
 }
 ```
 
-Current implementation notes:
+Lưu ý theo code hiện tại:
 
-- `run_eval` reads `provider`, `api_key`, `model`, and `api_url`.
-- `OopAgent` always creates a `GeminiClient` and reads only `api_key` and `model`.
-- The example configuration contains `use_mock`, but the executables do not currently connect this field to a mock execution path. Do not use it as evidence that a run used a mock or a real provider.
-- `LLMConfig` defines default temperature and timeout values in source code, but `run_eval` does not currently read them from `config.json`.
+- `run_eval` đọc `provider`, `api_key`, `model` và `api_url`.
+- `OopAgent` luôn tạo `GeminiClient` và chỉ đọc `api_key`, `model`.
+- Trường `use_mock` có trong file mẫu nhưng chưa được nối vào đường chạy của executable. Không dùng trường này để tuyên bố một run là mock hoặc real-provider.
+- `LLMConfig` có temperature/timeout mặc định trong source, nhưng `run_eval` chưa đọc các giá trị này từ `config.json`.
 
-Never commit `config.json`. It may contain an API key and is listed in `.gitignore`.
+Không commit `config.json`. File này có thể chứa API key và đã được liệt kê trong `.gitignore`.
 
-## Tests and Demo
+## Chạy kiểm thử và demo
 
-Run the local tests first:
+Chạy các test local trước:
 
 ```bash
 ./build/test_harness
 ./build/test_multi_agent
 ```
 
-Alternatively, run both through CTest:
+Hoặc chạy cả hai qua CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-A successful direct run ends with these messages:
+Kết quả đạt phải có hai dòng kết thúc tương ứng:
 
 ```text
 ALL HARNESS TESTS PASSED
 ALL PASSED
 ```
 
-Run the multi-agent demo only when network access to DuckDuckGo is acceptable:
+Chạy demo multi-agent khi chấp nhận việc demo có thể truy cập DuckDuckGo:
 
 ```bash
 ./build/demo_multi_agent
 ```
 
-The demo creates `report.txt` in the working directory. It is an independent extension and is not evidence that the benchmark harness coordinates sub-agents.
+Demo tạo `report.txt` tại working directory. Đây là phần mở rộng độc lập, chưa phải bằng chứng rằng benchmark harness điều phối sub-agent.
 
-## Running the Benchmark
+## Chạy benchmark
 
-`run_eval` calls the real provider selected by the current configuration. It may consume quota, use the network, and create files. Before running it:
+`run_eval` gọi provider thật theo cấu hình hiện tại, có thể tốn quota, dùng mạng và tạo file. Trước khi chạy:
 
-1. Inspect `config.json` without printing or sharing the API key.
-2. Confirm that the selected model, quota, and cost are approved.
-3. Build every target, then run `test_harness` and `test_multi_agent`.
-4. Make sure the working tree does not contain old artifacts that must be preserved.
+1. Kiểm tra `config.json` mà không in hoặc chia sẻ API key.
+2. Xác nhận model, quota và chi phí được phép sử dụng.
+3. Build toàn bộ target, chạy `test_harness` và `test_multi_agent`.
+4. Đảm bảo working tree không chứa artifact cũ cần giữ lại.
 
-Then run:
+Sau đó chạy:
 
 ```bash
 ./build/run_eval
 ```
 
-The harness reads `benchmark/tasks.json`, removes known benchmark artifacts before the batch, runs 10 tasks sequentially, and creates:
+Harness đọc `benchmark/tasks.json`, dọn danh sách artifact benchmark đã biết trước batch, chạy tuần tự 10 task rồi tạo:
 
 ```text
 benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
@@ -139,59 +139,59 @@ benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
 └── ...
 ```
 
-`eval_results.json` contains the evaluator score, action-level score, and final success rate. Each trajectory contains the thought, action, tool result, and latency for its recorded tool steps.
+`eval_results.json` chứa điểm evaluator, điểm action-level và success rate cuối. Mỗi trajectory chứa thought, action, tool result và latency của các tool step.
 
-`tokens_used` is currently `0` because the clients do not pass provider token metadata to the harness. This value means **not measured**; it does not mean that the model used no tokens.
+Trường `tokens_used` hiện bằng `0` vì client chưa truyền token metadata về Harness. Giá trị này có nghĩa **chưa đo**, không có nghĩa model không sử dụng token.
 
-## Benchmark Criteria
+## Tiêu chí benchmark
 
-`benchmark/tasks.json` is the source of truth. The current suite contains:
+`benchmark/tasks.json` là nguồn sự thật. Bộ hiện tại gồm:
 
-- 4 simple tasks;
-- 4 medium tasks;
-- 2 hard tasks.
+- 4 task simple;
+- 4 task medium;
+- 2 task hard.
 
-A task that requires tools reaches final success only when its evaluator passes and the harness finds at least one relevant successful tool step. File-producing tasks are also checked by `FunctionalEvaluator` scripts for the required filename and content.
+Task yêu cầu tool chỉ đạt kết quả cuối khi evaluator đạt và có ít nhất một tool step liên quan được Harness xem là thành công. Task tạo file còn được FunctionalEvaluator kiểm tra filename/nội dung bằng script hậu điều kiện.
 
-Files under `benchmark/results/` are historical evidence. A claim about the current revision must come from a new, clean run using the stated provider.
+Kết quả trong `benchmark/results/` là bằng chứng lịch sử. Muốn tuyên bố kết quả của phiên bản hiện tại phải dùng một run sạch, mới và đúng provider đã công bố.
 
-## Security
+## An toàn
 
-- Do not commit API keys, `config.json`, databases, build output, or generated benchmark artifacts.
-- Do not weaken tasks or evaluators merely to improve the score.
-- Keep the `execute_shell` policy restrictive; do not use the benchmark to run commands outside task scope.
-- `run_eval` and `demo_multi_agent` may use the network. Use the local tests first.
+- Không commit API key, `config.json`, database, build output hoặc artifact benchmark phát sinh.
+- Không sửa task hay evaluator chỉ để tăng điểm.
+- `execute_shell` phải giữ policy hạn chế; không dùng benchmark để chạy lệnh ngoài phạm vi task.
+- `run_eval` và `demo_multi_agent` có thể dùng mạng. `test_multi_agent` là lựa chọn kiểm tra local trước.
 
-## Troubleshooting
+## Xử lý lỗi thường gặp
 
-### CMake Cannot Find a Dependency
+### CMake không tìm thấy dependency
 
-Install CURL, SQLite3, and nlohmann-json, then configure again:
+Cài đủ CURL, SQLite3 và nlohmann-json rồi cấu hình lại:
 
 ```bash
 sudo apt install libcurl4-openssl-dev libsqlite3-dev nlohmann-json3-dev
 cmake -S . -B build
 ```
 
-### `config.json` Is Missing
+### Không tìm thấy `config.json`
 
-Run the executable from the repository root or `build/` directory, and make sure `config.json.example` has been copied to `config.json`.
+Chạy executable từ repository root hoặc thư mục `build/`, và bảo đảm đã copy `config.json.example` thành `config.json`.
 
-### Gemini Returns 429 or Resource Exhausted
+### Gemini trả 429 hoặc Resource Exhausted
 
-Stop the benchmark, inspect the quota or rate limit, and do not retry continuously. A rate-limited run must not be reported as evidence of agent quality.
+Dừng benchmark, kiểm tra quota/rate limit và không chạy lặp lại liên tục. Run bị rate limit không được báo cáo như kết quả chất lượng của agent.
 
-### Ollama Cannot Connect
+### Ollama không kết nối được
 
-Verify that Ollama is running, `api_url` is correct, and the selected model is available locally.
+Kiểm tra Ollama đang chạy, `api_url` đúng và model đã có trong máy.
 
-### The Benchmark Passes Because of an Old File
+### Benchmark pass nhờ file cũ
 
-Do not use files in the repository root as evidence. Check the cleanup log and the timestamped run directory. If cleanup fails, the harness stops the batch to prevent a false positive.
+Không dùng file ở repository root làm bằng chứng. Kiểm tra log cleanup và thư mục run có timestamp. Nếu cleanup thất bại, Harness dừng batch để tránh false positive.
 
-## Documentation
+## Tài liệu
 
-- [Evaluation report](docs/report_evaluation.md)
-- [Batch evaluation sequence diagram](docs/sequence_harness.md)
-- [Week 12 submission checklist](docs/submission_checklist.md)
-- [Demo video storyboard](docs/video_storyboard.md)
+- [Báo cáo evaluation](docs/report_evaluation.md)
+- [Sequence diagram batch evaluation](docs/sequence_harness.md)
+- [Checklist đóng gói Tuần 12](docs/submission_checklist.md)
+- [Storyboard video demo](docs/video_storyboard.md)
