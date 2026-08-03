@@ -561,7 +561,9 @@ bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
         const bool successful = !containsAny(
             step.result,
             {"error", "failed", "invalid", "not found",
-             "denied", "timeout"});
+             "denied", "timeout", "toolerror", "executionfailed",
+             "accessdenied", "notfound", "invalidargument",
+             "unknownerror"});
         if (relevant && successful)
             return true;
     }
@@ -584,10 +586,16 @@ std::string HarnessRunner::classifyFailure(
         return "TIMEOUT";
     if (containsAny(evidence, {"tool not found", "unknown tool"}))
         return "TOOL_NOT_FOUND";
-    if (containsAny(evidence, {"invalid argument", "invalid args"}))
+    if (containsAny(evidence,
+                    {"invalid argument", "invalid args", "invalidargument"}))
         return "INVALID_ARGS";
     if (containsAny(evidence, {"infinite loop", "loop detected"}))
         return "LOOP_DETECTED";
+    if (containsAny(evidence, {"evaluator error"}))
+        return "EVALUATOR_ERROR";
+    if (containsAny(evidence,
+                    {"executionfailed", "accessdenied", "unknownerror"}))
+        return "TOOL_EXECUTION_FAILED";
     if (result.requires_tool && result.tool_steps_count == 0)
         return "NO_TOOL_EXECUTION";
     if (!result.action_level_success)
