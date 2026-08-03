@@ -1,8 +1,10 @@
 # Phân việc nhóm — Đồ án OOP 2026: AI Agent với Ollama API
  
 > **Nhóm:** 3 người, năng lực tương đương  
-> **Bắt đầu:** Tuần 3 | **Freeze code:** Tuần 10 | **Demo:** Tuần 13  
+> **Bắt đầu:** Tuần 3 | **Freeze nội bộ:** Tuần 11 | **Nộp đầy đủ:** trước 21:00 Chủ nhật Tuần 12
 > **Điểm thưởng target:** Multi-agent (+3đ)
+>
+> **Nguồn ràng buộc hiện hành:** `filephanchiacv/OOP Project 2026 AI Agent.docx (1).md`. Mốc Tuần 11 và demo live Tuần 13 trong bản đề cũ đã bị hủy; Tuần 12 phải nộp thiết kế, source, báo cáo hoàn chỉnh và link YouTube video demo ở chế độ Unlisted.
  
 ---
  
@@ -10,9 +12,9 @@
  
 | Người | Role | Layer phụ trách |
 |---|---|---|
-| **A** | Systems / Core | LLMClient + AgentLoop + LoopDetector + UML |
-| **B** | Tools / Data | ToolRegistry + 8 tools + MemoryTool (SQLite) |
-| **C** | Eval / Infra | SkillSystem + Harness + Evaluator + Benchmark + Multi-agent |
+| **A** | Systems / Core | LLMClient + AgentLoop + parser + SkillLoader + LoopDetector + Environment + UML |
+| **B** | Tools / Data | Tool/ToolRegistry/Factory + 5 tool bắt buộc + ít nhất 3 tool bổ sung + MemoryTool (SQLite) |
+| **C** | Eval / Infra | Harness + Evaluator + Benchmark + trajectory + Multi-agent + build/docs/video |
  
 ---
  
@@ -22,15 +24,15 @@
  
 **A:**
 - Setup repo GitHub, `CMakeLists.txt`, cấu trúc thư mục theo đề
-- Viết abstract interface: `LLMClient.h`, `Tool.h`, `Evaluator.h` (pure virtual)
+- Viết abstract interface `LLMClient.h`; phối hợp B/C khóa `Tool.h`, `Evaluator.h` (pure virtual)
+- `SkillLoader` skeleton: scan thư mục `skills/`, load `.md`; viết 3 skill có nội dung thực
 - Test kết nối Ollama từ Google Colab → gọi được `/api/chat`
 **B:**
 - `Tool.h` abstract class + `ToolRegistry` skeleton (đăng ký/lookup theo tên)
 - Implement `CalculatorTool` + `FileTool` (read/write) — 2 tool đơn giản nhất
 **C:**
-- `SkillLoader` skeleton: scan thư mục `skills/`, load `.md`
-- Viết 3 skill file nội dung thực (`task_planner.md`, `error_recovery.md`, 1 tự chọn)
 - Setup `Trajectory` + `Step` data class
+- Chốt format `benchmark/tasks.json` và khung test/harness không phụ thuộc Agent internals
 > ⚠️ **Action quan trọng tuần 3:** Cả nhóm review và **lock interface** `Tool.h`, `LLMClient.h`, `Evaluator.h` trước khi làm tiếp. Thay đổi interface sau tuần 4 sẽ break nhiều thứ.
  
 **Commit target:** repo có structure, build được, Ollama connect được.
@@ -40,7 +42,8 @@
 ### Tuần 4 — Core loop + Tools batch 1
  
 **A:**
-- `OllamaClient` hoàn chỉnh: POST `/api/chat`, handle text + multimodal (base64 ảnh)
+- `OllamaClient` hoàn chỉnh: POST `/api/chat`, handle text + multimodal (base64 ảnh) qua cùng `LLMClient` interface
+- Cấu hình đủ base URL, model, temperature, `max_tokens`, timeout; test request serialization
 - Error handling: timeout, connection refused, malformed JSON
 - `AgentLoop` skeleton: conversation history, max\_steps
 **B:**
@@ -61,7 +64,7 @@
 - Inject skill vào system prompt
 **B:**
 - `MemoryTool` với SQLite: `memory_save` + `memory_search`
-- 3 tool bổ sung từ OpenClaw (3 loại khác nhau) — chọn trước tuần 5 bắt đầu
+- 3 tool bổ sung tham khảo OpenClaw hoặc Hermes, thuộc 3 loại khác nhau; lưu bảng nguồn tham khảo và test — chọn trước tuần 5 bắt đầu
 - Test end-to-end: Agent gọi được tool thật
 **C:**
 - `FunctionalEvaluator`: chạy eval\_script, parse PASS/FAIL
@@ -77,8 +80,9 @@
 - `LoopDetector`: generic repeat + ping-pong, configurable threshold
 - Warning vs critical log, graceful stop
 - Integration test: agent chạy có loop → detect đúng
+- Tạo `Environment` abstract cùng `NativeEnvironment`/`SandboxEnvironment`; giữ Harness phụ thuộc interface
 **B:**
-- Polish tất cả tools: exception handling, `std::optional<T>` return
+- Polish tất cả tools: trả `std::expected<T, ToolError>` với lỗi cụ thể; dùng `std::optional<T>` ở nơi giá trị có thể vắng
 - C++17 features pass: `std::variant` cho Action type, `std::filesystem` cho SkillLoader
 - Unit test từng tool
 **C:**
@@ -90,13 +94,13 @@
 ### Tuần 7 — C++ modern features + Multi-agent foundation
  
 **A:**
-- C++20: concepts hoặc coroutines cho async LLM call
-- C++23: `std::expected<T,E>` thay exception cho LLM errors
-- C++26: 1 feature phù hợp
+- C++20: chứng minh ít nhất 2 feature độc lập (ví dụ `std::ranges` và một feature phù hợp khác)
+- C++23: chứng minh ít nhất 2 feature (`std::expected<T,E>` và `std::print`/`std::println`) trên đường code được test
+- C++26: guarded `std::inplace_vector` hoặc 1 feature phù hợp, có portability fallback
 **B:**
-- Ensure đủ 8/10 C++17 features trong bảng yêu cầu
+- Ensure đạt tối thiểu 4 feature C++17 theo đề; có thể giữ target nội bộ cao hơn nếu đều có source/test thật
 - Smart pointer audit: không leak, `unique_ptr`/`shared_ptr` đúng chỗ
-- Template `Registry<T>` generic
+- Template `Registry<T>` và Factory creator theo tên; không chỉ lookup object có sẵn
 **C:**
 - **Multi-agent foundation:** `HarnessRunner` spawn sub-agent trên thread mới
 - `std::queue` + `mutex` cho message queue giữa agents
@@ -108,29 +112,37 @@
 **A:**
 - Integration full pipeline: LLMClient → AgentLoop → Tool → Harness
 - Refactor đảm bảo abstraction: AgentLoop không biết Harness tồn tại
+- Refactor `AgentLoop::run()` thành Template Method đúng nghĩa: skeleton cố định + primitive operations/hook override được; có subclass test
 **B:**
-- `VLMEvaluator` (Strategy pattern — optional nhưng nên có)
+- Tích hợp Registry/Factory để tạo concrete tool theo tên; test alias/policy/create/unknown/duplicate
 - Fix bugs từ integration test tuần 7
 **C:**
+- `VLMEvaluator` (Strategy pattern; nếu còn skeleton thì ghi đúng trạng thái, không nhận là evaluator ảnh hoàn chỉnh)
 - Multi-agent demo: task phức tạp → chia 2 sub-agent chạy song song
+- Muốn nhận +3đ, nối khả năng spawn sub-agent vào `HarnessRunner` qua `MultiAgentRunner`/Agent public API và test message queue; demo riêng hiện tại chưa tự động chứng minh đúng tiêu chí bonus
 - 2 task khó cho benchmark (multi-step, agent tự quyết thứ tự tool call)
 - Benchmark chạy được, success rate có số
 ---
  
 ### Tuần 9 — UML + Báo cáo draft
- 
+
 **A (chủ trì UML):**
 - Vẽ Class Diagram toàn hệ thống (Mermaid)
 - Vẽ Sequence Diagram — 1 agent run hoàn chỉnh
 - Vẽ Sequence Diagram — HarnessRunner batch evaluation
 - Vẽ Component Diagram
+- Audit class hierarchy tối thiểu, đặc biệt `Environment` → `NativeEnvironment`/`SandboxEnvironment`
+- Khóa bằng chứng 4 pattern bắt buộc: Strategy, Template Method, Registry/Factory, Observer/Hook; blocker nào chưa có source + test phải sửa trước khi chốt báo cáo
 **B:**
 - Viết phần báo cáo: Tools — thiết kế, implementation, thách thức
+- Lập bảng tool → loại → nguồn OpenClaw/Hermes → args/dependency → test để chứng minh 3 tool bổ sung thuộc 3 loại
 **C:**
 - Viết phần báo cáo: Benchmark/Eval — success rate, phân tích kết quả
 - README: build instructions, cấu hình Ollama, run example
+- Lập checklist gói nộp Tuần 12 và storyboard video YouTube Unlisted
 **A:**
 - Viết phần báo cáo: Thiết kế OOP — class hierarchy, design patterns, abstraction layers
+- Lập ma trận C++: ≥4 C++17, ≥2 C++20, ≥2 C++23, ≥1 C++26; mỗi feature có file, mục đích, test và fallback nếu cần
 ---
  
 ### Tuần 10 — Bug fix + Polish + Slide
@@ -138,34 +150,36 @@
 - Full benchmark run, fix issues
 - Memory leak check (Valgrind hoặc AddressSanitizer)
 - Slide thuyết trình: C làm skeleton, cả nhóm review
-- Rehearse demo live: thêm tool giảng viên chỉ định, giải thích design pattern
+- Quay thử video demo: ưu tiên một agent task hoàn chỉnh, benchmark/result JSON và bằng chứng OOP; đây là lựa chọn trình bày của nhóm, không phải phục hồi checklist demo live đã bị hủy
 ---
  
-### Tuần 11 — Nộp design
+### Tuần 11 — Freeze nội bộ + hoàn thiện video
+ 
+- Review và render đủ bốn UML theo Mục IV.3 của đề.
+- Chạy quy trình build/test từ môi trường sạch, rà secret và đường dẫn tài liệu.
+- Quay/chỉnh video, đặt chế độ YouTube Unlisted và kiểm tra link bằng cửa sổ chưa đăng nhập.
+- Đây không còn là deadline nộp chính thức.
+ 
+---
+ 
+### Tuần 12 — Nộp đầy đủ
  
 > **Deadline: trước 21:00 Chủ nhật**
  
-Nộp: Class Diagram + Sequence Diagram (2 cái)
- 
----
- 
-### Tuần 12 — Nộp source + báo cáo
- 
-> **Deadline: trước 21:00 Chủ nhật**
- 
+- Class diagram + sequence diagram theo yêu cầu thiết kế; giữ đủ bốn UML trong tài liệu dự án
+- Source code + README hướng dẫn biên dịch/chạy
+- Báo cáo hoàn chỉnh + slide
+- Link YouTube video demo ở chế độ Unlisted
 - ZIP đúng tên: `MSSV1_MSSV2_MSSV3_OopAgent.zip`
+- Theo đề, tên ZIP chỉ cần có đủ ba MSSV; hậu tố `OopAgent` có thể bỏ
 - Đủ cấu trúc thư mục theo mục VI đề bài
-- Personal Access Token cho giảng viên
+- Personal Access Token quyền read-only để giảng viên truy cập repository private
 - Nộp qua Moodle
 ---
  
-### Tuần 13 — Demo live
+### Tuần 13 — Không còn mốc demo live
  
-Chuẩn bị demo được:
-1. Khởi động Ollama từ Colab, chạy 1 agent task hoàn chỉnh từ CLI
-2. Thêm tool mới (giảng viên chỉ định) vào registry và chạy lại
-3. Chạy batch benchmark, show file JSON output
-4. Giải thích 1 design pattern đã dùng và chỉ ra trong code
+Đề cập nhật đã bỏ demo trực tiếp. Nhóm chỉ lưu bản nộp, kiểm tra link video còn truy cập được và sẵn sàng giải thích code khi giảng viên cần làm rõ; không lập thêm deliverable Tuần 13.
 ---
  
 ## Commit tracking
@@ -174,14 +188,14 @@ Chuẩn bị demo được:
  
 | Tuần | A | B | C |
 |------|---|---|---|
-| 3 | repo + interfaces | ToolRegistry + 2 tools | SkillLoader + Trajectory |
+| 3 | repo + interfaces + SkillLoader | ToolRegistry + 2 tools | Trajectory + task schema |
 | 4 | OllamaClient | ExecTool + WebTool | HarnessRunner skeleton |
 | 5 | ReAct loop | MemoryTool + 3 tools | FunctionalEvaluator |
 | 6 | LoopDetector | Tool polish + tests | Harness + JSON export |
 | 7 | C++20/23/26 | Smart ptr audit | Multi-agent foundation |
 | 8 | Integration refactor | VLMEvaluator | Multi-agent demo |
 | 9 | UML + báo cáo OOP | Báo cáo Tools | README + Báo cáo Eval |
-| 10 | Bug fix | Bug fix | Slide + rehearse |
+| 10 | Bug fix | Bug fix | Slide + quay thử video |
  
 **8 tuần × 3 người = 24 commit** → đủ an toàn, mỗi người ≥8 commit riêng.
  
@@ -193,15 +207,19 @@ Chuẩn bị demo được:
 - [ ] Class diagram đầy đủ, đúng UML notation
 - [ ] Inheritance hierarchy hợp lý, không vi phạm LSP
 - [ ] 4 design patterns đúng context: Strategy, Template Method, Registry/Factory, Observer
+- [ ] Template Method và Registry/Factory có source + focused test, không chỉ xuất hiện trong báo cáo
 - [ ] Separation of concerns: AgentLoop không biết Harness
+- [ ] Có `Environment` abstract → `NativeEnvironment`, `SandboxEnvironment` theo class hierarchy tối thiểu
 ### Kỹ thuật C++ (20đ)
-- [ ] ≥8/10 tính năng C++17 trong bảng yêu cầu
+- [ ] ≥4 tính năng C++17 trong bảng yêu cầu, mỗi feature có source/test cụ thể
 - [ ] Thêm ≥2 C++20, ≥2 C++23, ≥1 C++26
+- [ ] Không tính `std::string_view` là C++20; C++26 có guarded portability fallback
 - [ ] Không memory leak, smart pointer đúng chỗ
 - [ ] Exception handling có ý nghĩa
 ### Chức năng (25đ)
 - [ ] 5 tool bắt buộc hoạt động đúng (exec, read/write, web\_search, memory, calculator)
-- [ ] 3 tool bổ sung từ OpenClaw
+- [ ] 3 tool bổ sung thuộc 3 loại khác nhau, có nguồn tham khảo OpenClaw/Hermes
+- [ ] LLM config đủ base URL, model, temperature, `max_tokens`, timeout; text-only và multimodal đi qua cùng interface
 - [ ] Agent loop + loop detection (2 loại)
 - [ ] Skill system load và inject đúng
 - [ ] Harness runner + trajectory JSON output
@@ -213,6 +231,7 @@ Chuẩn bị demo được:
 - [ ] README: build, run, cấu hình Ollama
 - [ ] Báo cáo: thiết kế, khó khăn, kết quả
 - [ ] Slide thuyết trình mạch lạc
+- [ ] Trước 21:00 Chủ nhật Tuần 12: thiết kế + source + báo cáo hoàn chỉnh + link YouTube Unlisted đã kiểm tra
 ### Điểm thưởng (+3đ)
 - [ ] Multi-agent: spawn sub-agent trên thread mới
 - [ ] Message queue với `std::queue` + `mutex`
