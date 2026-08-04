@@ -1,67 +1,78 @@
-
 #pragma once
+#include "Tool.h"
 
+#include <functional>
+#include <map>
 #include <memory>
+#include <optional>   // C++17
+#include <set>
 #include <string>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
-namespace oop_agent
-{
+namespace oop_agent {
 
-class Tool;
+/// ToolCreator: factory function that produces a fresh Tool instance.
+using ToolCreator = std::function<std::unique_ptr<Tool>()>;
 
-class ToolRegistry
-{
+/// ToolRegistry — Registry + Factory pattern (bắt buộc theo đề).
+///
+/// Two responsibilities (kept in one class per project scope):
+///   1. FACTORY  : register_creator() + create()  → makes new unique_ptr<Tool> by name
+///   2. REGISTRY : register_tool()    + lookup()  → stores & retrieves existing instances
+///
+/// Alias resolution and allow/deny policy are applied before any lookup.
+/// Alias normalize must happen BEFORE allow-list / deny-list check.
+class ToolRegistry {
 public:
+    // ── Factory interface ─────────────────────────────────────────────────
 
-    ToolRegistry();
-    /**
-     * @brief Đăng ký Tool vào hệ thống.
-     */
-    void register_tool(
-        std::unique_ptr<Tool> tool);
+    /// Register a creator function for a canonical tool name.
+    /// Overwrites any existing creator for the same name.
+    void register_creator(const std::string& canonical_name, ToolCreator creator);
 
-    /**
-     * @brief Tra cứu Tool theo tên.
-     *
-     * @return nullptr nếu không tìm thấy.
-     */
-    [[nodiscard]]
-    Tool* get_tool(
-        std::string_view name) const;
+    /// Create a fresh tool instance by name (alias-resolved, policy-checked).
+    /// Returns nullptr if name unknown or denied.
+    std::unique_ptr<Tool> create(const std::string& name);
 
-    /**
-     * @brief Thiết lập danh sách Tool được phép sử dụng.
-     */
-    void set_allow_list(
-        const std::vector<std::string>& names);
+    // ── Registry interface ────────────────────────────────────────────────
 
-    /**
-     * @brief Thiết lập danh sách Tool bị cấm.
-     */
-    void set_deny_list(
-        const std::vector<std::string>& names);
+    /// Register an already-constructed tool instance.
+    void register_tool(std::shared_ptr<Tool> tool);
 
-    /**
-     * @brief Kiểm tra Tool có được phép thực thi hay không.
-     */
-    [[nodiscard]]
-    bool is_allowed(
-        std::string_view name) const;
+    /// Lookup a registered instance by canonical name.
+    /// Returns nullptr if not found.
+    Tool* lookup(const std::string& name);
+
+    // ── Alias & policy ────────────────────────────────────────────────────
+
+    /// Register alias → canonical mapping.
+    void register_alias(const std::string& alias, const std::string& canonical);
+
+    /// Resolve alias to canonical name; returns original if no alias found.
+    std::string normalize(const std::string& name) const;
+
+    /// Returns true if canonical name is not in deny_list_ and
+    /// (allow_list_ is empty OR name is in allow_list_).
+    bool is_allowed(const std::string& canonical_name) const;
+
+    /// Add to deny-list (takes canonical name).
+    void deny(const std::string& canonical_name);
+
+    /// Add to allow-list. If allow-list is non-empty, ONLY listed tools are permitted.
+    void allow(const std::string& canonical_name);
+
+    /// Register all built-in tools (creators + instances + aliases).
+    void register_all_tools();
+
+    // ── Inspection ────────────────────────────────────────────────────────
+    bool has_creator(const std::string& name) const;
+    bool has_instance(const std::string& name) const;
 
 private:
-
-    std::unordered_map<
-        std::string,
-        std::unique_ptr<Tool>
-    > tools_;
-
-    std::unordered_set<std::string> allow_list_;
-    std::unordered_map<std::string, std::string> aliases_;
-    std::unordered_set<std::string> deny_list_;
+    std::map<std::string, ToolCreator>            creators_;
+    std::map<std::string, std::shared_ptr<Tool>> instances_;
+    std::map<std::string, std::string>            aliases_;
+    std::set<std::string>                         allow_list_;
+    std::set<std::string>                         deny_list_;
 };
 
 } // namespace oop_agent
