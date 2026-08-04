@@ -14,160 +14,167 @@
 
 namespace oop_agent {
 
-constexpr std::string_view trim_sv(std::string_view sv) noexcept {
-    auto start = sv.find_first_not_of(" \t\n\r");
-    if (start == std::string_view::npos) return "";
-    auto end = sv.find_last_not_of(" \t\n\r");
-    return sv.substr(start, end - start + 1);
+AgentLoop::AgentLoop(std::shared_ptr<LLMClient>   llm,
+                     std::shared_ptr<SkillLoader> skills,
+                     ToolRegistry                 registry)
+    : llm_(std::move(llm))
+    , skills_(std::move(skills))
+    , registry_(std::move(registry))
+{}
+
+// ── Template Method skeleton ──────────────────────────────────────────────────
+
+std::string AgentLoop::run(const std::string& instruction, int max_steps) {
+    abort_  = false;
+    history_.clear();
+    detector_.reset();
+
+    // ── Setup ──────────────────────────────────────────────────────────────
+    history_.push_back({"system", build_system_prompt(instruction), std::nullopt});
+    history_.push_back({"user",   instruction, std::nullopt});
+
+    // ── ReAct loop ─────────────────────────────────────────────────────────
+    for (int step = 1; step <= max_steps; ++step) {
+        current_step_ = step;
+
+        // THINK + ACT
+        auto action = think_and_act(step);
+
+        if (abort_) return "Aborted at step " + std::to_string(step);
+
+        // FINAL ANSWER branch
+        if (auto* fa = std::get_if<FinalAnswerAction>(&action)) {
+            TrajectoryStep ts;
+            ts.step      = step;
+            ts.thought     = last_thought_;
+            ts.action      = "final_answer";
+            ts.tool_name   = "final_answer";
+            ts.args        = "";
+            ts.result      = fa->answer;
+            ts.success     = true;
+            ts.tokens_used = 0;
+            emit_hook(ts);
+            return fa->answer;
+        }
+
+        // TOOL CALL branch
+        auto& tc = std::get<ToolCallAction>(action);
+
+        auto t_start = std::chrono::steady_clock::now();
+        auto result  = execute_tool(tc);
+        auto t_end   = std::chrono::steady_clock::now();
+        double latency = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+        TrajectoryStep ts;
+        ts.step      = step;
+        ts.thought     = last_thought_;
+        ts.action      = tc.tool_name;
+        ts.tool_name   = tc.tool_name;
+        ts.args        = tc.args;
+        ts.latency_ms  = latency;
+        ts.tokens_used = 0;
+
+        if (result) {
+            ts.result  = *result;
+            ts.success = true;
+            observe(*result);
+        } else {
+            ts.result  = "TOOL_ERROR: " + result.error();
+            ts.success = false;
+            observe("TOOL_ERROR: " + result.error());
+        }
+        emit_hook(ts);
+
+        // LOOP DETECTION (Sử dụng đúng API Status từ LoopDetector)
+        auto status = detector_.add_action(tc.tool_name);
+        if (status == LoopDetector::Status::Critical) {
+            on_loop_detected();
+            return "Loop detected — aborting";
+        }
+
+        if (abort_) return "Aborted at step " + std::to_string(step);
+    }
+
+    // MAX STEPS
+    on_max_steps_reached();
+    return "Max steps reached";
 }
 
-void AgentLoop::truncate_history(std::vector<Message>& history, size_t max_messages) {
-    if (history.empty()) return;
-    if (history.size() <= max_messages) return;
+// ── Primitive operations (default implementations) ────────────────────────────
 
-    constexpr size_t kHistoryCapacity = 12;
-    const size_t effective_max_messages = std::min(max_messages, kHistoryCapacity);
-
-    std::inplace_vector<Message, kHistoryCapacity> truncated;
-    truncated.push_back(history.front());
-
-    size_t start_idx = history.size() - (effective_max_messages - 1);
-    for (size_t i = start_idx; i < history.size(); ++i) {
-        truncated.push_back(history[i]);
-    }
-    history.assign(truncated.begin(), truncated.end());
+std::string AgentLoop::build_system_prompt(const std::string& /*instruction*/) {
+    std::string skill_content = skills_ ? skills_->getSystemPrompt() : "";
+    return "You are a helpful AI agent with tool-use capabilities.\n\n"
+           "Available tools: use JSON format {\"tool\":\"name\",\"args\":\"...\"} or "
+           "reply with Final Answer.\n\n" + skill_content;
 }
 
-Action AgentLoop::parse_llm_response(const std::string& llm_text) {
-    std::string clean_text = llm_text;
-
-    std::regex md_json_regex(R"(```(?:json)?\s*(\{[\s\S]*?\})\s*```)", std::regex::icase);
-    std::smatch match;
-    if (std::regex_search(llm_text, match, md_json_regex)) {
-        clean_text = match[1].str();
+std::variant<ToolCallAction, FinalAnswerAction>
+AgentLoop::think_and_act(int /*step*/) {
+    // Call LLM
+    auto response = llm_->generate_chat(history_);
+    if (!response) {
+        last_thought_ = "";
+        observe("LLM_ERROR: LLM generation failed");
+        abort_ = true;
+        return FinalAnswerAction{"LLM error encountered."};
     }
 
-    // 1. Dùng Regex cải tiến để khớp cả Object và String args
-    std::regex tool_json_regex(R"delim(\{\s*"tool"\s*:\s*"([^"]+)"\s*,\s*"args"\s*:\s*(\{[\s\S]*?\}|"[^"]*")\s*\})delim");
-    if (std::regex_search(clean_text, match, tool_json_regex)) {
-        std::string tool_name = match[1].str();
-        std::string args = match[2].str();
-        return ToolCallAction{tool_name, args};
-    }
+    const std::string& text = *response;
+    last_thought_ = text;
 
-    size_t action_pos = clean_text.find("ACTION:");
+    // Parse response for Action / Final Answer
+    size_t action_pos = text.find("ACTION:");
     if (action_pos != std::string::npos) {
-        std::string_view action_str = clean_text;
+        std::string_view action_str = text;
         action_str = action_str.substr(action_pos + 7);
         size_t open = action_str.find("(");
         size_t close = action_str.rfind(")");
 
         if (open != std::string_view::npos && close != std::string_view::npos && close > open) {
             std::string_view raw_tool_name = action_str.substr(0, open);
-            std::string_view clean_tool_name = trim_sv(raw_tool_name);
             std::string_view args_view = action_str.substr(open + 1, close - open - 1);
-
-            return ToolCallAction{std::string(clean_tool_name), std::string(args_view)};
+            return ToolCallAction{std::string(raw_tool_name), std::string(args_view)};
         }
     }
 
-    return FinalAnswerAction{llm_text};
+    if (text.find("Final Answer:") != std::string::npos) {
+        auto pos = text.find("Final Answer:") + 13;
+        return FinalAnswerAction{text.substr(pos)};
+    }
+
+    return FinalAnswerAction{text};
 }
 
-std::string AgentLoop::run(const std::string& user_instruction, int max_steps) {
-    loop_detector_.reset();
-
-    std::inplace_vector<std::string, 10> recent_tool_calls;
-
-    std::vector<Message> conversation_history;
-
-    // 2. Tối ưu System Prompt cho Gemini
-   std::string system_prompt = 
-        "You are an AI Agent equipped with tools to solve tasks.\n"
-        "CRITICAL RULES:\n"
-        "1. When calling a tool, respond ONLY with standard JSON format:\n"
-        "   {\"tool\": \"tool_name\", \"args\": \"arguments\"}\n"
-        "2. STRICT FINAL ANSWER REQUIREMENT:\n"
-        "   When you finish your task, your final textual response MUST directly include:\n"
-        "   - Every exact filename, extension (.cpp, .h), or string content returned by tools.\n"
-        "   - The literal word 'PASS' if any script or test execution output contains it.\n"
-        "   NEVER summarize in your own words. Copy the exact raw outputs and keywords literally.";
-    conversation_history.push_back({"system", system_prompt, std::nullopt});
-    conversation_history.push_back({"user", user_instruction, std::nullopt});
-
-    for (int step = 0; step < max_steps; ++step) {
-        truncate_history(conversation_history, 12);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        auto response_result = client_->generate_chat(conversation_history);
-        if (!response_result.has_value()) {
-            std::println(std::cerr, "[AgentLoop] LLM Client Error at step {}!", step + 1);
-            break;
-        }
-
-        std::string llm_text = response_result.value();
-        conversation_history.push_back({"assistant", llm_text, std::nullopt});
-        Action action = parse_llm_response(llm_text);
-
-        bool finished = false;
-        std::string final_answer;
-
-        std::visit([&](auto&& act) {
-            using T = std::decay_t<decltype(act)>;
-
-            if constexpr (std::is_same_v<T, ToolCallAction>) {
-                if (recent_tool_calls.size() == recent_tool_calls.capacity()) {
-                    recent_tool_calls.erase(recent_tool_calls.begin());
-                }
-                recent_tool_calls.push_back(act.tool_name);
-
-                auto loop_status = loop_detector_.add_action(act.tool_name);
-
-                if (loop_status == LoopDetector::Status::Warning) {
-                    std::println(std::cerr, "[LoopDetector][WARNING] Possible loop detected for tool: '{}'", act.tool_name);
-                } else if (loop_status == LoopDetector::Status::Critical) {
-                    std::println(std::cerr, "[LoopDetector][CRITICAL] Infinite loop detected for tool: '{}'! Stopping Agent Loop.", act.tool_name);
-                    conversation_history.push_back({"user", "System Error: Infinite loop detected. Stop calling this tool.", std::nullopt});
-                    finished = true;
-                    final_answer = "Agent stopped due to infinite loop detection.";
-                    return;
-                }
-
-                if (!tools_.is_allowed(act.tool_name)) {
-                    conversation_history.push_back({"user", "Error: Tool is not allowed: " + act.tool_name, std::nullopt});
-                    return;
-                }
-
-                Tool* tool = tools_.get_tool(act.tool_name);
-                if (tool) {
-                    auto res = tool->execute(act.args);
-                    std::string result = res.has_value() ? res.value() : "Tool Execution Error";
-
-                    if (step_hook_) {
-                        step_hook_(llm_text, act.tool_name, result);
-                    }
-
-                    // 3. Chèn SYSTEM NOTE để duy trì keyword trong Final Answer
-                    std::string formatted_result = result + 
-                        "\n\n[SYSTEM NOTE]: Include all raw output details, file names, extensions (.cpp, .h), or exact text from this tool result in your final answer.";
-
-                    conversation_history.push_back({"tool", formatted_result, std::nullopt});
-                } else {
-                    conversation_history.push_back({"user", "Error: Tool not found: " + act.tool_name, std::nullopt});
-                }
-            } else if constexpr (std::is_same_v<T, FinalAnswerAction>) {
-                finished = true;
-                final_answer = act.content;
-            }
-        }, action);
-
-        if (finished) {
-            return final_answer;
-        }
+std::expected<std::string, std::string>
+AgentLoop::execute_tool(const ToolCallAction& action) {
+    Tool* tool = registry_.lookup(action.tool_name);
+    if (!tool) {
+        return std::unexpected("TOOL_NOT_FOUND: " + action.tool_name);
     }
+    auto res = tool->execute(action.args);
+    if (!res) {
+        return std::unexpected("Tool execution error");
+    }
+    return *res;
+}
 
-    return "Agent reached maximum step limit or stopped due to loop.";
+void AgentLoop::observe(const std::string& text) {
+    history_.push_back({"user", "Observation: " + text, std::nullopt});
+}
+
+void AgentLoop::on_loop_detected() {
+    std::println("[AgentLoop] Loop detected at step {}. Aborting.", current_step_);
+}
+
+void AgentLoop::on_max_steps_reached() {
+    std::println("[AgentLoop] Max steps reached at step {}.", current_step_);
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+void AgentLoop::emit_hook(const TrajectoryStep& ts) {
+    if (step_hook_) step_hook_(ts);
 }
 
 } // namespace oop_agent

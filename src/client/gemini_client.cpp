@@ -16,6 +16,14 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 }
 } // namespace
 
+std::string GeminiClient::build_url(const LLMConfig& config) const {
+    // Use provided config values for URL, model and API key
+    std::string base = config.gemini_api_url;
+    // Ensure no trailing slash
+    if (!base.empty() && base.back() == '/') base.pop_back();
+    return base + "/models/" + config.gemini_model + ":generateContent?key=" + config.api_key;
+}
+
 GeminiClient::GeminiClient(const std::string& api_key, const std::string& model)
     : api_key_(api_key), model_name_(model) {}
 
@@ -78,7 +86,7 @@ size_t GeminiClient::write_callback(void* contents, size_t size, size_t nmemb, v
     return WriteCallback(contents, size, nmemb, userp);
 }
 
-HttpResponse GeminiClient::send_request_raw(const nlohmann::json& payload) {
+HttpResponse GeminiClient::send_request_raw(const nlohmann::json& payload, const LLMConfig& config) {
     CURL* curl = curl_easy_init();
     if (!curl) {
         return {0, ""};
@@ -87,7 +95,7 @@ HttpResponse GeminiClient::send_request_raw(const nlohmann::json& payload) {
     std::string response_string;
     long http_code = 0;
 
-    std::string url = build_url();
+    std::string url = build_url(config);
     struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
@@ -98,7 +106,7 @@ HttpResponse GeminiClient::send_request_raw(const nlohmann::json& payload) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, static_cast<long>(config.timeout_seconds));
 
     CURLcode res = curl_easy_perform(curl);
     if (res == CURLE_OK) {
@@ -113,11 +121,11 @@ HttpResponse GeminiClient::send_request_raw(const nlohmann::json& payload) {
     return {static_cast<int>(http_code), response_string};
 }
 
-HttpResponse GeminiClient::send_request(const nlohmann::json& payload) {
+HttpResponse GeminiClient::send_request(const nlohmann::json& payload, const LLMConfig& config) {
     const int max_retries = 3;
 
     for (int attempt = 1; attempt <= max_retries; ++attempt) {
-        HttpResponse res = send_request_raw(payload);
+        HttpResponse res = send_request_raw(payload, config);
         std::cout << "HTTP Code: " << res.status_code << std::endl;
 
         if (res.status_code == 200) {
@@ -145,7 +153,7 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
     const LLMConfig& config
 ) {
     nlohmann::json payload = build_request_body(conversation_history, config);
-    HttpResponse res = send_request(payload);
+    HttpResponse res = send_request(payload, config);
 
     if (res.status_code != 200) {
         if (res.status_code == 429) {

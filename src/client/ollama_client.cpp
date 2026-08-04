@@ -25,7 +25,7 @@ std::expected<std::string, LLMError> OllamaClient::generate_chat(
 
     // 1. Khởi tạo cấu trúc JSON Request theo chuẩn Ollama API
     json request_json;
-    request_json["model"] = config.model_name; // Mặc định tuân theo config là "gemma4" hoặc "gemma4:e4b"
+    request_json["model"] = config.ollama_model; // Mặc định tuân theo config là ollama_model
     request_json["stream"] = false;
     request_json["options"] = { {"temperature", config.temperature} };
 
@@ -43,7 +43,7 @@ std::expected<std::string, LLMError> OllamaClient::generate_chat(
     std::string request_data = request_json.dump();
 
     // 2. Cấu hình cURL
-    curl_easy_setopt(curl, CURLOPT_URL, config.api_url.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, config.ollama_host.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_data.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OllamaClient::write_callback);

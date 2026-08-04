@@ -16,13 +16,7 @@ namespace oop_agent {
 // Forward declarations
 class ToolRegistry;
 
-struct TrajectoryStep {
-  std::string thought;
-  std::string action;
-  std::string result;
-  int tokens_used = 0;
-  double latency_ms = 0.0;
-};
+using TrajectoryStep = oop_agent::TrajectoryStep;
 
 /**
  * @brief Kết quả chạy một Task đơn lẻ, bao gồm cả thông tin eval.
@@ -50,9 +44,7 @@ struct TaskRunResult {
  * Dùng để Harness ghi lại trajectory mà không cần AgentLoop biết Harness tồn
  * tại. (Observer Pattern)
  */
-using StepHook =
-    std::function<void(const std::string &thought, const std::string &action,
-                       const std::string &result)>;
+using StepHook = std::function<void(const TrajectoryStep &)>;
 
 /**
  * @brief Bộ điều phối chạy benchmark: load task → chạy Agent → evaluate → ghi
