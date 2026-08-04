@@ -15,7 +15,7 @@
 
 namespace oop_agent {
 
-using StepHook = std::function<void(const std::string& thought, const std::string& action, const std::string& result)>;
+// ── Action types ──────────────────────────────────────────────────────────────
 
 struct ToolCallAction {
     std::string tool_name;
@@ -23,52 +23,107 @@ struct ToolCallAction {
 };
 
 struct FinalAnswerAction {
-    std::string content;
+    std::string answer;
 };
 
-using Action = std::variant<ToolCallAction, FinalAnswerAction>;
+// ── TrajectoryStep (forward-declared for StepHook) ────────────────────────────
 
+struct TrajectoryStep {
+    int         step       = 0;
+    std::string thought;
+    std::string action;
+    std::string tool_name;
+    std::string args;
+    std::string result;
+    bool        success    = false;
+    double      latency_ms = 0.0;
+    int         tokens     = 0;   // NOTE: currently 0 — measurement gap
+    int         tokens_used = 0;
+};
+
+// ── StepHook (Observer pattern) ───────────────────────────────────────────────
+
+using StepHook = std::function<void(const TrajectoryStep&)>;
+
+// ── AgentLoop ─────────────────────────────────────────────────────────────────
+
+/// Implements the ReAct agent loop using Template Method pattern.
+///
+/// run() is the fixed skeleton: it calls protected virtual primitive operations
+/// in a defined order. Subclasses may override individual steps (e.g. for
+/// testing) without rewriting the entire loop.
+///
+/// Design patterns present:
+///   - Template Method : run() skeleton + protected virtual steps
+///   - Observer/Hook   : StepHook callback (AgentLoop does NOT include Harness)
+///   - Strategy        : ToolRegistry uses pluggable Tool implementations
 class AgentLoop {
 public:
-    explicit AgentLoop(std::shared_ptr<LLMClient> client) : client_(std::move(client)) {}
-    ~AgentLoop() = default;
+    explicit AgentLoop(std::shared_ptr<LLMClient> llm)
+        : AgentLoop(std::move(llm), nullptr, ToolRegistry{}) {}
 
-    // Register Tool bằng unique_ptr
-    void register_tool(std::unique_ptr<Tool> tool) {
-        tools_.register_tool(std::move(tool));
-    }
+    AgentLoop(std::shared_ptr<LLMClient>   llm,
+              std::shared_ptr<SkillLoader> skills,
+              ToolRegistry                 registry);
 
-    // Register Tool bằng shared_ptr (Adapter Wrapper Pattern)
-    template <typename T>
-    void register_tool(std::shared_ptr<T> tool) {
-        struct SharedToolWrapper : public Tool {
-            std::shared_ptr<T> tool_;
-            explicit SharedToolWrapper(std::shared_ptr<T> t) : tool_(std::move(t)) {}
-            [[nodiscard]] std::string_view get_name() const noexcept override { return tool_->get_name(); }
-            [[nodiscard]] std::string_view get_description() const noexcept override { return tool_->get_description(); }
-            
-            // [C++23] std::expected return type
-            std::expected<std::string, ToolError> execute(const std::string& args) override { 
-                return tool_->execute(args); 
-            }
-        };
-        tools_.register_tool(std::make_unique<SharedToolWrapper>(std::move(tool)));
-    }
+    virtual ~AgentLoop() = default;
 
-    void set_skill_loader(std::shared_ptr<SkillLoader> loader) { skill_loader_ = std::move(loader); }
+    /// Install observer hook. Called after each step with trajectory data.
+    /// AgentLoop never includes HarnessRunner — hook is the only coupling.
     void set_step_hook(StepHook hook) { step_hook_ = std::move(hook); }
 
-    std::string run(const std::string& user_instruction, int max_steps = 10);
+    void set_skill_loader(std::shared_ptr<SkillLoader> skills) {
+        skills_ = std::move(skills);
+    }
 
-private:
-    std::shared_ptr<LLMClient> client_;
-    ToolRegistry tools_;
-    std::shared_ptr<SkillLoader> skill_loader_ = nullptr;
-    StepHook step_hook_ = nullptr;
-    LoopDetector loop_detector_;
+    void register_tool(std::shared_ptr<Tool> tool) {
+        registry_.register_tool(std::move(tool));
+    }
 
-    Action parse_llm_response(const std::string& llm_text);
-    void truncate_history(std::vector<Message>& history, size_t max_messages = 10);
+    // ── Template Method skeleton (non-virtual) ─────────────────────────────
+    /// Fixed ReAct loop. Calls primitive operations in order.
+    /// NOT virtual — subclasses override the primitives, not the skeleton.
+    std::string run(const std::string& instruction, int max_steps);
+
+protected:
+    // ── Primitive operations (override in subclasses / tests) ──────────────
+
+    /// Build the system prompt (skill injection).
+    virtual std::string build_system_prompt(const std::string& instruction);
+
+    /// Call LLM and parse response into an action.
+    /// Returns variant or error string that is fed back as an observation.
+    virtual std::variant<ToolCallAction, FinalAnswerAction>
+    think_and_act(int step);
+
+    /// Execute a tool call. Returns result or ToolError.
+    virtual std::expected<std::string, std::string>
+    execute_tool(const ToolCallAction& action);
+
+    /// Append an observation to the conversation history.
+    virtual void observe(const std::string& text);
+
+    /// Called when LoopDetector fires.
+    virtual void on_loop_detected();
+
+    /// Called when max_steps is exhausted without a final answer.
+    virtual void on_max_steps_reached();
+
+    // ── Internal helpers (not overrideable primitives) ─────────────────────
+    void emit_hook(const TrajectoryStep& step);
+
+    // ── State ──────────────────────────────────────────────────────────────
+    std::shared_ptr<LLMClient>   llm_;
+    std::shared_ptr<SkillLoader> skills_;
+    ToolRegistry                 registry_;
+    LoopDetector                 detector_;
+    StepHook                     step_hook_;
+    std::vector<Message>         history_;
+
+    // Runtime state set during run() for primitives to read
+    int         current_step_   = 0;
+    std::string last_thought_;
+    bool        abort_          = false;
 };
 
 } // namespace oop_agent
