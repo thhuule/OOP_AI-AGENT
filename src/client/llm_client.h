@@ -29,13 +29,22 @@ struct Message {
 
 // 3. Khai báo cấu hình tham số dành riêng cho Gemini
 struct LLMConfig {
+    // Phân biệt provider: "gemini" hoặc "ollama"
     std::string provider = "gemini";             
-    std::string model_name = "gemma-4-31b-it"; 
-    std::string api_url = "https://generativelanguage.googleapis.com/v1beta";
+    
+    // Cấu hình dành riêng cho Gemini
+    std::string gemini_model = "gemma-4-31b-it"; 
+    std::string gemini_api_url = "https://generativelanguage.googleapis.com/v1beta";
     std::string api_key = "YOUR_GEMINI_API_KEY";
+
+    // Cấu hình dành riêng cho Ollama (chạy local)
+    std::string ollama_model = "llama3";         // Hoặc mistral, gemma, v.v.
+    std::string ollama_host = "http://localhost:11434";
+
+    // Tham số chung
     float temperature = 0.7f;
     int timeout_seconds = 60;                    
-    int max_tokens = 2048;                       // Giới hạn token đầu ra
+    int max_tokens = 2048;                       
 };
 // 4. Lớp giao tiếp cơ sở
 class LLMClient {

@@ -420,14 +420,15 @@ bool HarnessRunner::exportResults(
              index < result.trajectory.size(); ++index) {
             const auto& step = result.trajectory[index];
             total_tokens += step.tokens_used;
-            steps.push_back({
+            nlohmann::json step_json = {
                 {"step_id", index + 1},
                 {"thought", step.thought},
                 {"action", parseAction(step.action)},
                 {"tool_result", step.result},
                 {"latency_ms", step.latency_ms},
                 {"tokens_used", step.tokens_used}
-            });
+            };
+            steps.push_back(std::move(step_json));
         }
         trajectory["total_tokens"] = total_tokens;
         trajectory["steps"] = std::move(steps);
@@ -499,15 +500,14 @@ float HarnessRunner::computeActionLevelScore(
 }
 
 StepHook HarnessRunner::createStepHook() {
-    return [this](const std::string& thought,
-                  const std::string& action,
-                  const std::string& result) {
+    return [this](const TrajectoryStep& step) {
         const auto now = std::chrono::steady_clock::now();
         const double latency_ms =
             std::chrono::duration<double, std::milli>(
                 now - last_step_time_).count();
-        current_trajectory_.push_back(
-            {thought, action, result, 0, latency_ms});
+        TrajectoryStep recorded = step;
+        recorded.latency_ms = latency_ms;
+        current_trajectory_.push_back(std::move(recorded));
         last_step_time_ = now;
     };
 }

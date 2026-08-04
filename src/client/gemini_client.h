@@ -11,6 +11,7 @@ struct HttpResponse {
 
 class GeminiClient : public LLMClient {
 public:
+    GeminiClient() = default;
     GeminiClient(const std::string& api_key, const std::string& model = "gemma-4-31b-it");
     ~GeminiClient() override = default;
 
@@ -24,13 +25,14 @@ private:
     std::string model_name_;
 
     std::string build_url() const;
+    std::string build_url(const LLMConfig& config) const;
     nlohmann::json build_request_body(
         const std::vector<Message>& history,
         const LLMConfig& config
     ) const;
 
-    HttpResponse send_request_raw(const nlohmann::json& payload);
-    HttpResponse send_request(const nlohmann::json& payload);
+    HttpResponse send_request_raw(const nlohmann::json& payload, const LLMConfig& config);
+    HttpResponse send_request(const nlohmann::json& payload, const LLMConfig& config);
     static size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp);
 };
 

@@ -1,101 +1,124 @@
-
 #include "ToolRegistry.h"
-#include "Tool.h"
 
-namespace oop_agent
-{
-ToolRegistry::ToolRegistry()
-{
-    aliases_["calculate"] = "calculator";
-    aliases_["exec"] = "execute_shell";
-    aliases_["google_search"] = "web_search";
-    aliases_["create_file"] = "write_file";
+// Include all concrete tools
+#include "CalculatorTool.h"
+#include "FileTool.h"
+#include "ExecTool.h"
+#include "WebSearchTool.h"
+#include "MemoryTool.h"
+#include "TimeTool.h"
+#include "JsonTool.h"
+#include "GitTool.h"
+
+#include <print>    // C++23
+
+namespace oop_agent {
+
+// ── Factory ───────────────────────────────────────────────────────────────────
+
+void ToolRegistry::register_creator(const std::string& canonical_name,
+                                    ToolCreator creator) {
+    creators_[canonical_name] = std::move(creator);
 }
-void ToolRegistry::register_tool(
-    std::unique_ptr<Tool> tool)
-{
-    if (!tool)
-    {
-        return;
-    }
 
-    tools_[std::string(tool->get_name())]
-        = std::move(tool);
-}
-
-Tool* ToolRegistry::get_tool(
-    std::string_view name) const
-{
-    std::string tool_name(name);
-
-    auto alias = aliases_.find(tool_name);
-
-    if (alias != aliases_.end())
-    {
-        tool_name = alias->second;
-    }
-
-    auto it = tools_.find(tool_name);
-
-    if (it == tools_.end())
-    {
+std::unique_ptr<Tool> ToolRegistry::create(const std::string& name) {
+    const std::string canonical = normalize(name);
+    if (!is_allowed(canonical)) {
+        std::println("[ToolRegistry] create() denied: {}", canonical);
         return nullptr;
     }
+    auto it = creators_.find(canonical);
+    if (it == creators_.end()) {
+        std::println("[ToolRegistry] create() unknown tool: {}", canonical);
+        return nullptr;
+    }
+    return it->second();    // call creator → fresh unique_ptr<Tool>
+}
 
+// ── Registry ──────────────────────────────────────────────────────────────────
+
+void ToolRegistry::register_tool(std::shared_ptr<Tool> tool) {
+    if (!tool) return;
+    const std::string name = std::string(tool->get_name());
+    instances_[name] = std::move(tool);
+}
+
+Tool* ToolRegistry::lookup(const std::string& name) {
+    const std::string canonical = normalize(name);
+    if (!is_allowed(canonical)) {
+        return nullptr;
+    }
+    auto it = instances_.find(canonical);
+    if (it == instances_.end()) return nullptr;
     return it->second.get();
 }
 
-void ToolRegistry::set_allow_list(
-    const std::vector<std::string>& names)
-{
-    allow_list_.clear();
+// ── Alias & policy ────────────────────────────────────────────────────────────
 
-    for (const auto& name : names)
-    {
-        allow_list_.insert(name);
-    }
+void ToolRegistry::register_alias(const std::string& alias,
+                                  const std::string& canonical) {
+    aliases_[alias] = canonical;
 }
 
-void ToolRegistry::set_deny_list(
-    const std::vector<std::string>& names)
-{
-    deny_list_.clear();
-
-    for (const auto& name : names)
-    {
-        deny_list_.insert(name);
-    }
+std::string ToolRegistry::normalize(const std::string& name) const {
+    auto it = aliases_.find(name);
+    return (it != aliases_.end()) ? it->second : name;
 }
 
-bool ToolRegistry::is_allowed(
-    std::string_view name) const
-{
-    std::string tool_name(name);
-    auto alias = aliases_.find(tool_name);
-
-    if (alias != aliases_.end())
-    {
-        tool_name = alias->second;
-    }
-    // Nếu Allow List không rỗng thì chỉ Tool
-    // nằm trong danh sách mới được phép chạy.
-    if (!allow_list_.empty())
-    {
-        if (allow_list_.find(tool_name)
-            == allow_list_.end())
-        {
-            return false;
-        }
-    }
-
-    // Tool nằm trong Deny List sẽ bị chặn.
-    if (deny_list_.find(tool_name)
-        != deny_list_.end())
-    {
-        return false;
-    }
-
+bool ToolRegistry::is_allowed(const std::string& canonical_name) const {
+    if (deny_list_.count(canonical_name)) return false;
+    if (!allow_list_.empty() && !allow_list_.count(canonical_name)) return false;
     return true;
+}
+
+void ToolRegistry::deny(const std::string& canonical_name) {
+    deny_list_.insert(canonical_name);
+}
+
+void ToolRegistry::allow(const std::string& canonical_name) {
+    allow_list_.insert(canonical_name);
+}
+
+bool ToolRegistry::has_creator(const std::string& name) const {
+    return creators_.count(normalize(name)) > 0;
+}
+
+bool ToolRegistry::has_instance(const std::string& name) const {
+    return instances_.count(normalize(name)) > 0;
+}
+
+// ── register_all_tools ────────────────────────────────────────────────────────
+
+void ToolRegistry::register_all_tools() {
+    // ── Creators (Factory) ────────────────────────────────────────────────
+    register_creator("calculator",    [] { return std::make_unique<CalculatorTool>(); });
+    register_creator("file",          [] { return std::make_unique<FileTool>(); });
+    register_creator("execute_shell", [] { return std::make_unique<ExecTool>(); });
+    register_creator("web_search",    [] { return std::make_unique<WebSearchTool>(); });
+    register_creator("memory",        [] { return std::make_unique<MemoryTool>(); });
+    register_creator("time",          [] { return std::make_unique<TimeTool>(); });
+    register_creator("json",          [] { return std::make_unique<JsonTool>(); });
+    register_creator("git",           [] { return std::make_unique<GitTool>(); });
+
+    // ── Instances (Registry) ─────────────────────────────────────────────
+    // Pre-instantiate tools used frequently so lookup() works without create()
+    register_tool(std::make_unique<CalculatorTool>());
+    register_tool(std::make_unique<FileTool>());
+    register_tool(std::make_unique<ExecTool>());
+    register_tool(std::make_unique<WebSearchTool>());
+    register_tool(std::make_unique<MemoryTool>());
+    register_tool(std::make_unique<TimeTool>());
+    register_tool(std::make_unique<JsonTool>());
+    register_tool(std::make_unique<GitTool>());
+
+    // ── Aliases (normalize before lookup or policy check) ─────────────────
+    register_alias("calculate",     "calculator");
+    register_alias("exec",          "execute_shell");
+    register_alias("google_search", "web_search");
+    register_alias("create_file",   "file");
+    register_alias("write_file",    "file");
+    register_alias("read_file",     "file");
+    register_alias("append_file",   "file");
 }
 
 } // namespace oop_agent
