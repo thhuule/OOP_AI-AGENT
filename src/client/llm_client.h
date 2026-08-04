@@ -27,16 +27,16 @@ struct Message {
     std::optional<std::vector<std::string>> images; 
 };
 
-// 3. Khai báo cấu hình tham số
+// 3. Khai báo cấu hình tham số dành riêng cho Gemini
 struct LLMConfig {
-    std::string provider = "gemini";           // "gemini" hoặc "ollama"
-    std::string model_name = "gemini-2.5-flash";
+    std::string provider = "gemini";             
+    std::string model_name = "gemma-4-31b-it"; 
     std::string api_url = "https://generativelanguage.googleapis.com/v1beta";
-    std::string api_key = "";                  // MỚI: cho Gemini
+    std::string api_key = "YOUR_GEMINI_API_KEY";
     float temperature = 0.7f;
-    int timeout_seconds = 60;                  // Tăng lên 60s vì Gemini có thể chậm hơn
+    int timeout_seconds = 60;                    
+    int max_tokens = 2048;                       // Giới hạn token đầu ra
 };
-
 // 4. Lớp giao tiếp cơ sở
 class LLMClient {
 public:
