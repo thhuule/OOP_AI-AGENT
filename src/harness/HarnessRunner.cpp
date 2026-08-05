@@ -1,6 +1,7 @@
 #include "HarnessRunner.h"
 #include "FunctionalEvaluator.h"
 #include "KeywordEvaluator.h"
+#include "../environment/NativeEnvironment.h"
 #include "../tools/ExecTool.h"
 
 #include <algorithm>
@@ -115,8 +116,12 @@ std::string actionToolName(const std::string& action) {
 } // namespace
 
 HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
-                             const std::string& output_dir)
-    : tasks_json_path_(tasks_json_path), output_dir_(output_dir) {
+                             const std::string& output_dir,
+                             std::shared_ptr<Environment> environment)
+    : tasks_json_path_(tasks_json_path),
+      output_dir_(output_dir),
+      environment_(environment ? std::move(environment)
+                               : std::make_shared<NativeEnvironment>()) {
     registerEvaluator("keyword", std::make_unique<KeywordEvaluator>());
     auto exec_tool = std::make_shared<ExecTool>();
     registerEvaluator("functional",
@@ -226,7 +231,7 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
             result.task_id = task.id;
             result.category = task.category;
             result.requires_tool = task.requires_tool;
-            result.failure_reason = "POST_CONDITION_FAIL";
+            result.failure_reason = "ARTIFACT_CLEANUP_FAILED";
             result.eval_feedback = "Benchmark artifact cleanup failed";
             results.push_back(std::move(result));
         }
@@ -521,7 +526,7 @@ HarnessRunner::findEvaluator(const std::string& evaluator_type) const {
 }
 
 bool HarnessRunner::cleanBenchmarkArtifacts() const {
-    std::set<std::filesystem::path> artifacts = {
+    std::set<std::string> artifacts = {
         "notes.txt", "result.txt", "capital.txt",
         "output.txt", "calc.txt", "data.txt"
     };
@@ -530,21 +535,23 @@ bool HarnessRunner::cleanBenchmarkArtifacts() const {
             artifacts.emplace(artifact);
     }
 
+    std::vector<std::string> artifact_paths;
+    artifact_paths.reserve(artifacts.size());
     for (const auto& artifact : artifacts) {
-        if (!isSafeArtifactPath(artifact))
+        if (!isSafeArtifactPath(std::filesystem::path(artifact)))
             return false;
-
-        std::error_code error;
-        const bool removed = std::filesystem::remove(artifact, error);
-        if (error) {
-            std::cerr << "[HarnessRunner] Clean artifact failed: "
-                      << artifact.string() << " (" << error.message()
-                      << ")\n";
-            return false;
-        }
-        if (removed)
+        if (environment_->exists(artifact))
             std::cout << "[HarnessRunner] Removed stale artifact: "
-                      << artifact.string() << "\n";
+                      << artifact << "\n";
+        artifact_paths.push_back(artifact);
+    }
+
+    const auto cleaned = environment_->cleanArtifacts(artifact_paths);
+    if (!cleaned) {
+        std::cerr << "[HarnessRunner] Environment could not clean artifacts"
+                  << " (EnvError=" << static_cast<int>(cleaned.error())
+                  << ")\n";
+        return false;
     }
     return true;
 }
@@ -584,7 +591,7 @@ bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
 }
 
 std::string HarnessRunner::classifyFailure(
-    const Task& task, const TaskRunResult& result) {
+    const Task& task, const TaskRunResult& result) const {
     if (result.success)
         return "NONE";
 
@@ -618,7 +625,7 @@ std::string HarnessRunner::classifyFailure(
         return "NO_TOOL_EXECUTION";
     if (!result.evaluator_success) {
         for (const auto& artifact : task.artifacts) {
-            if (!std::filesystem::exists(artifact))
+            if (!environment_->exists(artifact))
                 return "ARTIFACT_MISSING";
         }
         if (!task.artifacts.empty())

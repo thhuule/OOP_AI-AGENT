@@ -14,6 +14,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [ ] The evaluation report covers failed and successful runs, scoring, trajectories, and the failure taxonomy.
 - [ ] The README enables a new user to build, configure, and run the correct executables.
 - [ ] The Unlisted YouTube link opens in a signed-out browser window.
+- [ ] Private-repository access or the required read-only access method has been checked without placing credentials in the report or ZIP.
 
 ## 2. Technical Verification
 
@@ -24,6 +25,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [ ] The final benchmark evidence comes from a new clean-state run that the team approved for quota use.
 - [ ] The run contains 10 tasks: 4 simple, 4 medium, and 2 hard.
 - [ ] A task that requires a tool contains a real and relevant tool step.
+- [ ] The report/video states whether the shown actions came from the LLM or may have come from deterministic fallback.
 - [ ] Each artifact has the exact required filename and content in the current run.
 - [ ] The trajectories for tasks 005 and 010 preserve the actual arguments.
 - [ ] Provider and model results are recorded correctly without exposing the API key.
@@ -38,6 +40,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [ ] All four Mermaid diagrams render without errors.
 - [ ] `VLMEvaluator` is not described as a completed feature.
 - [ ] The multi-agent demo is not described as benchmark-harness integration.
+- [ ] A fallback-assisted 10/10 run is described as pipeline evidence, not proof of model planning quality.
 
 ## 4. Secret and Artifact Checks
 
@@ -63,12 +66,13 @@ Suggested name:
 MSSV1_MSSV2_MSSV3_OopAgent.zip
 ```
 
-According to the plan, the `OopAgent` suffix may be omitted if the name still contains all three student IDs. At minimum, the ZIP must contain the source code, `CMakeLists.txt`, `benchmark/tasks.json`, documentation, and README.
+According to the plan, the `OopAgent` suffix may be omitted if the name still contains all three student IDs. At minimum, the ZIP must contain the source code, `CMakeLists.txt`, `benchmark/tasks.json`, skills, documentation, `config.json.example`, and README.
 
 ## 6. Final Confirmation
 
 - [ ] One team member extracts the ZIP into a new directory.
 - [ ] Rebuild the project by following the README exactly.
+- [ ] Run `test_harness` from the extracted copy.
 - [ ] Run `test_multi_agent` from the extracted copy.
 - [ ] Check the video, submission link, and private-repository access.
 - [ ] Submit before the deadline instead of waiting until nearly 21:00.

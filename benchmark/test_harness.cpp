@@ -1,5 +1,6 @@
 #include "agent/agent_loop.h"
 #include "client/llm_client.h"
+#include "environment/SandboxEnvironment.h"
 #include "harness/HarnessRunner.h"
 #include "harness/evaluator.h"
 #include "tools/FileTool.h"
@@ -190,6 +191,30 @@ public:
     }
 };
 
+class CleanupFailingEnvironment final : public Environment {
+public:
+    std::expected<std::string, EnvError> readFile(
+        const std::string&) override {
+        return std::unexpected(EnvError::FileNotFound);
+    }
+
+    std::expected<void, EnvError> writeFile(
+        const std::string&, const std::string&) override {
+        return {};
+    }
+
+    std::expected<void, EnvError> removeFile(const std::string&) override {
+        return {};
+    }
+
+    bool exists(const std::string&) const override { return false; }
+
+    std::expected<void, EnvError> cleanArtifacts(
+        const std::vector<std::string>&) override {
+        return std::unexpected(EnvError::AccessDenied);
+    }
+};
+
 void testLoadTasksValidation() {
     TempDirectory temp;
     const auto tasks_path = temp.path() / "tasks.json";
@@ -363,6 +388,45 @@ void testBatchCleanupRemovesStaleArtifacts() {
             "cleanup batch did not complete its fixture task");
 }
 
+void testHarnessUsesSandboxEnvironmentForCleanup() {
+    TempDirectory temp;
+    const fs::path tasks_path = temp.path() / "tasks.json";
+    writeJson(tasks_path, json::array({validKeywordTask("sandbox_cleanup")}));
+
+    auto environment = std::make_shared<SandboxEnvironment>();
+    require(environment->writeFile("notes.txt", "stale data").has_value(),
+            "sandbox stale fixture was not created");
+
+    HarnessRunner harness(tasks_path.string(),
+                          (temp.path() / "out").string(),
+                          environment);
+    require(harness.loadTasks(), "sandbox cleanup task could not be loaded");
+
+    const auto results = harness.runAll();
+    require(!environment->exists("notes.txt"),
+            "Harness did not clean through the injected Environment");
+    require(results.size() == 1 && results.front().success,
+            "sandbox cleanup batch did not complete");
+}
+
+void testCleanupFailureHasSpecificReason() {
+    TempDirectory temp;
+    const fs::path tasks_path = temp.path() / "tasks.json";
+    writeJson(tasks_path, json::array({validKeywordTask("cleanup_failure")}));
+
+    auto environment = std::make_shared<CleanupFailingEnvironment>();
+    HarnessRunner harness(tasks_path.string(),
+                          (temp.path() / "out").string(),
+                          environment);
+    require(harness.loadTasks(), "cleanup failure task could not be loaded");
+
+    const auto results = harness.runAll();
+    require(results.size() == 1,
+            "cleanup failure did not return one result per task");
+    require(results.front().failure_reason == "ARTIFACT_CLEANUP_FAILED",
+            "cleanup failure received a generic failure reason");
+}
+
 void testArtifactFailureTaxonomy() {
     TempDirectory temp;
     ScopedCurrentPath current_path(temp.path());
@@ -518,6 +582,8 @@ int main() {
         {"instruction fallback", testInstructionFallbackUsesToolWhenLLMOmitsToolCall},
         {"count fallback", testCountFallbackReturnsNumericResult},
         {"batch artifact cleanup", testBatchCleanupRemovesStaleArtifacts},
+        {"sandbox Environment cleanup", testHarnessUsesSandboxEnvironmentForCleanup},
+        {"cleanup failure taxonomy", testCleanupFailureHasSpecificReason},
         {"artifact failure taxonomy", testArtifactFailureTaxonomy},
         {"specific failure taxonomy", testSpecificFailureTaxonomy},
         {"required tool cannot be skipped", testRequiredToolCannotBeSkipped},

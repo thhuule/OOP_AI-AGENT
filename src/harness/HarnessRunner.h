@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../agent/agent_loop.h"
+#include "../environment/Environment.h"
 #include "Task.h"
 #include "evaluator.h"
 #include <chrono>
@@ -68,7 +69,8 @@ public:
    * @param output_dir      Thư mục xuất kết quả JSON
    */
   explicit HarnessRunner(const std::string &tasks_json_path,
-                         const std::string &output_dir = "benchmark/results");
+                         const std::string &output_dir = "benchmark/results",
+                         std::shared_ptr<Environment> environment = nullptr);
 
   ~HarnessRunner() = default;
 
@@ -161,13 +163,14 @@ private:
 
   bool cleanBenchmarkArtifacts() const;
   [[nodiscard]] bool hasRelevantSuccessfulToolStep(const Task &task) const;
-  [[nodiscard]] static std::string
-  classifyFailure(const Task &task, const TaskRunResult &result);
+  [[nodiscard]] std::string
+  classifyFailure(const Task &task, const TaskRunResult &result) const;
 
   AgentLoop *agent_ = nullptr; // Con trỏ tới Agent để chạy task
 
   std::string tasks_json_path_; // Đường dẫn tới tasks.json
   std::string output_dir_;      // Thư mục xuất kết quả
+  std::shared_ptr<Environment> environment_; // File operations for artifacts
 
   TaskList tasks_; // Danh sách task đã load
 

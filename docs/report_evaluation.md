@@ -10,7 +10,8 @@ Sources of truth:
 - Harness: [`../src/harness/HarnessRunner.h`](../src/harness/HarnessRunner.h), [`../src/harness/HarnessRunner.cpp`](../src/harness/HarnessRunner.cpp)
 - Evaluator interface: [`../src/harness/evaluator.h`](../src/harness/evaluator.h)
 - Entrypoint: [`../benchmark/run_eval.cpp`](../benchmark/run_eval.cpp)
-- Historical results: `../benchmark/results/run_20260801_212302_253/` and `../benchmark/results/run_20260801_220549_361/`
+- Historical failed/passing comparison: `../benchmark/results/run_20260801_212302_253/` and `../benchmark/results/run_20260801_220549_361/`
+- Latest stored pipeline runs: `../benchmark/results/run_20260805_032212_365/` and `../benchmark/results/run_20260805_034207_664/`
 
 The figures below are historical evidence stored in the repository. They do not replace a final verification run from a clean state of the current revision.
 
@@ -41,7 +42,7 @@ The implemented flow is:
 2. Tools are registered and Markdown skills are loaded.
 3. `HarnessRunner` loads `benchmark/tasks.json`.
 4. A `StepHook` is injected into `AgentLoop`, allowing the harness to record tool steps without creating a reverse dependency from the agent to the harness.
-5. `runAll()` removes known benchmark artifacts once before the batch.
+5. `runAll()` asks the injected `Environment` to remove known benchmark artifacts once before the batch. Normal runs use `NativeEnvironment`; focused tests may inject `SandboxEnvironment`.
 6. Tasks run sequentially through `AgentLoop::run()` with a three-second delay between tasks.
 7. The harness selects an evaluator using `eval_type`, then calculates evaluator, action-level, and final results.
 8. `exportResults()` creates a timestamped run directory containing summary JSON, summary text, and one trajectory per task.
@@ -50,7 +51,9 @@ See [`sequence_harness.md`](sequence_harness.md) for the detailed sequence.
 
 ### 3.1 Artifact Cleanup and Isolation
 
-The harness currently removes `notes.txt`, `result.txt`, `capital.txt`, `output.txt`, `calc.txt`, and `data.txt`, together with artifacts declared by tasks. Absolute paths and paths containing `..` are rejected. If cleanup fails, the batch stops so an old file cannot create a false positive.
+The harness currently asks its `Environment` to remove `notes.txt`, `result.txt`, `capital.txt`, `output.txt`, `calc.txt`, and `data.txt`, together with artifacts declared by tasks. Absolute paths and paths containing `..` are rejected before the environment is called. If cleanup fails, the batch stops with `ARTIFACT_CLEANUP_FAILED` so an old file cannot create a false positive.
+
+`HarnessRunner` creates a `NativeEnvironment` by default, so production behavior still uses the real filesystem. Tests can inject `SandboxEnvironment`, which keeps virtual files in memory, or a deliberately failing implementation that returns a specific `EnvError`. This dependency injection proves the harness depends on the `Environment` interface instead of a concrete cleanup implementation.
 
 An important limitation is that cleanup runs **once before the entire batch**. The implementation does not create an independent workspace for each task. Tasks share a working directory; `task_003` and `task_007` also use the `notes.txt` produced by `task_002` in the same batch. This is batch-level cleanup, not complete per-task isolation.
 
@@ -61,18 +64,20 @@ The harness stores three result layers for every task:
 | Metric | Current condition |
 |---|---|
 | Evaluator score | `KeywordEvaluator` or `FunctionalEvaluator` returns pass |
-| Action-level score | The task does not require a tool, or a recorded step uses one of `required_tools` and its result does not contain a known error marker |
+| Action-level score | The task does not require a tool, or a recorded step uses one of `required_tools` and `TrajectoryStep::success` is true |
 | Final success | Evaluator passes **and** action-level evaluation passes |
 
 Each batch score is the number of tasks that satisfy the corresponding condition divided by the total number of tasks.
 
-Action-level evaluation is still a heuristic. It checks the tool name and result text but does not independently verify every artifact post-condition. File post-conditions are protected by the evaluator and affect `final_success`. Therefore, action-level score alone must not be used to claim that a task completed correctly.
+`TrajectoryStep::success` is the authoritative tool-execution signal. The harness does not infer failure from words inside a valid tool result, because a successful file listing may legitimately contain names such as `error_recovery.md`.
+
+Action-level evaluation is still a heuristic: it verifies that a relevant tool succeeded, but it does not independently verify every artifact post-condition. File post-conditions are protected by the evaluator and affect `final_success`. Therefore, action-level score alone must not be used to claim that a task completed correctly.
 
 ## 5. Trajectory and Export
 
 Each recorded tool step currently contains:
 
-- `thought`: the LLM response that produced the tool call;
+- `thought`: raw reasoning text when an LLM response produced the tool call; it may be empty for a deterministic fallback action;
 - `action`: an object containing `type`, `tool`, and `args`;
 - `tool_result`: the result or `ToolError`;
 - `latency_ms`: elapsed time since the previous hook event;
@@ -98,26 +103,26 @@ Real token collection is deferred to the Week 10 backlog: add response metadata 
 
 ## 6. Failure Taxonomy
 
-`HarnessRunner::classifyFailure()` can currently produce:
+`HarnessRunner::classifyFailure()` contains branches for the following codes. “Focused test” below means the code has a direct offline fixture in `benchmark/test_harness.cpp`; the other branches are implemented but are not yet closed by a focused test.
 
-| Code | Meaning |
-|---|---|
-| `NONE` | The task reached final success |
-| `RATE_LIMIT` | Evidence contains 429 or resource-exhausted markers |
-| `TIMEOUT` | The LLM, tool, or evaluator timed out |
-| `TOOL_NOT_FOUND` | The agent requested a tool that does not exist |
-| `INVALID_ARGS` | Tool arguments were invalid |
-| `TOOL_EXECUTION_FAILED` | A tool returned ExecutionFailed, AccessDenied, or UnknownError |
-| `LOOP_DETECTED` | The loop detector stopped the agent |
-| `EVALUATOR_ERROR` | The evaluator could not produce a valid evaluation result |
-| `NO_TOOL_EXECUTION` | A tool-required task had no relevant successful tool step |
-| `ARTIFACT_MISSING` | A required artifact does not exist |
-| `ARTIFACT_CONTENT_MISMATCH` | The artifact exists, but its content fails evaluation |
-| `INCOMPLETE_TASK` | The agent stopped without completing the request |
-| `POST_CONDITION_FAIL` | Evaluation failed without a more specific classification |
-| `PARSER_FAIL` | Fallback when evaluator success and final result state conflict |
+| Code | Meaning | Current evidence |
+|---|---|---|
+| `NONE` | The task reached final success | Covered by successful Strategy fixture |
+| `RATE_LIMIT` | Text evidence contains rate-limit, HTTP 429, or resource-exhausted markers | Implemented; no focused test |
+| `TIMEOUT` | Text evidence contains timeout markers | Implemented; no focused test |
+| `TOOL_NOT_FOUND` | Text evidence says the requested tool does not exist | Implemented; no focused test for the exact AgentLoop signal |
+| `INVALID_ARGS` | A tool reports invalid arguments | Focused test |
+| `TOOL_EXECUTION_FAILED` | A tool reports ExecutionFailed, AccessDenied, or UnknownError | Focused test for ExecutionFailed |
+| `LOOP_DETECTED` | Text evidence says loop detection stopped the agent | Implemented; no focused test |
+| `EVALUATOR_ERROR` | The evaluator cannot produce a valid result | Focused test |
+| `NO_TOOL_EXECUTION` | A tool-required task has no relevant successful tool step | Focused test |
+| `ARTIFACT_MISSING` | A required artifact does not exist | Focused test |
+| `ARTIFACT_CONTENT_MISMATCH` | The artifact exists but evaluation fails | Focused test |
+| `INCOMPLETE_TASK` | The agent stops without completing the request | Implemented; no focused test |
+| `POST_CONDITION_FAIL` | Evaluation fails without a more specific classification | Exercised indirectly |
+| `PARSER_FAIL` | Final fallback branch for an inconsistent result state | No explicit parser signal or focused test |
 
-The classifier normalizes evidence and recognizes compact enum forms such as `InvalidArgument` and `ExecutionFailed`. Classification still relies on text evidence; a future implementation should preserve typed errors across layers instead of relying only on strings.
+The classifier normalizes evidence and recognizes compact enum forms such as `InvalidArgument` and `ExecutionFailed`. Classification still relies on text evidence. `PARSER_FAIL` must not be presented as a proven end-to-end parser classification until Role A exposes a clear parser-error signal and a focused test reaches that branch. Expanding this taxonomy belongs to the Week 10 bug-fix backlog unless it becomes a submission blocker.
 
 ## 7. Historical Run Comparison
 
@@ -152,6 +157,19 @@ The historical artifact records 10/10. Two important trajectories are:
 
 This run provides evidence that real arguments were preserved in trajectories and that task 010 completed its recovery path. However, it remains historical evidence and must not be used to claim that the current revision passes 10/10 without a new clean run.
 
+### 7.3 Latest Stored Runs on 2026-08-05
+
+Both `run_20260805_032212_365` and `run_20260805_034207_664` record:
+
+- evaluator score: `1.0`;
+- action-level score: `1.0`;
+- final success rate: `1.0`;
+- all 10 tasks marked `PASS`.
+
+These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** prove that the current post-integration worktree passes: after the Role B pull, the current offline gate builds but `test_harness` crashes during tool registration. They are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
+
+The final report must therefore use the wording “pipeline run 10/10” unless a future run records whether each action came from the LLM or fallback. It must not use these artifacts alone to advertise model reasoning quality.
+
 ## 8. Multi-Agent Support
 
 `MultiAgentRunner` provides worker registration, dedicated threads, a dispatcher, message queues, receive timeouts, and `stopAndJoinAll()`. `test_multi_agent` verifies that `ping` becomes `RESULT:ping` and that the runner stops completely. `demo_multi_agent` runs calculator and search workers, then combines their results into `report.txt`.
@@ -174,21 +192,24 @@ Post-run checklist:
 
 1. The new run contains exactly 10 tasks with the 4/4/2 distribution.
 2. The log confirms successful cleanup before the batch.
-3. Every tool-required task has a real relevant tool step with a non-error result.
+3. Every tool-required task has a relevant successful tool step; the report also records whether the action came from the LLM or deterministic fallback when that metadata becomes available.
 4. File tasks create the exact required filename and content during the current run.
 5. Task 005 and 010 trajectories preserve real arguments.
 6. The report identifies the correct provider and model without exposing an API key.
 7. Token value `0` is never described as actual usage.
+8. A 10/10 fallback-assisted run is reported as pipeline evidence, not as proof of model planning quality.
 
 ## 10. Current Focused Tests
 
-`benchmark/test_harness.cpp` is an offline executable that uses a fake LLM, fake evaluators, and temporary directories. It currently verifies:
+`benchmark/test_harness.cpp` is an offline executable that uses a fake LLM, fake evaluators, and temporary directories. Its source contains focused fixtures for:
 
 - valid task loading;
 - rejection of artifact paths containing `..` and duplicate task IDs;
 - evaluator Strategy selection with preserved scores and feedback;
 - StepHook preservation of action type, tool name, arguments, result, and latency;
 - removal of stale batch artifacts in an isolated test directory;
+- cleanup through an injected in-memory `SandboxEnvironment`;
+- explicit `ARTIFACT_CLEANUP_FAILED` classification when an injected environment rejects cleanup;
 - distinction between `ARTIFACT_MISSING` and `ARTIFACT_CONTENT_MISMATCH`;
 - distinction between `INVALID_ARGS`, `TOOL_EXECUTION_FAILED`, and `EVALUATOR_ERROR`;
 - rejection of a final answer that skips a required tool;
@@ -200,7 +221,7 @@ Run it with:
 ./build/test_harness
 ```
 
-A passing run ends with `ALL HARNESS TESTS PASSED`. The suite does not yet prove that the harness uses an `Environment` abstraction because that hierarchy does not exist. Add those tests after Role A supplies the interface.
+A passing run ends with `ALL HARNESS TESTS PASSED`. Static inspection confirms that sandbox cleanup and intentional cleanup-failure fixtures exercise the `Environment` abstraction for artifact cleanup and artifact-existence checks. However, on the current post-Role-B worktree the executable crashes earlier during tool registration, so the complete fixture set is not currently proven green. Re-run it after Role B closes the Registry regression.
 
 CMake also registers the `harness` and `multi_agent` tests with CTest:
 
@@ -211,8 +232,8 @@ ctest --test-dir build --output-on-failure
 ## 11. Backlog After Week 9
 
 - Collect real token metadata from Gemini and Ollama.
-- Test the harness through the `Environment` abstraction and inject intentional cleanup failures.
 - Extend failure-taxonomy tests for rate limits, timeouts, and loop detection.
 - Separate `tool_steps_count` from total LLM steps when trajectories begin recording final answers.
 - Consider isolated workspaces or explicit fixtures to reduce task-order dependencies.
+- Record the source of each action (`llm` or `fallback`) in trajectories before comparing model planning quality.
 - Implement `HarnessRunner → MultiAgentRunner → MessageQueue` integration only if the team commits to the bonus objective.
