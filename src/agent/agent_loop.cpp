@@ -12,9 +12,32 @@
 #include <thread>
 #include <type_traits>
 #include <variant>
+#include <vector>
+
+// std::inplace_vector is a C++26 library feature, but some compilers accept
+// -std=c++26 before their standard library ships the header. Check both the
+// header and feature macro so those environments keep building via std::vector.
+#if defined(__has_include)
+#  if __has_include(<inplace_vector>)
+#    include <inplace_vector>
+#    define OOP_AGENT_HAS_INPLACE_VECTOR_HEADER 1
+#  endif
+#endif
 
 namespace oop_agent {
 namespace {
+
+constexpr std::size_t kFallbackPlanCapacity = 3;
+
+#if defined(OOP_AGENT_HAS_INPLACE_VECTOR_HEADER) && \
+    defined(__cpp_lib_inplace_vector) && \
+    __cpp_lib_inplace_vector >= 202406L
+using FallbackPlan = std::inplace_vector<ToolCallAction, kFallbackPlanCapacity>;
+#else
+using FallbackPlan = std::vector<ToolCallAction>;
+#endif
+
+#undef OOP_AGENT_HAS_INPLACE_VECTOR_HEADER
 
 // ── String helpers ────────────────────────────────────────────────────────────
 
@@ -56,8 +79,8 @@ std::string resolveHelloSh() {
 // Keywords below are matched against the normalizeText() output, so they must
 // be plain ASCII (no diacritics). Each task has at least one unique keyword.
 
-std::vector<ToolCallAction> build_fallback_plan(const std::string& instruction) {
-    std::vector<ToolCallAction> plan;
+FallbackPlan build_fallback_plan(const std::string& instruction) {
+    FallbackPlan plan;
     const std::string n = normalizeText(instruction); // plain ASCII lowercase
 
     // ── task_001: liệt kê file ("lit k", "th mc") ──────────────────────
@@ -324,7 +347,9 @@ AgentLoop::think_and_act(int /*step*/) {
     // ── 1. Deterministic fallback — always tried first ───────────────────
     const auto fp = build_fallback_plan(current_instruction_);
     if (!fp.empty()) {
-        fallback_plan_        = fp;
+        // FallbackPlan may be std::inplace_vector while the persistent member
+        // remains std::vector. Iterator assignment works for both code paths.
+        fallback_plan_.assign(fp.begin(), fp.end());
         used_fallback_action_ = true;
         if (fallback_index_ < fallback_plan_.size())
             return fallback_plan_[fallback_index_];
