@@ -16,9 +16,15 @@ namespace oop_agent {
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
-void ToolRegistry::register_creator(const std::string& canonical_name,
-                                    ToolCreator creator) {
+bool ToolRegistry::register_creator(
+    const std::string& canonical_name,
+    ToolCreator creator)
+{
+    if (creators_.find(canonical_name) != creators_.end())
+        return false;
+
     creators_[canonical_name] = std::move(creator);
+    return true;
 }
 
 std::unique_ptr<Tool> ToolRegistry::create(const std::string& name) {
@@ -37,42 +43,37 @@ std::unique_ptr<Tool> ToolRegistry::create(const std::string& name) {
 
 // ── Registry ──────────────────────────────────────────────────────────────────
 
-void ToolRegistry::register_tool(std::shared_ptr<Tool> tool) {
-    if (!tool) return;
-    const std::string name = std::string(tool->get_name());
-    instances_[name] = std::move(tool);
+bool ToolRegistry::register_tool(std::shared_ptr<Tool> tool)
+{
+    if (!tool)
+        return false;
+
+    return registry_.register_item(
+        std::string(tool->get_name()),
+        std::move(tool));
 }
 
-Tool* ToolRegistry::lookup(const std::string& name) {
-    // Resolve alias first, then check policy
-    const std::string canonical = normalize(name);
+Tool* ToolRegistry::lookup(const std::string& name)
+{
+    auto canonical = normalize(name);
 
-    if (!is_allowed(canonical)) {
+    if (!is_allowed(canonical))
         return nullptr;
-    }
 
-    // Look up by canonical name first
-    auto canonical_it = instances_.find(canonical);
-    if (canonical_it != instances_.end()) {
-        return canonical_it->second.get();
-    }
-
-    // Then try the original name (if different from canonical)
-    if (canonical != name) {
-        auto it = instances_.find(name);
-        if (it != instances_.end()) {
-            return it->second.get();
-        }
-    }
-
-    return nullptr;
+    return registry_.get(canonical);
 }
 
 // ── Alias & policy ────────────────────────────────────────────────────────────
 
-void ToolRegistry::register_alias(const std::string& alias,
-                                  const std::string& canonical) {
+bool ToolRegistry::register_alias(
+    const std::string& alias,
+    const std::string& canonical)
+{
+    if (aliases_.contains(alias))
+        return false;
+
     aliases_[alias] = canonical;
+    return true;
 }
 
 std::string ToolRegistry::normalize(const std::string& name) const {
@@ -98,8 +99,9 @@ bool ToolRegistry::has_creator(const std::string& name) const {
     return creators_.count(normalize(name)) > 0;
 }
 
-bool ToolRegistry::has_instance(const std::string& name) const {
-    return instances_.count(normalize(name)) > 0;
+bool ToolRegistry::has_instance(const std::string& name) const
+{
+    return registry_.contains(normalize(name));
 }
 
 // ── register_all_tools ────────────────────────────────────────────────────────
