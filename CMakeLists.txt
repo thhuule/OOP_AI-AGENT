@@ -13,7 +13,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Tìm các thư viện bên thứ ba bắt buộc
 find_package(CURL REQUIRED)
-find_package(nlohmann_json REQUIRED)
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    # The repository vendors nlohmann/json.hpp under include/.  Use an
+    # interface target when the system CMake package is unavailable.
+    add_library(nlohmann_json INTERFACE)
+    target_include_directories(nlohmann_json INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
+endif()
 find_package(Threads REQUIRED) # Dùng cho Multi-agent Threading
 find_package(SQLite3 REQUIRED)
 

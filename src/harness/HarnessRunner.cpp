@@ -550,21 +550,34 @@ bool HarnessRunner::cleanBenchmarkArtifacts() const {
 }
 
 bool HarnessRunner::hasRelevantSuccessfulToolStep(const Task& task) const {
+    const auto canonical_tool = [](std::string tool) {
+        tool = toLower(std::move(tool));
+        if (tool == "exec")
+            return std::string{"execute_shell"};
+        if (tool == "create_file")
+            return std::string{"write_file"};
+        if (tool == "calculate")
+            return std::string{"calculator"};
+        if (tool == "google_search")
+            return std::string{"web_search"};
+        return tool;
+    };
+
     for (const auto& step : current_trajectory_) {
-        const std::string action = actionToolName(step.action);
+        // TrajectoryStep::success is the authoritative tool execution status.
+        // Do not infer failure from the returned text: a perfectly valid file
+        // listing can contain names such as `skills/error_recovery.md`.
+        if (!step.success)
+            continue;
+
+        const std::string action = canonical_tool(actionToolName(step.action));
         const bool relevant = task.required_tools.empty() ||
             std::ranges::any_of(
                 task.required_tools,
                 [&](const std::string& tool) {
-                    return action == toLower(tool);
+                    return action == canonical_tool(tool);
                 });
-        const bool successful = !containsAny(
-            step.result,
-            {"error", "failed", "invalid", "not found",
-             "denied", "timeout", "toolerror", "executionfailed",
-             "accessdenied", "notfound", "invalidargument",
-             "unknownerror"});
-        if (relevant && successful)
+        if (relevant)
             return true;
     }
     return false;
