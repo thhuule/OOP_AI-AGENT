@@ -44,13 +44,28 @@ void ToolRegistry::register_tool(std::shared_ptr<Tool> tool) {
 }
 
 Tool* ToolRegistry::lookup(const std::string& name) {
+    // Resolve alias first, then check policy
     const std::string canonical = normalize(name);
+
     if (!is_allowed(canonical)) {
         return nullptr;
     }
-    auto it = instances_.find(canonical);
-    if (it == instances_.end()) return nullptr;
-    return it->second.get();
+
+    // Look up by canonical name first
+    auto canonical_it = instances_.find(canonical);
+    if (canonical_it != instances_.end()) {
+        return canonical_it->second.get();
+    }
+
+    // Then try the original name (if different from canonical)
+    if (canonical != name) {
+        auto it = instances_.find(name);
+        if (it != instances_.end()) {
+            return it->second.get();
+        }
+    }
+
+    return nullptr;
 }
 
 // ── Alias & policy ────────────────────────────────────────────────────────────
@@ -93,6 +108,9 @@ void ToolRegistry::register_all_tools() {
     // ── Creators (Factory) ────────────────────────────────────────────────
     register_creator("calculator",    [] { return std::make_unique<CalculatorTool>(); });
     register_creator("file",          [] { return std::make_unique<FileTool>(); });
+    register_creator("read_file",     [] { return std::make_unique<FileReadTool>(); });
+    register_creator("write_file",    [] { return std::make_unique<FileWriteTool>(); });
+    register_creator("append_file",   [] { return std::make_unique<FileAppendTool>(); });
     register_creator("execute_shell", [] { return std::make_unique<ExecTool>(); });
     register_creator("web_search",    [] { return std::make_unique<WebSearchTool>(); });
     register_creator("memory",        [] { return std::make_unique<MemoryTool>(); });
@@ -101,24 +119,28 @@ void ToolRegistry::register_all_tools() {
     register_creator("git",           [] { return std::make_unique<GitTool>(); });
 
     // ── Instances (Registry) ─────────────────────────────────────────────
-    // Pre-instantiate tools used frequently so lookup() works without create()
-    register_tool(std::make_unique<CalculatorTool>());
-    register_tool(std::make_unique<FileTool>());
-    register_tool(std::make_unique<ExecTool>());
-    register_tool(std::make_unique<WebSearchTool>());
-    register_tool(std::make_unique<MemoryTool>());
-    register_tool(std::make_unique<TimeTool>());
-    register_tool(std::make_unique<JsonTool>());
-    register_tool(std::make_unique<GitTool>());
+    // Pre-instantiate all tools so lookup() works without create()
+    register_tool(std::make_shared<CalculatorTool>());
+    register_tool(std::make_shared<FileTool>());
+    register_tool(std::make_shared<FileReadTool>());    // "read_file"
+    register_tool(std::make_shared<FileWriteTool>());   // "write_file"
+    register_tool(std::make_shared<FileAppendTool>());  // "append_file"
+    register_tool(std::make_shared<ExecTool>());
+    register_tool(std::make_shared<WebSearchTool>());
+    register_tool(std::make_shared<MemoryTool>());
+    register_tool(std::make_shared<TimeTool>());
+    register_tool(std::make_shared<JsonTool>());
+    register_tool(std::make_shared<GitTool>());
 
     // ── Aliases (normalize before lookup or policy check) ─────────────────
+    // These aliases point to the dedicated specialized tools,
+    // not the generic FileTool, so they work correctly.
     register_alias("calculate",     "calculator");
     register_alias("exec",          "execute_shell");
     register_alias("google_search", "web_search");
-    register_alias("create_file",   "file");
-    register_alias("write_file",    "file");
-    register_alias("read_file",     "file");
-    register_alias("append_file",   "file");
+    register_alias("create_file",   "write_file");   // → FileWriteTool
+    // "read_file", "write_file", "append_file" are canonical names now —
+    // no alias needed (they are registered directly above).
 }
 
 } // namespace oop_agent
