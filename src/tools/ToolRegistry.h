@@ -7,6 +7,7 @@
 #include <optional>   // C++17
 #include <set>
 #include <string>
+#include "Registry.h"
 
 namespace oop_agent {
 
@@ -27,7 +28,7 @@ public:
 
     /// Register a creator function for a canonical tool name.
     /// Overwrites any existing creator for the same name.
-    void register_creator(const std::string& canonical_name, ToolCreator creator);
+    bool register_creator(const std::string& canonical_name, ToolCreator creator);
 
     /// Create a fresh tool instance by name (alias-resolved, policy-checked).
     /// Returns nullptr if name unknown or denied.
@@ -36,7 +37,7 @@ public:
     // ── Registry interface ────────────────────────────────────────────────
 
     /// Register an already-constructed tool instance.
-    void register_tool(std::shared_ptr<Tool> tool);
+    bool register_tool(std::shared_ptr<Tool> tool);
 
     /// Lookup a registered instance by canonical name.
     /// Returns nullptr if not found.
@@ -45,7 +46,7 @@ public:
     // ── Alias & policy ────────────────────────────────────────────────────
 
     /// Register alias → canonical mapping.
-    void register_alias(const std::string& alias, const std::string& canonical);
+    bool register_alias(const std::string& alias, const std::string& canonical);
 
     /// Resolve alias to canonical name; returns original if no alias found.
     std::string normalize(const std::string& name) const;
@@ -69,7 +70,7 @@ public:
 
 private:
     std::map<std::string, ToolCreator>            creators_;
-    std::map<std::string, std::shared_ptr<Tool>> instances_;
+    Registry<Tool> registry_;
     std::map<std::string, std::string>            aliases_;
     std::set<std::string>                         allow_list_;
     std::set<std::string>                         deny_list_;

@@ -8,16 +8,26 @@
 template<typename T>
 class Registry {
 public:
-    void register_item(const std::string& name,
-                       std::unique_ptr<T> item)
+    bool register_item(
+        const std::string& name,
+        std::shared_ptr<T> item)
     {
+        if (contains(name))
+            return false;
+
         items_[name] = std::move(item);
+        return true;
     }
 
     T* get(const std::string& name) const
     {
         auto it = items_.find(name);
         return it != items_.end() ? it->second.get() : nullptr;
+    }
+
+    bool contains(const std::string& name) const
+    {
+        return items_.find(name) != items_.end();
     }
 
     std::vector<std::string> list() const
@@ -29,6 +39,8 @@ public:
     }
 
 private:
-    std::unordered_map<std::string,
-        std::unique_ptr<T>> items_;
+    std::unordered_map<
+        std::string,
+        std::shared_ptr<T>
+    > items_;
 };
