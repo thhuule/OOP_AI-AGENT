@@ -1,0 +1,26 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 1.0,
+  "failure_reason": "NONE",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "bash hello.sh",
+        "tool": "execute_shell",
+        "type": "tool_call"
+      },
+      "latency_ms": 6.739511,
+      "step_id": 1,
+      "thought": "",
+      "tokens_used": 0,
+      "tool_result": "Hello from agent script\n"
+    }
+  ],
+  "success": true,
+  "task_id": "task_004",
+  "tool_steps_count": 1,
+  "total_time_ms": 6.751704,
+  "total_tokens": 0
+}

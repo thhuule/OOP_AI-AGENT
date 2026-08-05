@@ -10,8 +10,14 @@ SkillLoader::SkillLoader(const std::string &skills_dir)
     : skills_dir_(skills_dir) {}
 
 void SkillLoader::loadAll() {
+  const std::filesystem::path skills_path(skills_dir_);
+  if (!std::filesystem::exists(skills_path) || !std::filesystem::is_directory(skills_path)) {
+    std::cerr << "[SkillLoader] Skills directory not found: " << skills_dir_ << "\n";
+    return;
+  }
+
   // Dùng std::filesystem để scan thư mục (C++17)
-  for (const auto &entry : std::filesystem::directory_iterator(skills_dir_)) {
+  for (const auto &entry : std::filesystem::directory_iterator(skills_path)) {
     if (entry.path().extension() == ".md") {
       loadSkill(entry.path().stem().string());
     }
@@ -52,4 +58,4 @@ std::vector<std::string> SkillLoader::getLoadedSkills() const {
   return loaded_skills_;
 }
 
-} // namespace oop_agent
+} // namespace oop_agent

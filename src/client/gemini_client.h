@@ -24,6 +24,7 @@ private:
     std::string api_key_;
     std::string model_name_;
 
+    LLMConfig resolve_config(const LLMConfig& config) const;
     std::string build_url() const;
     std::string build_url(const LLMConfig& config) const;
     nlohmann::json build_request_body(

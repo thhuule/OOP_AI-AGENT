@@ -2,6 +2,7 @@
 #include "client/llm_client.h"
 #include "harness/HarnessRunner.h"
 #include "harness/evaluator.h"
+#include "tools/FileTool.h"
 #include "tools/Tool.h"
 
 #include <chrono>
@@ -282,6 +283,65 @@ void testStepHookPreservesActionArguments() {
             "unmeasured token usage must remain explicitly zero for now");
 }
 
+void testInstructionFallbackUsesToolWhenLLMOmitsToolCall() {
+    TempDirectory temp;
+    auto client = std::make_shared<ScriptedLLMClient>(
+        std::vector<std::string>{"I cannot decide yet"});
+    AgentLoop agent(client);
+    agent.register_tool(std::make_shared<FileWriteTool>());
+
+    HarnessRunner harness((temp.path() / "unused.json").string());
+    agent.set_step_hook(harness.createStepHook());
+    harness.set_agent(&agent);
+
+    Task task;
+    task.id = "instruction_fallback";
+    task.description = "Instruction fallback fixture";
+    task.instruction = "Tạo file notes.txt với nội dung 'Agent test run'";
+    task.eval_type = "functional";
+    task.eval_script = "test -f notes.txt && grep -F 'Agent test run' notes.txt && echo PASS";
+    task.category = "simple";
+    task.requires_tool = true;
+    task.required_tools = {"write_file"};
+    task.artifacts = {"notes.txt"};
+    task.max_steps = 2;
+
+    const auto result = harness.runSingle(task);
+    require(result.success, "instruction fallback did not complete the write task");
+}
+
+void testCountFallbackReturnsNumericResult() {
+    TempDirectory temp;
+    ScopedCurrentPath current_path(temp.path());
+
+    {
+        std::ofstream notes("notes.txt");
+        notes << "Agent test run\n";
+    }
+
+    auto client = std::make_shared<ScriptedLLMClient>(
+        std::vector<std::string>{"I cannot decide yet"});
+    AgentLoop agent(client);
+
+    HarnessRunner harness((temp.path() / "unused.json").string());
+    agent.set_step_hook(harness.createStepHook());
+    harness.set_agent(&agent);
+
+    Task task;
+    task.id = "count_fallback";
+    task.description = "Count fallback fixture";
+    task.instruction = "Đọc file notes.txt, đếm số từ trong đó rồi in ra kết quả";
+    task.eval_type = "keyword";
+    task.expected_keywords = "3";
+    task.category = "medium";
+    task.requires_tool = true;
+    task.required_tools = {"read_file", "execute_shell"};
+    task.max_steps = 3;
+
+    const auto result = harness.runSingle(task);
+    require(result.success, "count fallback did not return the word count");
+}
+
 void testBatchCleanupRemovesStaleArtifacts() {
     TempDirectory temp;
     ScopedCurrentPath current_path(temp.path());
@@ -455,6 +515,8 @@ int main() {
         {"load task validation", testLoadTasksValidation},
         {"evaluator strategy selection", testStrategySelection},
         {"StepHook action arguments", testStepHookPreservesActionArguments},
+        {"instruction fallback", testInstructionFallbackUsesToolWhenLLMOmitsToolCall},
+        {"count fallback", testCountFallbackReturnsNumericResult},
         {"batch artifact cleanup", testBatchCleanupRemovesStaleArtifacts},
         {"artifact failure taxonomy", testArtifactFailureTaxonomy},
         {"specific failure taxonomy", testSpecificFailureTaxonomy},
