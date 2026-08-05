@@ -1,6 +1,6 @@
 #include "agent/agent_loop.h"
 #include "client/gemini_client.h"
-#include "client/ollama_client.h" // Giữ lại OllamaClient để đa hình
+#include "client/ollama_client.h"
 #include "tools/CalculatorTool.h"
 #include "tools/ExecTool.h"
 #include "tools/FileTool.h"
@@ -17,20 +17,40 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
+namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-int main() {
-    // -------------------------------------------------------------
-    // 1. Đọc file config.json để chọn LLM Provider linh hoạt (Gemini/Ollama)
-    // -------------------------------------------------------------
-    std::string config_path = "config.json";
-    if (!std::filesystem::exists(config_path)) {
-        config_path = "../config.json";
+// ── Find repo root (contains benchmark/tasks.json) ────────────────────────────
+static fs::path findRepoRoot() {
+    fs::path cwd = fs::current_path();
+    // Walk up until we find benchmark/tasks.json
+    for (fs::path p = cwd; p != p.parent_path(); p = p.parent_path()) {
+        if (fs::exists(p / "benchmark" / "tasks.json"))
+            return p;
     }
+    return cwd; // fallback
+}
+
+int main() {
+    // ── 0. Change to repo root so relative paths (hello.sh, notes.txt …) work ──
+    const fs::path repo_root = findRepoRoot();
+    std::error_code ec;
+    fs::current_path(repo_root, ec);
+    if (ec) {
+        std::cerr << "[WARN] Could not chdir to repo root: " << ec.message() << "\n";
+    } else {
+        std::cout << "[INFO] Working directory: " << fs::current_path().string() << "\n";
+    }
+
+    // ── 1. Read config.json ───────────────────────────────────────────────────
+    fs::path config_path = repo_root / "config.json";
+    if (!fs::exists(config_path))
+        config_path = "config.json";
 
     std::ifstream config_file(config_path);
     if (!config_file.is_open()) {
-        std::cerr << "[ERROR] Khong tim thay file config.json tai: " << config_path << std::endl;
+        std::cerr << "[ERROR] Cannot open config.json at: "
+                  << config_path.string() << "\n";
         return 1;
     }
 
@@ -42,21 +62,17 @@ int main() {
 
     if (provider == "gemini") {
         std::string api_key = config_json.value("api_key", "");
-        std::string model = config_json.value("model", "gemini-2.5-flash");
-        
-        std::cout << "[INFO] Khoi tao GeminiClient voi model: " << model << std::endl;
+        std::string model   = config_json.value("model", "gemini-2.5-flash");
+        std::cout << "[INFO] GeminiClient model: " << model << "\n";
         llm_client = std::make_shared<oop_agent::GeminiClient>(api_key, model);
     } else {
         std::string api_url = config_json.value("api_url", "http://localhost:11434");
-        std::string model = config_json.value("model", "gemma4:e4b");
-        
-        std::cout << "[INFO] Khoi tao OllamaClient voi URL: " << api_url << std::endl;
+        std::string model   = config_json.value("model", "gemma4:e4b");
+        std::cout << "[INFO] OllamaClient URL: " << api_url << "\n";
         llm_client = std::make_shared<oop_agent::OllamaClient>(api_url, model);
     }
 
-    // -------------------------------------------------------------
-    // 2. Setup AgentLoop + Tools (Sử dụng client đa hình)
-    // -------------------------------------------------------------
+    // ── 2. Setup AgentLoop + all Tools ───────────────────────────────────────
     oop_agent::AgentLoop agent(llm_client);
     agent.register_tool(std::make_shared<oop_agent::CalculatorTool>());
     agent.register_tool(std::make_shared<oop_agent::ExecTool>());
@@ -70,45 +86,32 @@ int main() {
     agent.register_tool(std::make_shared<oop_agent::JsonTool>());
     agent.register_tool(std::make_shared<oop_agent::GitTool>());
 
-    // -------------------------------------------------------------
-    // 3. Nạp SkillLoader thật
-    // -------------------------------------------------------------
-    std::string skills_path = "src/skills";
-    if (!std::filesystem::exists(skills_path)) {
-        skills_path = "../src/skills";
-    }
-    auto skill_loader = std::make_shared<oop_agent::SkillLoader>(skills_path);
+    // ── 3. SkillLoader ────────────────────────────────────────────────────────
+    fs::path skills_dir = repo_root / "skills";
+    if (!fs::exists(skills_dir))
+        skills_dir = repo_root / "src" / "skills";
+
+    auto skill_loader = std::make_shared<oop_agent::SkillLoader>(skills_dir.string());
     skill_loader->loadAll();
     agent.set_skill_loader(skill_loader);
 
-    // -------------------------------------------------------------
-    // 4. Setup HarnessRunner
-    // -------------------------------------------------------------
-    std::string tasks_path = "benchmark/tasks.json";
-    std::string output_dir = "benchmark/results";
-    {
-        std::ifstream test_f(tasks_path);
-        if (!test_f.is_open()) {
-            tasks_path = "../benchmark/tasks.json";
-            output_dir = "../benchmark/results";
-        }
-    }
+    // ── 4. HarnessRunner ──────────────────────────────────────────────────────
+    const std::string tasks_path  = (repo_root / "benchmark" / "tasks.json").string();
+    const std::string output_dir  = (repo_root / "benchmark" / "results").string();
+
     oop_agent::HarnessRunner harness(tasks_path, output_dir);
     if (!harness.loadTasks()) {
-        std::cerr << "[ERROR] Khong load duoc benchmark task spec." << std::endl;
+        std::cerr << "[ERROR] Cannot load benchmark tasks from: " << tasks_path << "\n";
         return 1;
     }
 
-    // -------------------------------------------------------------
-    // 5. Inject StepHook & Chạy Benchmark
-    // -------------------------------------------------------------
+    // ── 5. Run ────────────────────────────────────────────────────────────────
     agent.set_step_hook(harness.createStepHook());
     harness.set_agent(&agent);
 
-    // 6. Chạy benchmark
     auto results = harness.runAll();
     if (!harness.exportResults(results)) {
-        std::cerr << "[ERROR] Khong export duoc benchmark results." << std::endl;
+        std::cerr << "[ERROR] Cannot export benchmark results.\n";
         return 1;
     }
 
