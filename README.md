@@ -11,9 +11,10 @@ A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, 
 | Tool registry | Registers, resolves, and executes tools | `src/tools/` |
 | Skill system | Loads Markdown instructions into the system prompt | `src/skills/` |
 | Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories | `src/harness/`, `benchmark/` |
+| Environment | Provides real-filesystem and in-memory artifact operations for the harness | `src/environment/` |
 | Multi-agent | Provides worker threads, a dispatcher, and message queues | `src/multiagent/` |
 
-The main layers communicate through the `LLMClient`, `Tool`, and `Evaluator` abstractions. `AgentLoop` does not depend on `HarnessRunner`; the harness records trajectories through `StepHook`.
+The main layers communicate through the `LLMClient`, `Tool`, `Evaluator`, and `Environment` abstractions. `AgentLoop` does not depend on `HarnessRunner`; the harness records trajectories through `StepHook`. `HarnessRunner` uses `NativeEnvironment` by default for real files, while focused tests can inject `SandboxEnvironment` for in-memory files.
 
 ## Prerequisites
 
@@ -153,7 +154,9 @@ benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
 
 A task that requires tools reaches final success only when its evaluator passes and the harness finds at least one relevant successful tool step. File-producing tasks are also checked by `FunctionalEvaluator` scripts for the required filename and content.
 
-Files under `benchmark/results/` are historical evidence. A claim about the current revision must come from a new, clean run using the stated provider.
+The current `AgentLoop` contains a deterministic fallback plan for known benchmark instructions. It checks this plan before asking the LLM and includes task-specific filenames and values. A fallback action still calls the real registered tool and can prove that the tool/harness/evaluator pipeline works, but it does **not** prove that the configured model selected the tool or calculated the answer independently.
+
+Files under `benchmark/results/` are historical evidence. A claim about the current revision must come from a new, clean run using the stated provider. Until trajectories record the source of each action, report a passing run as **pipeline evidence** and state that it may be fallback-assisted; do not describe it as proof of model reasoning quality.
 
 ## Security
 
@@ -188,6 +191,10 @@ Verify that Ollama is running, `api_url` is correct, and the selected model is a
 ### The Benchmark Passes Because of an Old File
 
 Do not use files in the repository root as evidence. Check the cleanup log and the timestamped run directory. If cleanup fails, the harness stops the batch to prevent a false positive.
+
+### The Benchmark Passes Without an LLM Request
+
+Known benchmark instructions may match the deterministic fallback before `AgentLoop` calls the provider. This is expected in the current implementation. Check the source and trajectory, disclose that limitation in the report, and do not infer model quality from the score alone.
 
 ## Documentation
 

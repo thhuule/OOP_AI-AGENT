@@ -31,6 +31,7 @@ file(GLOB_RECURSE SOURCE_FILES
     "src/client/*.cpp"
     "src/tools/*.cpp"
     "src/harness/*.cpp"
+    "src/environment/*.cpp"
     "src/multiagent/*.cpp"
 )
 
