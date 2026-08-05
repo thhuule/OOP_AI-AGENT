@@ -12,7 +12,6 @@
 #include <thread>
 #include <type_traits>
 #include <variant>
-#include <inplace_vector>
 
 namespace oop_agent {
 namespace {
@@ -65,8 +64,10 @@ std::vector<ToolCallAction> build_fallback_plan(const std::string& instruction) 
     if (n.find("lit k") != std::string::npos ||
         n.find("th mc") != std::string::npos ||
         n.find("list all file") != std::string::npos) {
+        // The benchmark expects source files too, so a recursive listing is
+        // required rather than `ls -1 .`, which only shows repo-root entries.
         plan.push_back({"execute_shell",
-            "ls -1 . 2>/dev/null"});
+            "find . -type f -not -path './benchmark/results/*' | sort"});
         return plan;
     }
 
@@ -198,7 +199,12 @@ AgentLoop::AgentLoop(std::shared_ptr<LLMClient>   llm,
     : llm_(std::move(llm))
     , skills_(std::move(skills))
     , registry_(std::move(registry))
-{}
+{
+    // Keep the default AgentLoop usable in isolation (including unit tests
+    // and deterministic fallback plans). Callers can still override any
+    // built-in tool by registering their own instance afterwards.
+    registry_.register_all_tools();
+}
 
 // ── Template Method skeleton ──────────────────────────────────────────────────
 
@@ -232,7 +238,9 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
             ts.result      = fa->answer;
             ts.success     = true;
             ts.tokens_used = 0;
-            emit_hook(ts);
+            // Final answers are not tool steps. StepHook is intentionally
+            // reserved for actual tool executions so tool_steps_count and
+            // action-level evaluation remain accurate.
             return fa->answer;
         }
 

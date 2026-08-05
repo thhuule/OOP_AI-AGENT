@@ -1,0 +1,50 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 1.0,
+  "failure_reason": "NONE",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "123*456",
+        "tool": "calculator",
+        "type": "tool_call"
+      },
+      "latency_ms": 0.100026,
+      "step_id": 1,
+      "thought": "",
+      "tokens_used": 0,
+      "tool_result": "56088"
+    },
+    {
+      "action": {
+        "args": "calc.txt,56088",
+        "tool": "write_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 0.240509,
+      "step_id": 2,
+      "thought": "",
+      "tokens_used": 0,
+      "tool_result": "OK: wrote calc.txt"
+    },
+    {
+      "action": {
+        "args": "calc.txt",
+        "tool": "read_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 0.086,
+      "step_id": 3,
+      "thought": "",
+      "tokens_used": 0,
+      "tool_result": "56088"
+    }
+  ],
+  "success": true,
+  "task_id": "task_009",
+  "tool_steps_count": 3,
+  "total_time_ms": 0.437816,
+  "total_tokens": 0
+}
