@@ -30,11 +30,15 @@ std::expected<void, EnvError> NativeEnvironment::writeFile(const std::string& pa
 
 std::expected<void, EnvError> NativeEnvironment::removeFile(const std::string& path) {
     std::error_code ec;
-    if (fs::exists(path, ec)) {
-        if (!fs::remove(path, ec)) {
-            return std::unexpected(EnvError::IOError);
-        }
-    }
+    const bool exists = fs::exists(path, ec);
+    if (ec)
+        return std::unexpected(EnvError::IOError);
+    if (!exists)
+        return {};
+
+    fs::remove(path, ec);
+    if (ec)
+        return std::unexpected(EnvError::IOError);
     return {};
 }
 
@@ -44,14 +48,9 @@ bool NativeEnvironment::exists(const std::string& path) const {
 
 std::expected<void, EnvError> NativeEnvironment::cleanArtifacts(const std::vector<std::string>& paths) {
     for (const auto& p : paths) {
-        // Chặn các path không hợp lệ hoặc chứa ".." để bảo mật
-        if (p.find("..") != std::string::npos) {
-            continue; 
-        }
-        std::error_code ec;
-        if (fs::exists(p, ec)) {
-            fs::remove(p, ec);
-        }
+        const auto removed = removeFile(p);
+        if (!removed)
+            return std::unexpected(removed.error());
     }
     return {};
 }

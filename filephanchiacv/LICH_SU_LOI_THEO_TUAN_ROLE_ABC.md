@@ -686,7 +686,80 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 
 ---
 
-## 11. Nguồn bằng chứng
+## 11. Cập nhật Tuần 9.5 — Role C
+
+### W95-C-01 — Harness chưa dùng Environment abstraction
+
+- **Tuần:** 9.5.
+- **Role:** C, tích hợp interface do A sở hữu.
+- **Ngày xác minh:** 2026-08-05.
+- **Phát hiện bởi:** review source và focused test.
+- **Mức độ:** HIGH.
+- **Độ tin cậy:** Đã xác nhận.
+- **Trạng thái:** `CLOSED`.
+
+#### Hiện tượng
+
+- Harness từng tự gọi filesystem để cleanup và kiểm tra artifact dù `Environment` hierarchy đã tồn tại.
+- Cleanup thất bại chưa có failure reason riêng.
+
+#### Cách sửa
+
+- Inject `std::shared_ptr<Environment>` vào `HarnessRunner`.
+- Dùng `NativeEnvironment` mặc định khi chạy thật và `SandboxEnvironment` khi test.
+- Cleanup/artifact existence đi qua interface; lỗi cleanup là `ARTIFACT_CLEANUP_FAILED`.
+- Thêm Environment source vào CMake và focused test cho sandbox/cleanup failure.
+
+#### Bằng chứng
+
+- Fix log: `filephanchiacv/ROLE_C_ENVIRONMENT_FIX_LOG_20260805.md`.
+- Build toàn bộ target: PASS.
+- `./build/test_harness`: `ALL HARNESS TESTS PASSED`.
+- `./build/test_multi_agent`: `ALL PASSED`.
+- CTest: 2/2 PASS.
+
+### W95-C-02 — Tài liệu Eval/video không khớp source và trajectory mới nhất
+
+- **Tuần:** 9.5.
+- **Role:** C.
+- **Ngày xác minh:** 2026-08-05.
+- **Phát hiện bởi:** audit tài liệu với source/test/run artifacts.
+- **Mức độ:** MEDIUM.
+- **Độ tin cậy:** Đã xác nhận.
+- **Trạng thái:** `CLOSED`.
+
+#### Hiện tượng
+
+- Báo cáo mô tả action-level dựa trên chữ trong result, trong khi source dùng `TrajectoryStep::success`.
+- Báo cáo chưa phân biệt pipeline 10/10 với năng lực lập kế hoạch của model khi fallback chạy trước LLM.
+- Storyboard yêu cầu trình bày số bước task 005/010 không khớp hai trajectory gần nhất.
+
+#### Cách sửa
+
+- Sửa `docs/report_evaluation.md` theo đúng source, ghi rõ nhánh taxonomy nào có focused test và nhánh nào mới chỉ được implement.
+- Bổ sung hai run 2026-08-05 và giới hạn fallback/token.
+- Sửa README, submission checklist và storyboard để không tuyên bố fallback-assisted 10/10 là bằng chứng model reasoning.
+- Storyboard bây giờ yêu cầu chỉ trình bày bước thật sự tồn tại trong trajectory được chọn.
+
+#### Bằng chứng
+
+- `benchmark/results/run_20260805_034207_664/trajectory_task_005.json`: 2 tool steps.
+- `benchmark/results/run_20260805_034207_664/trajectory_task_010.json`: 2 tool steps.
+- `benchmark/results/run_20260801_220549_361/trajectory_task_010.json`: 4-step historical recovery flow.
+- Build toàn bộ target: PASS.
+- `test_harness`, `test_multi_agent`, CTest 2/2: PASS.
+- `git diff --check`: PASS.
+
+#### Việc chuyển Tuần 10
+
+- Focused test cho rate limit, timeout, loop và parser failure signal.
+- Token telemetry thật.
+- Ghi nguồn action `llm`/`fallback` vào trajectory.
+- Artifact isolation nâng cao và benchmark thật sau khi A/B freeze.
+
+---
+
+## 12. Nguồn bằng chứng
 
 - `filephanchiacv/FIX_LOI_ROLE_ABC_BENCHMARK.md`.
 - `filephanchiacv/PHAN_TICH_RUN_20260801_212302_253.md`.
@@ -698,6 +771,73 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - `benchmark/results/run_20260801_212302_253/benchmark_summary.txt`.
 - `benchmark/results/run_20260801_215732_690/benchmark_summary.txt`.
 - `benchmark/results/run_20260801_220549_361/benchmark_summary.txt`.
+- `benchmark/results/run_20260805_032212_365/benchmark_summary.txt`.
+- `benchmark/results/run_20260805_034207_664/benchmark_summary.txt`.
+- `filephanchiacv/ROLE_C_ENVIRONMENT_FIX_LOG_20260805.md`.
+- `filephanchiacv/KH_TUAN9.5.md`.
 - Git reflog và commit statistics trong repository.
 
 > **Kết luận:** lỗi chỉ được coi là khép kín khi có quan hệ truy vết `triệu chứng → nguyên nhân gốc → commit sửa → regression test → bằng chứng xác minh`. Build pass hoặc benchmark pass một lần chưa đủ để đảm bảo lỗi không quay lại.
+
+---
+
+## 13. Cập nhật sau tích hợp Role B — Tuần 9.5
+
+### W95-ABC-03 — Registry/Factory mới làm Harness segfault
+
+- **Tuần:** 9.5.
+- **Owner sửa:** Role B.
+- **Role phụ thuộc:** A và C.
+- **Ngày phát hiện:** 2026-08-05, sau khi pull commit Role B.
+- **Phát hiện bởi:** build + `test_harness` + CTest.
+- **Mức độ:** CRITICAL cho integration gate.
+- **Độ tin cậy:** Triệu chứng `CONFIRMED`; nguyên nhân gốc `INDIRECT` cho đến khi B có patch/test.
+- **Trạng thái:** `OPEN`.
+
+#### Hiện tượng
+
+- Dự án build đủ năm target.
+- `test_multi_agent` vẫn in `ALL PASSED`.
+- `test_harness` pass hai fixture đầu rồi segfault khi bắt đầu đường AgentLoop đăng ký Tool.
+- CTest chỉ đạt 1/2 vì test `harness` segfault.
+
+#### Nguyên nhân đang nghi ngờ
+
+- `ToolRegistry::register_tool()` đọc `tool->get_name()` và `std::move(tool)` trong cùng một lời gọi.
+- Thứ tự đánh giá có thể làm `tool` bị move trước khi đọc tên.
+- Chưa được ghi là nguyên nhân đã xác nhận cho tới khi patch B và regression test chứng minh trước/sau.
+
+#### Ảnh hưởng
+
+- C-9.5-01 bị chặn; Role C chưa thể xác nhận offline integration gate.
+- Role A chưa nên freeze UML/ownership Registry trước khi B chốt contract cuối.
+- Không đủ điều kiện chạy benchmark provider thật của worktree hiện tại.
+
+#### Điều kiện đóng
+
+- B sửa đúng owner layer, không workaround trong Harness hoặc AgentLoop.
+- Có focused regression test cho valid/null/duplicate registration và Factory contract.
+- `test_harness`, `test_multi_agent`, CTest đều pass sau clean build.
+- A/C nhận commit hash, test log và contract bàn giao.
+
+### W95-C-04 — Gom checklist A/B/C và sửa bộ nhớ trạng thái
+
+- **Tuần:** 9.5.
+- **Role:** C quản lý kế hoạch/tài liệu tích hợp.
+- **Ngày cập nhật:** 2026-08-05.
+- **Trạng thái:** `CLOSED` cho thay đổi tài liệu; task integration vẫn theo W95-ABC-03.
+
+#### Thay đổi
+
+- Gom checklist theo từng Role vào mục 9 của `filephanchiacv/KH_TUAN9.5.md`.
+- Bỏ file checklist riêng của Role C để cả nhóm theo dõi một nguồn duy nhất.
+- Sửa `PROJECT_STATUS.md`: Role B `BLOCKED`, Role C `PARTIALLY DONE`, Harness/CTest phản ánh kết quả sau pull B.
+- Giữ các mục W95-C-01/W95-C-02 phía trên như bằng chứng lịch sử trước regression; không dùng kết quả pass cũ để kết luận worktree mới.
+
+#### Bằng chứng
+
+- `filephanchiacv/KH_TUAN9.5.md` — checklist A/B/C và Definition of Done.
+- `filephanchiacv/PROJECT_STATUS.md` — trạng thái ngắn hiện tại.
+- `docs/report_evaluation.md` — giới hạn run lịch sử và fallback-assisted evidence.
+
+> **Luồng cập nhật từ nay:** sau mỗi lần một Role hoàn thành task, cập nhật checkbox trong `KH_TUAN9.5.md`; khi trạng thái tổng thay đổi, cập nhật `PROJECT_STATUS.md`; khi có lỗi/fix/test quan trọng, thêm mục theo thời gian vào file lịch sử này.
