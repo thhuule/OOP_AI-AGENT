@@ -123,6 +123,11 @@ protected:
     // Runtime state set during run() for primitives to read
     int         current_step_   = 0;
     std::string last_thought_;
+    std::string current_instruction_;
+    std::string last_fallback_result_;
+    std::vector<ToolCallAction> fallback_plan_;
+    std::size_t fallback_index_ = 0;
+    bool        used_fallback_action_ = false;
     bool        abort_          = false;
 };
 

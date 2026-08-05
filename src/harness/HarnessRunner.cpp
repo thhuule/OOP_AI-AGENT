@@ -587,14 +587,17 @@ std::string HarnessRunner::classifyFailure(
     if (containsAny(evidence, {"tool not found", "unknown tool"}))
         return "TOOL_NOT_FOUND";
     if (containsAny(evidence,
-                    {"invalid argument", "invalid args", "invalidargument"}))
+                    {"invalid argument", "invalid args", "invalidargument",
+                     "tool error: invalidargument"}))
         return "INVALID_ARGS";
     if (containsAny(evidence, {"infinite loop", "loop detected"}))
         return "LOOP_DETECTED";
     if (containsAny(evidence, {"evaluator error"}))
         return "EVALUATOR_ERROR";
     if (containsAny(evidence,
-                    {"executionfailed", "accessdenied", "unknownerror"}))
+                    {"executionfailed", "accessdenied", "unknownerror",
+                     "tool error: executionfailed", "tool error: accessdenied",
+                     "tool error: unknownerror"}))
         return "TOOL_EXECUTION_FAILED";
     if (result.requires_tool && result.tool_steps_count == 0)
         return "NO_TOOL_EXECUTION";
