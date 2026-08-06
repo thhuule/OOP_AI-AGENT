@@ -75,6 +75,10 @@ add_executable(test_tools
     benchmark/test_tools.cpp
     ${SOURCE_FILES}
 )
+add_executable(test_template_method
+    benchmark/test_template_method.cpp
+    ${SOURCE_FILES}
+)
 add_executable(demo_multi_agent
     benchmark/demo_multi_agent.cpp
     ${SOURCE_FILES}
@@ -84,6 +88,7 @@ if(BUILD_TESTING)
     add_test(NAME harness COMMAND test_harness)
     add_test(NAME multi_agent COMMAND test_multi_agent)
     add_test(NAME tools COMMAND test_tools)
+    add_test(NAME template_method COMMAND test_template_method)
 endif()
 
 # Cấu hình Include Directories
@@ -98,6 +103,7 @@ target_include_directories(run_eval PRIVATE ${common_include_dirs})
 target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
 target_include_directories(test_harness PRIVATE ${common_include_dirs})
 target_include_directories(test_tools PRIVATE ${common_include_dirs})
+target_include_directories(test_template_method PRIVATE ${common_include_dirs})
 target_include_directories(demo_multi_agent PRIVATE ${common_include_dirs})
 
 # Link Libraries
@@ -135,6 +141,12 @@ target_link_libraries(test_tools PRIVATE
     Threads::Threads
     SQLite::SQLite3
 )
+target_link_libraries(test_template_method PRIVATE
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
 target_link_libraries(demo_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
@@ -149,9 +161,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(test_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_harness PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_tools PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(test_template_method PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(demo_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
     target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
     target_compile_options(test_harness PRIVATE /W4 /std:c++latest)
+    target_compile_options(test_template_method PRIVATE /W4 /std:c++latest)
 endif()
