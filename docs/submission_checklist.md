@@ -38,7 +38,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 
 - [ ] Role A reviews the harness sequence diagram and the LLM/`AgentLoop` content in the README.
 - [ ] Role B reviews tool names, aliases, arguments, and policies in the report and README.
-- [x] Role C reviews benchmark figures, output paths, and run commands (2026-08-06, HEAD `86c7d49`).
+- [x] Role C reviews benchmark figures, output paths, and run commands (2026-08-06, HEAD `08202f5`).
 - [x] Every relative Markdown link in README and the three Role C documents opens the correct file.
 - [ ] All four Mermaid diagrams render without errors.
 - [x] `VLMEvaluator` is not described as a completed feature.
