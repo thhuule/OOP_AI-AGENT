@@ -71,11 +71,14 @@ add_executable(test_harness
     ${SOURCE_FILES}
 )
 
+<<<<<<< HEAD
 add_executable(test_tools
     benchmark/test_tools.cpp
     ${SOURCE_FILES}
 )
 
+=======
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 add_executable(demo_multi_agent
     benchmark/demo_multi_agent.cpp
     ${SOURCE_FILES}
@@ -84,7 +87,10 @@ add_executable(demo_multi_agent
 if(BUILD_TESTING)
     add_test(NAME harness COMMAND test_harness)
     add_test(NAME multi_agent COMMAND test_multi_agent)
+<<<<<<< HEAD
     add_test(NAME tools COMMAND test_tools)
+=======
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 endif()
 
 # Cấu hình Include Directories
@@ -98,7 +104,10 @@ target_include_directories(OopAgent PRIVATE ${common_include_dirs})
 target_include_directories(run_eval PRIVATE ${common_include_dirs})
 target_include_directories(test_multi_agent PRIVATE ${common_include_dirs})
 target_include_directories(test_harness PRIVATE ${common_include_dirs})
+<<<<<<< HEAD
 target_include_directories(test_tools PRIVATE ${common_include_dirs})
+=======
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 target_include_directories(demo_multi_agent PRIVATE ${common_include_dirs})
 
 # Link Libraries
@@ -130,6 +139,7 @@ target_link_libraries(test_harness PRIVATE
     SQLite::SQLite3
 )
 
+<<<<<<< HEAD
 target_link_libraries(test_tools PRIVATE
     CURL::libcurl
     nlohmann_json::nlohmann_json
@@ -137,6 +147,8 @@ target_link_libraries(test_tools PRIVATE
     SQLite::SQLite3
 )
 
+=======
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 target_link_libraries(demo_multi_agent PRIVATE 
     CURL::libcurl
     nlohmann_json::nlohmann_json
@@ -150,7 +162,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(run_eval PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_harness PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+<<<<<<< HEAD
     target_compile_options(test_tools PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+=======
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
     target_compile_options(demo_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
