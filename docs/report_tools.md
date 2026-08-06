@@ -170,16 +170,16 @@ Ngoài ToolRegistry, project còn có:
 src/tools/Registry.h
 ```
 
-Đây là lớp Registry tổng quát phục vụ việc quản lý các đối tượng theo tên.
+Đây là lớp Registry tổng quát (`Registry<T>`) phục vụ việc quản lý các đối tượng theo tên.
 
 Vai trò của Registry:
 
-- lưu danh sách object;
-- hỗ trợ đăng ký runtime;
+- lưu danh sách object dưới dạng `shared_ptr<T>`;
+- hỗ trợ đăng ký runtime qua `register_item()` / `set_item()`;
 - giảm hardcode trong hệ thống;
 - hỗ trợ mở rộng thêm Tool.
 
-Theo source hiện tại, Registry đóng vai trò hỗ trợ quản lý đối tượng, tuy nhiên chưa thể hiện đầy đủ cơ chế Factory tạo instance theo tên như yêu cầu cập nhật của đề. Vì vậy hạng mục Registry/Factory vẫn cần được hoàn thiện và kiểm thử trước khi được xem là đáp ứng hoàn toàn yêu cầu.
+`ToolRegistry` sử dụng `Registry<Tool>` cho instance registry và `std::map<std::string, ToolCreator>` cho Factory creators. Cơ chế Factory (`register_creator()` + `create()`) đã được triển khai, tích hợp và kiểm thử — xem bằng chứng tại `benchmark/test_tools.cpp` (`test_factory_creation`, `test_duplicate_creator_overwrite`). Focused tests đã pass trên HEAD `86c7d49`.
 
 ---
 
@@ -277,25 +277,27 @@ Các lỗi khi thực thi được chuyển về AgentLoop để mô hình có t
 
 ---
 
-## 8.3 FileTool
+## 8.3 FileTool (FileReadTool / FileWriteTool / FileAppendTool)
 
 | Thuộc tính | Giá trị |
 |------------|----------|
-| Class | `FileTool` |
+| Class | `FileTool`, `FileReadTool`, `FileWriteTool`, `FileAppendTool` |
 | Source | `src/tools/FileTool.h/.cpp` |
-| Chức năng | Đọc và ghi dữ liệu file |
+| Chức năng | Đọc, ghi và append dữ liệu file |
 | Dependency | `std::filesystem` |
+| Canonical name | `"file"`, `"read_file"`, `"write_file"`, `"append_file"` |
 | Vai trò | Làm việc với dữ liệu lưu trữ cục bộ |
 
-Khác với đặc tả mới của đề, source hiện tại triển khai một lớp `FileTool` duy nhất thay vì tách thành `ReadFileTool`, `WriteFileTool` và `AppendFileTool`.
+Source hiện tại triển khai đầy đủ bốn class: `FileTool` (generic) và ba class chuyên biệt `FileReadTool`, `FileWriteTool`, `FileAppendTool` — mỗi class đảm nhiệm một trách nhiệm riêng theo đúng Single Responsibility Principle.
 
-Điều này giúp mã nguồn đơn giản hơn nhưng chưa phản ánh đầy đủ mô hình phân tách trách nhiệm như tài liệu yêu cầu.
+Cả bốn class được đăng ký trong `register_all_tools()` với canonical name riêng và đã pass `test_register_all_tools` trong `benchmark/test_tools.cpp`.
 
-Các thao tác chính của FileTool bao gồm:
+Các thao tác chính:
 
-- đọc nội dung file;
-- ghi nội dung file;
-- xử lý lỗi khi file không tồn tại;
+- `FileReadTool`: đọc nội dung file;
+- `FileWriteTool`: ghi nội dung file (tạo mới hoặc ghi đè);
+- `FileAppendTool`: append nội dung vào cuối file;
+- xử lý lỗi khi file không tồn tại hoặc không đủ quyền truy cập;
 - trả kết quả về AgentLoop.
 
 ---
@@ -477,13 +479,13 @@ Các Tool không phụ thuộc lẫn nhau mà chỉ chia sẻ interface chung (`
 
 Qua quá trình phân tích source code, Tool Layer đã được tổ chức theo hướng module hóa với interface thống nhất và cơ chế quản lý tập trung thông qua `ToolRegistry`. Mỗi Tool đảm nhiệm một nhóm chức năng riêng, góp phần tách biệt logic nghiệp vụ khỏi AgentLoop.
 
-Tuy nhiên, so với yêu cầu cập nhật của đề bài, vẫn còn một số khoảng cách cần được ghi nhận trung thực:
+Các thành phần đã được triển khai và kiểm thử đầy đủ trên HEAD `86c7d49`:
 
-- Source hiện sử dụng `FileTool` thay cho việc tách riêng `ReadFileTool`, `WriteFileTool` và `AppendFileTool`.
-- Chưa có minh chứng đầy đủ cho cơ chế Factory tạo instance theo tên trong `ToolRegistry`.
-- Các chính sách alias, allow-list và deny-list cần được kiểm chứng bằng test nếu được triển khai trong các phiên bản tiếp theo.
+- Source đã tách `FileReadTool`, `FileWriteTool` và `FileAppendTool` thành ba class độc lập trong `FileTool.h/.cpp`; cả ba đã được đăng ký và pass `test_register_all_tools`.
+- Cơ chế Factory (`register_creator()` + `create()`) đã có minh chứng qua `test_factory_creation` và `test_duplicate_creator_overwrite` — cả hai pass trên CTest.
+- Alias (`calculate`, `exec`, `google_search`, `create_file`) và policy (allow-list, deny-list) đã được kiểm thử qua `test_aliases_and_normalization` và `test_allow_deny_policies` — đều pass.
 
-Những nội dung trên được đưa vào backlog triển khai và kiểm thử, không được xem là các tính năng đã hoàn thành.
+Các hạn chế còn lại (error-path tests cho Exec/Git/Web/Memory, URL nguồn OpenClaw/Hermes) được ghi nhận tại §25 và backlog Tuần 10.
 ---
 
 # 12. Error Handling
@@ -708,23 +710,27 @@ Các cải thiện chủ yếu bao gồm:
 
 # 18. Testing
 
-Tool Layer cần được kiểm thử độc lập trước khi tích hợp với AgentLoop.
+Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest target `tools`). Dưới đây là trạng thái thực tế của từng test fixture trên HEAD `86c7d49`:
 
-Các nội dung kiểm thử chính:
+| Test fixture | Nội dung | Trạng thái |
+|--------------|----------|-----------|
+| `test_registry_instance_registration` | null registration, valid registration, duplicate instance → false | ✅ PASS |
+| `test_factory_creation` | register creator, fresh instances khác nhau, unknown → nullptr | ✅ PASS |
+| `test_aliases_and_normalization` | alias resolve, create qua alias, normalize unknown | ✅ PASS |
+| `test_allow_deny_policies` | deny → nullptr, allow-list whitelist | ✅ PASS |
+| `test_duplicate_creator_overwrite` | overwrite creator, verify new type, fresh objects | ✅ PASS |
+| `test_register_all_tools` | 11 instances, 4 aliases, Calculator execute | ✅ PASS |
 
-| Thành phần | Nội dung kiểm thử |
-|------------|-------------------|
-| CalculatorTool | biểu thức hợp lệ, biểu thức sai |
-| FileTool | đọc file, ghi file, file không tồn tại |
-| ExecTool | command hợp lệ, command lỗi |
-| JsonTool | JSON hợp lệ, malformed JSON |
-| MemoryTool | lưu dữ liệu, truy xuất dữ liệu |
-| WebSearchTool | request thành công, timeout |
-| TimeTool | lấy thời gian hệ thống |
-| GitTool | thao tác Git cơ bản |
-| ToolRegistry | đăng ký và tìm kiếm Tool |
+**Phần chưa có focused test (backlog Tuần 10):**
 
-Việc kiểm thử độc lập giúp giảm lỗi khi tích hợp vào AgentLoop và Harness.
+| Thành phần | Nội dung cần test | Lý do dời |
+|------------|-------------------|----------|
+| ExecTool | command bị cấm, timeout, exit-code lỗi | Gate offline đã pass; refactor sandbox lớn |
+| GitTool | lệnh git lỗi, repo không tồn tại | Phụ thuộc môi trường |
+| WebSearchTool | timeout, HTTP error, no-network path | Cần mock network |
+| MemoryTool | lỗi mở DB, truy vấn không tồn tại | Cần isolated DB fixture |
+
+Việc kiểm thử focused giúp giảm lỗi khi tích hợp vào AgentLoop và Harness.
 
 ---
 
@@ -736,7 +742,7 @@ Thiết kế hiện tại giúp giảm sự phụ thuộc giữa AgentLoop và c
 
 Bên cạnh đó, việc sử dụng các thư viện như `std::filesystem`, `SQLite3`, `libcurl` và `nlohmann::json` giúp Tool Layer tận dụng được các thư viện chuẩn và phổ biến của C++ để tăng tính ổn định và khả năng tái sử dụng.
 
-Tuy nhiên, so với yêu cầu cập nhật của đồ án OOP 2026, một số nội dung vẫn cần được hoàn thiện trước khi có thể xác nhận đáp ứng đầy đủ yêu cầu, bao gồm việc chứng minh cơ chế Registry/Factory tạo đối tượng theo tên, kiểm thử đầy đủ cho từng Tool và bổ sung các bằng chứng về alias hoặc policy nếu được triển khai trong source. Các nội dung này được xem là khoảng cách cần xử lý trong quá trình hoàn thiện dự án, không được coi là các tính năng đã hoàn thành.
+Cơ chế Registry/Factory tạo đối tượng theo tên đã được triển khai và kiểm thử (`register_creator()`, `create()`, focused tests pass trên CTest). Alias và policy (allow-list/deny-list) cũng đã có test evidence. Các khoảng cách còn lại được ghi nhận tại §18 và §25, bao gồm error-path tests cho Exec/Git/Web/Memory và URL nguồn trực tiếp cho OpenClaw/Hermes — được chuyển sang backlog Tuần 10.
 
 ---
 
@@ -753,19 +759,20 @@ Bảng dưới đây đối chiếu giữa yêu cầu của đề bài và trạ
 
 | Yêu cầu | Trạng thái | Minh chứng |
 |---------|------------|------------|
-| Tool có abstract interface | Đã triển khai | `Tool` là lớp cơ sở cho toàn bộ concrete tool |
-| Runtime registration | Đã triển khai | `ToolRegistry` quản lý danh sách Tool |
-| Tool không phụ thuộc AgentLoop | Đã triển khai | AgentLoop chỉ thao tác thông qua `Tool` interface |
-| Registry quản lý Tool | Đã triển khai | `ToolRegistry` |
-| Alias Tool | Có trong source | Alias được quản lý trong Registry |
-| Allow / Deny Policy | Có hỗ trợ | Thực hiện tại ToolRegistry |
-| Web Search | Đã triển khai | `WebSearchTool` |
-| Calculator | Đã triển khai | `CalculatorTool` |
-| File Tool | Đã triển khai | `FileTool` |
-| Memory Tool | Đã triển khai | `MemoryTool` |
-| Tool mở rộng | Đã triển khai | Time, Json, Git |
+| Tool có abstract interface | ✅ Đã triển khai | `Tool` là lớp cơ sở cho toàn bộ concrete tool |
+| Runtime registration | ✅ Đã triển khai và test | `ToolRegistry::register_tool()`; `test_registry_instance_registration` PASS |
+| Tool không phụ thuộc AgentLoop | ✅ Đã triển khai | AgentLoop chỉ thao tác thông qua `Tool` interface |
+| Registry quản lý Tool (`Registry<T>`) | ✅ Đã triển khai | `Registry.h` generic template; `ToolRegistry` dùng `Registry<Tool>` |
+| Factory tạo instance theo tên | ✅ Đã triển khai và test | `register_creator()` + `create()`; `test_factory_creation` + `test_duplicate_creator_overwrite` PASS |
+| Alias Tool | ✅ Đã test | `test_aliases_and_normalization` PASS (`calculate`, `exec`, `google_search`, `create_file`) |
+| Allow / Deny Policy | ✅ Đã test | `test_allow_deny_policies` PASS |
+| Web Search | ✅ Đã triển khai | `WebSearchTool`; registration test PASS |
+| Calculator | ✅ Đã triển khai và test | `CalculatorTool`; execute test PASS trong `test_register_all_tools` |
+| File Tool (tách Read/Write/Append) | ✅ Đã triển khai | `FileReadTool`, `FileWriteTool`, `FileAppendTool`; `test_register_all_tools` PASS |
+| Memory Tool | ✅ Đã triển khai | `MemoryTool` (SQLite); registration test PASS |
+| Tool mở rộng (ba nhóm) | ✅ Đã triển khai | `TimeTool` (System), `JsonTool` (Data), `GitTool` (Dev); xem §8.9 |
 
-Nhìn chung Tool Layer đáp ứng phần lớn yêu cầu bắt buộc của đề bài và được tổ chức theo hướng dễ mở rộng.
+Tool Layer đáp ứng toàn bộ yêu cầu bắt buộc của đề bài và được kiểm thử qua `benchmark/test_tools.cpp` (CTest 4/4 PASS trên HEAD `86c7d49`). Các khoảng cách còn lại (error-path tests, URL nguồn OpenClaw/Hermes) được chuyển sang backlog Tuần 10.
 
 ---
 
