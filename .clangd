@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - "-std=c++2c"
+    - "-I/usr/include"
+    - "-Iinclude"
+  CompilationDatabase: "build"
+
