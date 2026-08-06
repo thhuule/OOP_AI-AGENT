@@ -346,12 +346,12 @@ A khóa UML/OOP      C chạy integration gate
 
 ### Checklist Role A
 
-- [ ] **A-9.5-01 — `IN PROGRESS`:** Registry/Factory code contract đã có; chờ B sửa report stale rồi A freeze UML/report.
-- [ ] Cập nhật bốn UML và `docs/report_oop_design.md` theo source cuối của `Registry<Tool>` và Factory.
-- [ ] Không mô tả `ToolRegistry` giữ `unique_ptr` nếu source cuối dùng `shared_ptr` cho object đã đăng ký.
-- [ ] **A-9.5-02 — `IN PROGRESS`:** bổ sung focused subclass test chứng minh Template Method override đúng hook mà không thay skeleton `run()`.
-- [ ] Review phần AgentLoop/LLM trong tài liệu chung; phân biệt action của LLM với deterministic fallback.
-- [ ] Bàn giao link source, diagram và test cho B/C review chéo.
+- [x] **A-9.5-01 — DONE:** đã đồng bộ UML (class_diagram.md) và docs/report_oop_design.md theo source cuối của Registry<Tool> (dùng shared_ptr).
+- [x] Cập nhật bốn UML và `docs/report_oop_design.md` theo source cuối của `Registry<Tool>` và Factory.
+- [x] Không mô tả `ToolRegistry` giữ `unique_ptr` nếu source cuối dùng `shared_ptr` cho object đã đăng ký.
+- [x] **A-9.5-02 — DONE:** bổ sung focused subclass test chứng minh Template Method override đúng hook mà không thay skeleton `run()` (`benchmark/test_template_method.cpp`).
+- [x] Review phần AgentLoop/LLM trong tài liệu chung; phân biệt action của LLM với deterministic fallback.
+- [x] Bàn giao link source, diagram và test cho B/C review chéo.
 
 **Điều kiện Role A hoàn thành:** UML/report khớp API B đã freeze; Template Method có source + focused test pass; C xác nhận tài liệu không dùng claim benchmark vượt bằng chứng.
 
