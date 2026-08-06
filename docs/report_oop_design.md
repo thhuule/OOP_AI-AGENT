@@ -64,7 +64,7 @@ Evaluator* HarnessRunner::find_evaluator(const std::string& eval_type) {
 
 **Chứng minh pattern đúng:** `HarnessRunner::run_all()` gọi `evaluator->evaluate(...)` qua con trỏ abstract, không switch-case theo type. Thêm evaluator mới chỉ cần thêm subclass và đăng ký — flow không đổi.
 
-**Test yêu cầu:** `src/tests/test_strategy_evaluator.cpp`
+**Test yêu cầu:** `benchmark/test_harness.cpp`
 - Đăng ký `KeywordEvaluator` và `FunctionalEvaluator`.
 - Chọn đúng evaluator theo `eval_type`.
 - Thay evaluator không làm thay đổi cách `HarnessRunner` gọi.
@@ -127,7 +127,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
 }
 ```
 
-**Test yêu cầu:** `src/tests/test_template_method.cpp`
+**Test yêu cầu:** `benchmark/test_template_method.cpp`
 
 ```cpp
 class MockAgentLoop : public AgentLoop {
@@ -209,7 +209,7 @@ google_search → web_search
 create_file   → write_file
 ```
 
-**Test yêu cầu:** `src/tests/test_registry_factory.cpp`
+**Test yêu cầu:** `benchmark/test_tools.cpp`
 - Đăng ký creator → `create("calculator")` trả `unique_ptr<CalculatorTool>`.
 - Tên không tồn tại → trả `nullptr` với thông báo rõ ràng.
 - Đăng ký duplicate → behavior được định nghĩa (overwrite hoặc error).
@@ -260,7 +260,7 @@ agent_->set_step_hook([&trajectory](const TrajectoryStep& s) {
 - `HarnessRunner` không cần subclass `AgentLoop`.
 - Nhiều observer có thể được chain bằng cách wrap `StepHook`.
 
-**Test yêu cầu:** `src/tests/test_observer_hook.cpp`
+**Test yêu cầu:** `benchmark/test_harness.cpp`
 - Gắn hook vào `AgentLoop` mock.
 - Sau `run()`, kiểm tra trajectory có đúng số step, thought, tool, result.
 - Không gắn hook → không crash.
@@ -297,11 +297,12 @@ Không có raw owning pointer. Lifetime rõ ràng qua smart pointer.
 
 ### 3.3 Dependency Inversion
 
-`HarnessRunner` phụ thuộc `Environment*` (abstract), không phụ thuộc `NativeEnvironment` hay `SandboxEnvironment`. Caller inject implementation khi khởi tạo.
+`HarnessRunner` phụ thuộc `std::shared_ptr<Environment>` (abstract), không phụ thuộc `NativeEnvironment` hay `SandboxEnvironment`. Caller inject implementation khi khởi tạo.
 
 ```cpp
 // Đúng DIP:
-HarnessRunner runner(agent, std::make_unique<SandboxEnvironment>("/tmp/bench"));
+auto env = std::make_shared<SandboxEnvironment>();
+HarnessRunner runner("tasks.json", "benchmark/results", env);
 // Không phụ thuộc chi tiết sandbox.
 ```
 
@@ -325,9 +326,7 @@ Thêm evaluator mới: tạo subclass `Evaluator`, đăng ký — không sửa `
 
 ## 4. Adapter Pattern (bổ sung)
 
-`SharedToolWrapper` trong `AgentLoop` chuyển `shared_ptr<Tool>` sang `Tool*` interface mà `ToolRegistry` quản lý. Pattern này cho phép một tool được chia sẻ giữa nhiều registry hoặc agent instance.
-
-Chứng minh: `src/agent/agent_loop.cpp` có `SharedToolWrapper` nếu còn tồn tại; nếu đã bị gộp vào `ToolRegistry`, ghi rõ không còn cần wrapper riêng.
+*Lưu ý:* `SharedToolWrapper` ban đầu được đề xuất để chuyển `shared_ptr<Tool>` sang `Tool*` interface. Tuy nhiên, trong source code hiện tại, `ToolRegistry` quản lý trực tiếp quyền sở hữu thông qua `std::shared_ptr<Tool>` và `std::unique_ptr<Tool>`, do đó lớp Adapter này không còn cần thiết và không xuất hiện trong codebase thực tế.
 
 ---
 
@@ -337,7 +336,7 @@ Chứng minh: `src/agent/agent_loop.cpp` có `SharedToolWrapper` nếu còn tồ
 
 | Kỹ thuật | Vị trí | Mục đích | Fallback |
 |---|---|---|---|
-| `std::filesystem` | `NativeEnvironment.cpp`, `SandboxEnvironment.cpp`, `src/tools/FileTool.cpp` | Thao tác file/directory portable | Không cần — C++17 bắt buộc |
+| `std::filesystem` | `NativeEnvironment.cpp`, `src/tools/FileTool.cpp` | Thao tác file/directory portable | Không cần — C++17 bắt buộc |
 | `std::optional` | `src/agent/agent_loop.h`, `src/harness/HarnessRunner.h` | Tham số tùy chọn, return type có thể rỗng | `bool + T out-param` |
 | `std::variant` + `std::visit` | `src/agent/agent_loop.cpp` — `parse_llm_response` trả `variant<ToolCallAction, FinalAnswerAction>` | Discriminated union an toàn kiểu | Polymorphic hierarchy |
 | `std::function` + lambda | `AgentLoop::step_hook_`, `ToolRegistry::creators_` | First-class callable, Strategy và Observer | `std::function` C++11 |
@@ -399,7 +398,7 @@ target_compile_features(demo_multi_agent  PRIVATE cxx_std_26)
 | 2 | `ToolRegistry` mới là Registry, chưa có Factory tạo instance theo tên | DONE: Thêm `register_creator()` và `create()` với `unique_ptr` | B | `src/tools/ToolRegistry.h`, `.cpp` |
 | 3 | `Environment` hierarchy chưa tồn tại trong source | DONE: Tạo `src/environment/` với 3 file đã nêu | A | *(đã tạo Tuần 9)* |
 | 4 | `LLMConfig` chưa có trường `max_tokens` | DONE: Thêm field, truyền vào request Ollama/Gemini | A | `src/client/llm_client.h`, client `.cpp` |
-| 5 | `src/tests/` chưa có unit-test executable | DONE: Đã bổ sung focused tests cho ToolRegistry (`benchmark/test_tools.cpp`) và Template Method (`benchmark/test_template_method.cpp`) | A/B | `src/tests/` |
+| 5 | `src/tests/` chưa có unit-test executable | DONE: Đã bổ sung focused tests cho ToolRegistry (`benchmark/test_tools.cpp`) và Template Method (`benchmark/test_template_method.cpp`) trong thư mục `benchmark/` | A/B | `benchmark/` |
 | 6 | MSVC chưa áp `/std:c++latest` cho `test_multi_agent`/`demo_multi_agent` | DONE: Cập nhật `CMakeLists.txt` | A | `CMakeLists.txt` |
 | 7 | C++20: mới có `std::ranges` ở một nơi | DONE: Thêm một kỹ thuật C++20 độc lập thứ hai | A | `src/agent/LoopDetector.cpp` |
 
