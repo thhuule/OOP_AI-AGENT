@@ -166,7 +166,7 @@ Both `run_20260805_032212_365` and `run_20260805_034207_664` record:
 - final success rate: `1.0`;
 - all 10 tasks marked `PASS`.
 
-These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** prove that the current post-integration worktree passes: after the Role B pull, the current offline gate builds but `test_harness` crashes during tool registration. They are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
+These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** by themselves prove that the current worktree produces the same benchmark score. The offline integration gate on main snapshot `e9e1d35` was verified on 2026-08-06: all six targets built, the Tool/Harness/multi-agent executables passed, and CTest passed 3/3. No new real-provider `run_eval` was executed. The stored runs are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
 
 The final report must therefore use the wording “pipeline run 10/10” unless a future run records whether each action came from the LLM or fallback. It must not use these artifacts alone to advertise model reasoning quality.
 
@@ -221,7 +221,7 @@ Run it with:
 ./build/test_harness
 ```
 
-A passing run ends with `ALL HARNESS TESTS PASSED`. Static inspection confirms that sandbox cleanup and intentional cleanup-failure fixtures exercise the `Environment` abstraction for artifact cleanup and artifact-existence checks. However, on the current post-Role-B worktree the executable crashes earlier during tool registration, so the complete fixture set is not currently proven green. Re-run it after Role B closes the Registry regression.
+A passing run ends with `ALL HARNESS TESTS PASSED`. On main snapshot `e9e1d35`, the complete fixture set printed this result. The sandbox cleanup and intentional cleanup-failure fixtures therefore provide current runtime evidence that `HarnessRunner` uses the `Environment` abstraction for artifact cleanup and artifact-existence checks.
 
 CMake also registers the `harness` and `multi_agent` tests with CTest:
 

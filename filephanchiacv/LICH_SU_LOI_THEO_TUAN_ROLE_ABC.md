@@ -73,7 +73,7 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - **Mức tin cậy:** Đã xác nhận.
 - **Triệu chứng:** `src/tests/unit tests` hiện là file rỗng.
 - **Ảnh hưởng:** Lỗi args parsing và artifact chỉ được phát hiện khi chạy benchmark thật.
-- **Trạng thái:** `OPEN`.
+- **Trạng thái:** `CLOSED` ngày 2026-08-06 bởi main snapshot `e9e1d35` và CTest 3/3.
 - **Cần bổ sung:** test Calculator, File, Registry, Exec, JSON, Memory và Web error path.
 
 ### 3.3 Role C — Evaluation/Infra
@@ -841,3 +841,77 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - `docs/report_evaluation.md` — giới hạn run lịch sử và fallback-assisted evidence.
 
 > **Luồng cập nhật từ nay:** sau mỗi lần một Role hoàn thành task, cập nhật checkbox trong `KH_TUAN9.5.md`; khi trạng thái tổng thay đổi, cập nhật `PROJECT_STATUS.md`; khi có lỗi/fix/test quan trọng, thêm mục theo thời gian vào file lịch sử này.
+
+---
+
+## 14. Xác minh Role C sau commit merge mới — 2026-08-06
+
+### W95-ABC-05 — Patch B từng có trong source nhưng merge conflict chưa được resolve
+
+- **Owner sửa:** Role B cho `ToolRegistry.cpp`/`CMakeLists.txt`; repo maintainer cho `AGENTS.md`.
+- **Role xác minh:** C.
+- **Commit quan sát:** `1582f91` (`Fix merge conflicts`).
+- **Mức độ:** CRITICAL cho build/integration.
+- **Trạng thái:** `CLOSED` sau khi chuyển sang main snapshot sạch `e9e1d35`.
+
+#### Bằng chứng
+
+- Patch an toàn “lấy tên Tool trước khi move” tồn tại ở một nhánh trong `ToolRegistry.cpp`.
+- `benchmark/test_tools.cpp` và target `test_tools` đã xuất hiện.
+- Conflict marker vẫn còn trong `ToolRegistry.cpp`, `CMakeLists.txt`, `AGENTS.md` và ban đầu cả `KH_TUAN9.5.md`.
+- `cmake -S . -B build` thất bại tại `CMakeLists.txt:74`: parser gặp token `<<<<<<<`.
+- Vì configure fail, Role C không chạy binary cũ để nhận là bằng chứng cho revision hiện tại.
+
+#### Static review bổ sung
+
+- Test source có null, duplicate instance, create/fresh/unknown, alias, allow/deny và `register_all_tools`.
+- Chưa thấy test duplicate creator dù checklist B từng ghi duplicate tổng quát.
+- Header nói duplicate creator overwrite; một nhánh source lại trả `false`.
+- `docs/report_tools.md` vẫn có các đoạn nói Factory/alias/policy chưa hoàn thiện, nên B-9.5-03 chưa thể ghi `DONE`.
+
+#### Điều kiện bàn giao lại cho C
+
+1. Không còn conflict marker trong source/build files.
+2. B chốt duplicate creator semantics và đồng bộ header/source/test/report.
+3. Configure + build sạch thành công.
+4. C chạy `test_tools`, `test_harness`, `test_multi_agent` và CTest trên đúng revision đó.
+
+### W95-C-06 — Cập nhật bằng chứng và tracking, không sửa source B
+
+- **Trạng thái:** `CLOSED` cho phần audit/tài liệu; integration vẫn `BLOCKED` bởi W95-ABC-05.
+- C đã dọn conflict trong checklist `KH_TUAN9.5.md` để chỉ giữ một trạng thái dựa trên bằng chứng.
+- C đã cập nhật `PROJECT_STATUS.md` và `docs/report_evaluation.md` theo gate ngày 2026-08-06.
+- C không chọn nhánh hoặc sửa `ToolRegistry.cpp`/`CMakeLists.txt` thay Role B.
+
+---
+
+## 15. Xác minh main mới và phục hồi thay đổi hiện tại — 2026-08-06
+
+### W95-ABC-07 — Chuyển sang lịch sử main mới mà không mất WIP
+
+- **Branch mới:** `Test-Tuan9-v2`.
+- **Base:** `origin/main` tại `e9e1d35`.
+- **Backup:** `backup-Test-Tuan9-20260806` và `stash@{0}` vẫn giữ đường phục hồi.
+- **Lý do:** remote `main` được tạo lại thành root snapshot, không có merge-base với lịch sử branch cũ.
+- **Cách xử lý:** tạo branch mới từ `origin/main`, apply lại stash và resolve đúng một conflict trong `KH_TUAN9.5.md`; không dùng `--allow-unrelated-histories` hoặc `reset --hard`.
+- **Trạng thái:** `CLOSED`.
+
+### W95-C-08 — Offline integration gate trên `e9e1d35`
+
+- **Role xác minh:** C.
+- **Trạng thái:** `CLOSED`.
+
+#### Bằng chứng
+
+- Configure thành công; build đầu timeout nhưng incremental build hoàn tất sáu target, exit 0.
+- `test_tools`: toàn bộ focused Role B tests pass.
+- `test_harness`: `ALL HARNESS TESTS PASSED`.
+- `test_multi_agent`: `ALL PASSED`.
+- CTest: 3/3, 100% pass.
+- Không chạy `run_eval` thật; benchmark artifact cũ vẫn chỉ là historical pipeline evidence.
+
+#### Khoảng trống còn lại
+
+- `test_tools.cpp` chưa có duplicate-creator test và error-path tests riêng cho Exec/Git/Web/Memory.
+- `docs/report_tools.md` còn hai claim Factory stale và nguồn OpenClaw/Hermes chưa có URL trực tiếp.
+- A cần đồng bộ UML/OOP report; C review cuối sau khi B sửa tài liệu.
