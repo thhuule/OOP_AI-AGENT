@@ -152,31 +152,35 @@ protected:
 
 **Thiết kế đầy đủ (cần hoàn tất Tuần 9):**
 
-```cpp
 // src/tools/ToolRegistry.h
 using ToolCreator = std::function<std::unique_ptr<Tool>()>;
 
 class ToolRegistry {
 public:
     // Factory: đăng ký creator function theo tên
-    void register_creator(const std::string& name, ToolCreator creator);
+    bool register_creator(const std::string& canonical_name, ToolCreator creator);
 
     // Factory: tạo tool mới theo tên
     std::unique_ptr<Tool> create(const std::string& name);
+
+    // Registry: đăng ký instance đã được tạo sẵn
+    bool register_tool(std::shared_ptr<Tool> tool);
+    void set_tool(std::shared_ptr<Tool> tool);
 
     // Registry: lookup instance đã được tạo sẵn
     Tool* lookup(const std::string& name);
 
     // Alias và policy
-    void register_alias(const std::string& alias, const std::string& canonical);
+    bool register_alias(const std::string& alias, const std::string& canonical);
     std::string normalize(const std::string& name) const;
-    bool is_allowed(const std::string& name) const;
+    bool is_allowed(const std::string& canonical_name) const;
 
 private:
-    std::map<std::string, ToolCreator>          creators_;
-    std::map<std::string, std::unique_ptr<Tool>> instances_;
-    std::map<std::string, std::string>           aliases_;
-    std::set<std::string>                        deny_list_;
+    std::map<std::string, ToolCreator>            creators_;
+    Registry<Tool>                                registry_;
+    std::map<std::string, std::string>            aliases_;
+    std::set<std::string>                         allow_list_;
+    std::set<std::string>                         deny_list_;
 };
 ```
 
@@ -284,7 +288,8 @@ Tất cả abstract class đều dùng pure virtual và virtual destructor — �
 | `AgentLoop` | `ToolRegistry` | value member |
 | `AgentLoop` | `LoopDetector` | value member |
 | `AgentLoop` | `LLMClient` | `shared_ptr` |
-| `ToolRegistry` | `unique_ptr<Tool>` | `map<string, unique_ptr<Tool>>` |
+| `ToolRegistry` | `Registry<Tool>` | value member `registry_` |
+| `Registry<Tool>` | `shared_ptr<Tool>` | `unordered_map<string, shared_ptr<Tool>>` |
 | `HarnessRunner` | `unique_ptr<Evaluator>` | `vector<unique_ptr<Evaluator>>` |
 | `MultiAgentRunner` | `MessageQueue` | value member |
 
@@ -390,13 +395,13 @@ target_compile_features(demo_multi_agent  PRIVATE cxx_std_26)
 
 | # | Khoảng cách | Hành động | Owner | File liên quan |
 |---|---|---|---|---|
-| 1 | `AgentLoop::run()` chưa là Template Method đúng nghĩa | Refactor `run()` thành skeleton + protected virtual primitive operations | A | `src/agent/agent_loop.h`, `.cpp` |
-| 2 | `ToolRegistry` mới là Registry, chưa có Factory tạo instance theo tên | Thêm `register_creator()` và `create()` với `unique_ptr` | B | `src/tools/ToolRegistry.h`, `.cpp` |
-| 3 | `Environment` hierarchy chưa tồn tại trong source | Tạo `src/environment/` với 3 file đã nêu | A | *(đã tạo Tuần 9)* |
-| 4 | `LLMConfig` chưa có trường `max_tokens` | Thêm field, truyền vào request Ollama/Gemini | A | `src/client/llm_client.h`, client `.cpp` |
-| 5 | `src/tests/` chưa có unit-test executable | Tạo test file cho mỗi pattern và compliance blocker | A/B | `src/tests/` |
-| 6 | MSVC chưa áp `/std:c++latest` cho `test_multi_agent`/`demo_multi_agent` | Cập nhật `CMakeLists.txt` | A | `CMakeLists.txt` |
-| 7 | C++20: mới có `std::ranges` ở một nơi | Thêm một kỹ thuật C++20 độc lập thứ hai | A | `src/agent/LoopDetector.cpp` |
+| 1 | `AgentLoop::run()` chưa là Template Method đúng nghĩa | DONE: Đã refactor `run()` thành skeleton + protected virtual primitive operations | A | `src/agent/agent_loop.h`, `.cpp` |
+| 2 | `ToolRegistry` mới là Registry, chưa có Factory tạo instance theo tên | DONE: Thêm `register_creator()` và `create()` với `unique_ptr` | B | `src/tools/ToolRegistry.h`, `.cpp` |
+| 3 | `Environment` hierarchy chưa tồn tại trong source | DONE: Tạo `src/environment/` với 3 file đã nêu | A | *(đã tạo Tuần 9)* |
+| 4 | `LLMConfig` chưa có trường `max_tokens` | DONE: Thêm field, truyền vào request Ollama/Gemini | A | `src/client/llm_client.h`, client `.cpp` |
+| 5 | `src/tests/` chưa có unit-test executable | DONE: Đã bổ sung focused tests cho ToolRegistry (`benchmark/test_tools.cpp`) và Template Method (`benchmark/test_template_method.cpp`) | A/B | `src/tests/` |
+| 6 | MSVC chưa áp `/std:c++latest` cho `test_multi_agent`/`demo_multi_agent` | DONE: Cập nhật `CMakeLists.txt` | A | `CMakeLists.txt` |
+| 7 | C++20: mới có `std::ranges` ở một nơi | DONE: Thêm một kỹ thuật C++20 độc lập thứ hai | A | `src/agent/LoopDetector.cpp` |
 
 ---
 
