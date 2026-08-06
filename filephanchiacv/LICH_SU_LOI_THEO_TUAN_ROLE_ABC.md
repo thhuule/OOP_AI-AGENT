@@ -1007,3 +1007,23 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - Không có test failure mới trên Linux/WSL: focused test A/B và CTest 4/4 đều pass.
 - Các mục chưa hoàn thành được giữ nguyên vì thiếu bằng chứng, tài liệu chưa khớp source hoặc cần quyền chạy provider thật; không phải vì Role C tự thêm tiêu chí ngoài checklist.
 - Role A sửa report OOP/MSVC claim; Role B sửa report Tools và bổ sung test đã nêu; Role C chỉ theo dõi benchmark thật và artifact đóng gói.
+
+---
+
+## 18. Role C xác minh sau merge Role B — 2026-08-06
+
+### W95-C-11 — Offline integration gate trên `08202f5`
+
+- Configure và build WSL thành công; bảy target build, exit 0.
+- `test_tools` pass cả duplicate-creator overwrite và `test_tool_error_paths`.
+- `test_harness`, `test_multi_agent`, `test_template_method` đều pass.
+- CTest đạt 4/4, 100%; không có regression integration sau hai commit B `6a05464` và `a63901b`.
+- Không chạy `run_eval` thật vì vẫn cần xác nhận quota/network/artifact.
+
+### W95-B-12 — Kết quả review chéo Role B
+
+- B-9.5-01 và B-9.5-02 đạt acceptance cốt lõi.
+- Factory/File/alias/policy claim stale trong `report_tools.md` đã được sửa.
+- B-9.5-03 còn thiếu URL nguồn OpenClaw/Hermes trực tiếp và một số test evidence vẫn ghi HEAD `86c7d49` thay vì `08202f5`.
+- B-9.5-04 có invalid/error paths cho Exec, Git, Json và Memory; chưa có Web/timeout focused fixture. Report đã ghi đây là backlog Tuần 10.
+- Các khoảng trống trên không chặn C-9.5-01/02; Role C hoàn tất phần offline/review và trả cleanup còn lại về B/Tuần 10.

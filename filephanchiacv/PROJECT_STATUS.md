@@ -10,22 +10,22 @@ Tuần 9.5 — hoàn thành UML/báo cáo draft, đóng blocker bắt buộc ở
 
 ## Trạng thái theo Role
 
-### Role A — PARTIALLY DONE
+### Role A — DONE core, pending documentation commit
 
 - Environment hierarchy đã có và đã được Role C tích hợp vào Harness.
 - Guarded C++26 fallback đã build được trên WSL bằng nhánh `std::vector`.
-- UML và phần ownership Registry/Factory chính đã được cập nhật, nhưng `docs/report_oop_design.md` còn trỏ tới test không tồn tại, mô tả `SharedToolWrapper` không có trong source và tuyên bố MSVC rộng hơn CMake hiện tại.
-- `benchmark/test_template_method.cpp` chứng minh subclass thay primitive hook mà không thay skeleton `run()`; test pass trên HEAD `86c7d49`.
+- UML, report OOP, ownership Registry/Factory và MSVC flags đã được Role A sửa; focused Template Method test pass.
+- Worktree còn thay đổi `component_diagram.md` và xóa checklist trùng chưa commit; Mermaid render vẫn là bước đóng tài liệu.
 - Parser/fallback/CMake/MSVC mở rộng không mặc định thuộc Tuần 9.5; chuyển Tuần 10 nếu không phải blocker tài liệu.
 
-### Role B — PARTIALLY DONE
+### Role B — DONE core, PARTIALLY DONE documentation/error matrix
 
 - Tool source và built-in registration đã có.
 - Main snapshot `e9e1d35` đã sửa registration bằng cách lấy tên Tool trước khi move.
-- `benchmark/test_tools.cpp` build và pass các fixture instance registration, Factory create/fresh/unknown, alias, allow/deny và `register_all_tools`.
-- Header/source thống nhất duplicate creator theo semantics overwrite; còn thiếu focused duplicate-creator test.
-- `docs/report_tools.md` vẫn còn hai claim Factory stale và thiếu URL nguồn OpenClaw/Hermes trực tiếp.
-- Error-path tests riêng cho Exec/Git/Web/Memory chưa có trong `test_tools.cpp`.
+- `benchmark/test_tools.cpp` pass instance registration, Factory create/fresh/unknown, alias, allow/deny, duplicate-creator overwrite và `register_all_tools`.
+- Factory/File/alias/policy claim stale đã được sửa trong `docs/report_tools.md`.
+- URL nguồn OpenClaw/Hermes vẫn chưa có; report còn viện dẫn test trên HEAD cũ `86c7d49`.
+- Error-path fixture đã có cho Exec/Git/Json/Memory; Web/timeout path được ghi backlog Tuần 10.
 
 ### Role C — DONE phần có thể thực hiện, BLOCKED benchmark thật
 
@@ -33,8 +33,8 @@ Tuần 9.5 — hoàn thành UML/báo cáo draft, đóng blocker bắt buộc ở
 - Phần run/evidence/fallback trong `docs/report_evaluation.md` đã audit theo source và artifact.
 - README đã phân biệt test offline, benchmark thật và fallback-assisted pipeline evidence.
 - Submission checklist và video storyboard đã đối chiếu yêu cầu Tuần 12 và trajectory thật.
-- C-9.5-01 đã xác minh lại trên HEAD `86c7d49`: bốn executable test pass và CTest 4/4.
-- C-9.5-02 đã review xong: số liệu run lịch sử khớp artifact; README/report/checklist/storyboard không đánh đồng fallback với model reasoning. Report Tools bị trả lại Role B vì còn hai claim Factory stale và thiếu URL nguồn.
+- C-9.5-01 đã xác minh lại trên HEAD `08202f5`: bảy target build, bốn executable test pass và CTest 4/4.
+- C-9.5-02 đã review lại sau Role B: claim Factory/File/alias/policy đã sửa; còn URL nguồn, HEAD evidence và Web/timeout matrix được chuyển đúng owner/backlog.
 - C-9.5-03 chưa chạy vì cấu hình dùng provider thật (`use_mock=false`) và chưa có xác nhận quota/network/artifact.
 - Checklist A/B/C được gom vào `KH_TUAN9.5.md`; không duy trì checklist riêng của C.
 
@@ -42,7 +42,7 @@ Tuần 9.5 — hoàn thành UML/báo cáo draft, đóng blocker bắt buộc ở
 
 Ngày 2026-08-06:
 
-- `cmake -S . -B build`: configure thành công; lượt build đầu timeout, incremental build hoàn tất exit 0.
+- `cmake -S . -B build` và `cmake --build build -j2`: thành công trên HEAD `08202f5`.
 - Bảy target build: `OopAgent`, `run_eval`, `test_multi_agent`, `test_harness`, `test_tools`, `test_template_method`, `demo_multi_agent`.
 - `./build/test_tools`: `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY`.
 - `./build/test_harness`: `ALL HARNESS TESTS PASSED`.
@@ -53,17 +53,14 @@ Ngày 2026-08-06:
 
 ## Việc tiếp theo
 
-1. Role B thêm duplicate-creator/error-path tests và sửa hai claim Factory stale + URL nguồn trong report Tools.
-2. Role A sửa ba claim stale/không có bằng chứng trong `docs/report_oop_design.md` và hoàn tất MSVC flags hoặc ghi limitation.
-3. Role B nhận và xử lý kết quả review của C trong `report_tools.md`.
-4. A/B hoàn tất review chéo phần mình trong các file dùng chung.
-5. Chỉ chạy benchmark provider thật khi code/docs freeze và người dùng xác nhận quota/network/artifact.
+1. Role B bổ sung URL nguồn trực tiếp, cập nhật HEAD evidence và để Web/timeout tests trong backlog Tuần 10 nếu chưa cần.
+2. Role A commit hai thay đổi tài liệu đang ở worktree và cung cấp render evidence khi đóng gói.
+3. Chỉ chạy benchmark provider thật khi code/docs freeze và người dùng xác nhận quota/network/artifact.
 
 ## Blocked / Cần xác nhận
 
 - Benchmark sạch bằng provider thật: offline gate đã pass; còn chờ A/B freeze và xác nhận người dùng.
-- Report Tools còn claim stale/link nguồn; chưa đóng documentation DoD.
-- Report OOP còn reference test sai, class không tồn tại và claim MSVC chưa khớp CMake.
+- Report Tools còn thiếu link nguồn trực tiếp và dùng HEAD evidence cũ; Web/timeout error paths chưa có focused test.
 - Tám artifact root đã được đánh dấu xóa và thêm ignore rule; cần commit để chúng thực sự rời Git.
 - Rubric có bắt buộc ToolRegistry dùng trực tiếp `Registry<T>` hay Factory hiện tại kèm test là đủ.
 - Có môi trường MSVC để xác minh `/std:c++latest` cho mọi target hay không.
