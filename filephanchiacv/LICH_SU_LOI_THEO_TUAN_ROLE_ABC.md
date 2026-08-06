@@ -73,7 +73,7 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - **Mức tin cậy:** Đã xác nhận.
 - **Triệu chứng:** `src/tests/unit tests` hiện là file rỗng.
 - **Ảnh hưởng:** Lỗi args parsing và artifact chỉ được phát hiện khi chạy benchmark thật.
-- **Trạng thái:** `OPEN`.
+- **Trạng thái:** `CLOSED` ngày 2026-08-06 bởi main snapshot `e9e1d35` và CTest 3/3.
 - **Cần bổ sung:** test Calculator, File, Registry, Exec, JSON, Memory và Web error path.
 
 ### 3.3 Role C — Evaluation/Infra
@@ -841,3 +841,169 @@ Số lượng trên là số nhóm lỗi phục hồi được, không phải đ
 - `docs/report_evaluation.md` — giới hạn run lịch sử và fallback-assisted evidence.
 
 > **Luồng cập nhật từ nay:** sau mỗi lần một Role hoàn thành task, cập nhật checkbox trong `KH_TUAN9.5.md`; khi trạng thái tổng thay đổi, cập nhật `PROJECT_STATUS.md`; khi có lỗi/fix/test quan trọng, thêm mục theo thời gian vào file lịch sử này.
+
+---
+
+## 14. Xác minh Role C sau commit merge mới — 2026-08-06
+
+### W95-ABC-05 — Patch B từng có trong source nhưng merge conflict chưa được resolve
+
+- **Owner sửa:** Role B cho `ToolRegistry.cpp`/`CMakeLists.txt`; repo maintainer cho `AGENTS.md`.
+- **Role xác minh:** C.
+- **Commit quan sát:** `1582f91` (`Fix merge conflicts`).
+- **Mức độ:** CRITICAL cho build/integration.
+- **Trạng thái:** `CLOSED` sau khi chuyển sang main snapshot sạch `e9e1d35`.
+
+#### Bằng chứng
+
+- Patch an toàn “lấy tên Tool trước khi move” tồn tại ở một nhánh trong `ToolRegistry.cpp`.
+- `benchmark/test_tools.cpp` và target `test_tools` đã xuất hiện.
+- Conflict marker vẫn còn trong `ToolRegistry.cpp`, `CMakeLists.txt`, `AGENTS.md` và ban đầu cả `KH_TUAN9.5.md`.
+- `cmake -S . -B build` thất bại tại `CMakeLists.txt:74`: parser gặp token `<<<<<<<`.
+- Vì configure fail, Role C không chạy binary cũ để nhận là bằng chứng cho revision hiện tại.
+
+#### Static review bổ sung
+
+- Test source có null, duplicate instance, create/fresh/unknown, alias, allow/deny và `register_all_tools`.
+- Chưa thấy test duplicate creator dù checklist B từng ghi duplicate tổng quát.
+- Header nói duplicate creator overwrite; một nhánh source lại trả `false`.
+- `docs/report_tools.md` vẫn có các đoạn nói Factory/alias/policy chưa hoàn thiện, nên B-9.5-03 chưa thể ghi `DONE`.
+
+#### Điều kiện bàn giao lại cho C
+
+1. Không còn conflict marker trong source/build files.
+2. B chốt duplicate creator semantics và đồng bộ header/source/test/report.
+3. Configure + build sạch thành công.
+4. C chạy `test_tools`, `test_harness`, `test_multi_agent` và CTest trên đúng revision đó.
+
+### W95-C-06 — Cập nhật bằng chứng và tracking, không sửa source B
+
+- **Trạng thái:** `CLOSED` cho phần audit/tài liệu; integration vẫn `BLOCKED` bởi W95-ABC-05.
+- C đã dọn conflict trong checklist `KH_TUAN9.5.md` để chỉ giữ một trạng thái dựa trên bằng chứng.
+- C đã cập nhật `PROJECT_STATUS.md` và `docs/report_evaluation.md` theo gate ngày 2026-08-06.
+- C không chọn nhánh hoặc sửa `ToolRegistry.cpp`/`CMakeLists.txt` thay Role B.
+
+---
+
+## 15. Xác minh main mới và phục hồi thay đổi hiện tại — 2026-08-06
+
+### W95-ABC-07 — Chuyển sang lịch sử main mới mà không mất WIP
+
+- **Branch mới:** `Test-Tuan9-v2`.
+- **Base:** `origin/main` tại `e9e1d35`.
+- **Backup:** `backup-Test-Tuan9-20260806` và `stash@{0}` vẫn giữ đường phục hồi.
+- **Lý do:** remote `main` được tạo lại thành root snapshot, không có merge-base với lịch sử branch cũ.
+- **Cách xử lý:** tạo branch mới từ `origin/main`, apply lại stash và resolve đúng một conflict trong `KH_TUAN9.5.md`; không dùng `--allow-unrelated-histories` hoặc `reset --hard`.
+- **Trạng thái:** `CLOSED`.
+
+### W95-C-08 — Offline integration gate trên `e9e1d35`
+
+- **Role xác minh:** C.
+- **Trạng thái:** `CLOSED`.
+
+#### Bằng chứng
+
+- Configure thành công; build đầu timeout nhưng incremental build hoàn tất sáu target, exit 0.
+- `test_tools`: toàn bộ focused Role B tests pass.
+- `test_harness`: `ALL HARNESS TESTS PASSED`.
+- `test_multi_agent`: `ALL PASSED`.
+- CTest: 3/3, 100% pass.
+- Không chạy `run_eval` thật; benchmark artifact cũ vẫn chỉ là historical pipeline evidence.
+
+#### Khoảng trống còn lại
+
+- `test_tools.cpp` chưa có duplicate-creator test và error-path tests riêng cho Exec/Git/Web/Memory.
+- `docs/report_tools.md` còn hai claim Factory stale và nguồn OpenClaw/Hermes chưa có URL trực tiếp.
+- A cần đồng bộ UML/OOP report; C review cuối sau khi B sửa tài liệu.
+
+---
+
+## 16. Role C xác minh HEAD sau tích hợp Role A — 2026-08-06
+
+### W95-C-09 — Offline gate và review tài liệu trên `86c7d49`
+
+- **Role xác minh:** C.
+- **Trạng thái:** `CLOSED` cho C-9.5-01 và phần review thuộc C-9.5-02.
+- Configure và build WSL đều exit 0; bảy target build thành công.
+- `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` đều pass.
+- CTest đạt 4/4, 100%; đây là gate mới nhất thay cho bằng chứng 3/3 trên `e9e1d35`.
+- Bốn run được đối chiếu trực tiếp: run `212302_253` đạt final 0.2; ba run `220549_361`, `032212_365`, `034207_664` đạt final 1.0; mỗi artifact có 10 task.
+- README, report Evaluation, submission checklist và storyboard không gọi fallback-assisted 10/10 là chất lượng suy luận model.
+- Kiểm tra link tương đối trong README và ba tài liệu Role C không phát hiện link hỏng.
+- `report_tools.md` không đạt review: dòng 182/483 còn nói thiếu Factory dù source/test có Factory; bảng OpenClaw/Hermes chưa có URL trực tiếp. Hai lỗi này được trả về Role B.
+- `report_oop_design.md` không đạt review cuối: dòng 212 trỏ tới `src/tests/test_registry_factory.cpp` không tồn tại; dòng 328–330 mô tả `SharedToolWrapper` không có trong source; dòng 403 nói MSVC flags đã đủ cho `test_multi_agent`/`demo_multi_agent` nhưng CMake chưa áp. Ba lỗi này được trả về Role A.
+- Không chạy `run_eval`: `config.json` có provider thật, `use_mock=false`; chưa có xác nhận quota/network/artifact.
+
+### W95-C-10 — Artifact đóng gói bị Git theo dõi
+
+- **Triệu chứng:** `memory.db`, sáu artifact benchmark và `report.txt` xuất hiện trong `git ls-files` dù đều được sinh khi chạy.
+- **Xử lý:** đánh dấu xóa các file root này và thêm ignore rule theo đúng tên; chúng sẽ rời Git sau commit. Không xóa benchmark history đã được giữ làm evidence.
+- **Ý nghĩa:** clean run không còn dựa vào artifact root đã commit và gói nộp tránh chứa database/output tình cờ.
+
+---
+
+## 17. Bàn giao các mục chưa hoàn thành cho Role A/B/C — 2026-08-06
+
+> Mục này chỉ ghi lại bằng chứng và lý do các mục tương ứng chưa được đánh dấu hoàn thành. Không sửa hoặc mở rộng checklist trong `KH_TUAN9.5.md`. Các việc không chặn offline integration gate có thể chuyển sang Tuần 10 theo quyết định hiện tại của nhóm.
+
+### Role A — các mục trả lại để sửa
+
+#### A-9.5-01 — UML/report OOP chưa qua review cuối
+
+- **Trạng thái giữ lại:** `PARTIALLY DONE`.
+- **Lý do chưa đánh dấu hoàn thành:** phần Template Method và ownership chính đã có, nhưng `docs/report_oop_design.md` chưa khớp hoàn toàn với source/CMake.
+- **Bằng chứng còn lỗi:** các dòng 67, 130, 212 và 263 trỏ tới test dưới `src/tests/` không tồn tại; test thật nằm trong `benchmark/test_harness.cpp`, `benchmark/test_tools.cpp` và `benchmark/test_template_method.cpp`.
+- Dòng 300 ghi `Environment*`, trong khi constructor `HarnessRunner` nhận `std::shared_ptr<Environment>`.
+- Dòng 304 dùng ví dụ constructor `HarnessRunner` không đúng signature hiện tại.
+- Dòng 328–330 mô tả `SharedToolWrapper`, nhưng source không có class này.
+- Dòng 340 viện dẫn `SandboxEnvironment.cpp`, nhưng implementation hiện nằm trong `SandboxEnvironment.h`.
+- Dòng 403 ghi cấu hình MSVC đã hoàn tất, trong khi `CMakeLists.txt` chưa áp `/std:c++latest` cho `test_multi_agent`, `test_tools` và `demo_multi_agent`.
+- **Bằng chứng phần đã đạt:** `test_template_method` pass; CTest pass 4/4.
+- **Hướng xử lý:** Role A sửa các reference/claim trên; nếu chưa có môi trường MSVC thì ghi limitation và chuyển xác minh MSVC sang Tuần 10.
+
+### Role B — các mục trả lại để sửa
+
+#### B-9.5-02 — focused test Registry/Factory chưa đủ
+
+- **Trạng thái giữ lại:** `PARTIALLY DONE`.
+- **Lý do chưa đánh dấu hoàn thành:** create/fresh/unknown/duplicate instance/alias/allow/deny đã pass, nhưng chưa có focused test cho duplicate creator theo semantics overwrite.
+- **Bằng chứng phần đã đạt:** `test_tools` pass; CTest pass 4/4.
+- **Hướng xử lý:** bổ sung đúng test duplicate creator đã nêu trong checklist; có thể chuyển Tuần 10 nếu không chặn báo cáo cuối.
+
+#### B-9.5-03 — report Tools chưa khớp source/test
+
+- **Trạng thái giữ lại:** `IN PROGRESS`.
+- **Lý do chưa đánh dấu hoàn thành:** `docs/report_tools.md` còn các claim trái với source/test hiện tại.
+- Dòng 182, 483 và 739 vẫn nói Factory chưa được chứng minh dù `register_creator()`, `create()` và test fresh/unknown đã có.
+- Dòng 482 nói chưa tách File read/write/append, nhưng source có `FileReadTool`, `FileWriteTool`, `FileAppendTool`.
+- Dòng 484 và 739 nói alias/policy chưa được test, nhưng `test_aliases_and_normalization` và `test_allow_deny_policies` đã pass.
+- Bảng OpenClaw/Hermes tại dòng 427–433 mới ghi tên nguồn, chưa có URL trực tiếp để kiểm chứng.
+- Mục Testing dòng 709–727 là danh sách cần test, chưa phân biệt test nào đã chạy và test nào còn thiếu.
+- **Hướng xử lý:** Role B sửa claim stale, thêm URL nguồn và ghi rõ evidence đã chạy; có thể chuyển Tuần 10 nếu nhóm chưa khóa tài liệu.
+
+#### B-9.5-04 — error-path tests chưa có
+
+- **Trạng thái giữ lại:** `NOT STARTED` theo focused evidence.
+- **Lý do chưa đánh dấu hoàn thành:** `benchmark/test_tools.cpp` chỉ thực thi Calculator; chưa có error-path fixture riêng cho Exec/Git/Web/Memory như checklist yêu cầu.
+- **Hướng xử lý:** chuyển Tuần 10 vì offline integration gate hiện vẫn pass và đây không phải regression đang chặn build.
+
+### Role C — mục có điều kiện được để lại
+
+#### C-9.5-03 — benchmark provider thật
+
+- **Trạng thái giữ lại:** `BLOCKED`, không phải lỗi code đã tái hiện.
+- **Lý do chưa đánh dấu hoàn thành:** offline gate đã pass nhưng `config.json` đang dùng provider thật và `use_mock=false`; chưa có xác nhận quota/network/artifact, đồng thời tài liệu A/B chưa freeze.
+- **Bằng chứng phần đã đạt:** `test_harness`, `test_multi_agent`, `test_tools`, `test_template_method` và CTest 4/4 đều pass.
+- **Hướng xử lý:** dời benchmark sạch sang Tuần 10 hoặc chỉ chạy khi người dùng xác nhận rõ.
+
+#### Artifact đóng gói cần theo dõi
+
+- Sau khi dọn artifact root, `test_tools` có thể tạo lại `memory.db` khi khởi tạo `MemoryTool`; file hiện vẫn được Git theo dõi nên xuất hiện trạng thái modified dù có ignore rule.
+- Đây không làm CTest fail, nhưng cần xử lý trước khi commit/gói nộp để không đưa database sinh ra vào repository.
+- Việc này có thể chuyển Tuần 10 nếu chưa đóng gói ở Tuần 9.5.
+
+### Kết luận bàn giao
+
+- Không có test failure mới trên Linux/WSL: focused test A/B và CTest 4/4 đều pass.
+- Các mục chưa hoàn thành được giữ nguyên vì thiếu bằng chứng, tài liệu chưa khớp source hoặc cần quyền chạy provider thật; không phải vì Role C tự thêm tiêu chí ngoài checklist.
+- Role A sửa report OOP/MSVC claim; Role B sửa report Tools và bổ sung test đã nêu; Role C chỉ theo dõi benchmark thật và artifact đóng gói.

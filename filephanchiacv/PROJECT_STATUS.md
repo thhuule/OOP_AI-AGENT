@@ -1,6 +1,6 @@
 # Project Status — AI-AGENT OOP 2026
 
-Cập nhật lần cuối: 2026-08-05
+Cập nhật lần cuối: 2026-08-06
 
 > Đây là bộ nhớ ngắn của dự án. Khi bắt đầu phiên làm việc mới, đọc file này, kế hoạch tuần hiện tại và mục mới nhất trong `LICH_SU_LOI_THEO_TUAN_ROLE_ABC.md`.
 
@@ -10,55 +10,61 @@ Tuần 9.5 — hoàn thành UML/báo cáo draft, đóng blocker bắt buộc ở
 
 ## Trạng thái theo Role
 
-### Role A — IN PROGRESS
+### Role A — PARTIALLY DONE
 
 - Environment hierarchy đã có và đã được Role C tích hợp vào Harness.
 - Guarded C++26 fallback đã build được trên WSL bằng nhánh `std::vector`.
-- Cần chờ B freeze Registry/Factory contract rồi audit/chốt bốn UML và `docs/report_oop_design.md`.
-- Cần focused subclass test cho Template Method nếu muốn đóng claim bắt buộc.
+- UML và phần ownership Registry/Factory chính đã được cập nhật, nhưng `docs/report_oop_design.md` còn trỏ tới test không tồn tại, mô tả `SharedToolWrapper` không có trong source và tuyên bố MSVC rộng hơn CMake hiện tại.
+- `benchmark/test_template_method.cpp` chứng minh subclass thay primitive hook mà không thay skeleton `run()`; test pass trên HEAD `86c7d49`.
 - Parser/fallback/CMake/MSVC mở rộng không mặc định thuộc Tuần 9.5; chuyển Tuần 10 nếu không phải blocker tài liệu.
 
-### Role B — BLOCKED
+### Role B — PARTIALLY DONE
 
 - Tool source và built-in registration đã có.
-- Hai commit đã xác định: `f2cff55` thêm Registry/Factory source; `4a9f959` thêm `docs/report_tools.md`.
-- Factory/alias/policy đã có source nhưng chưa có focused evidence đầy đủ và chưa chứng minh đường dùng runtime.
-- `test_harness` segfault sau khi đi vào đường đăng ký Tool; nguyên nhân nghi ngờ nằm ở việc đọc `tool->get_name()` và move `tool` trong cùng lời gọi.
-- `docs/report_tools.md` đã có nhưng còn mâu thuẫn về Factory/FileTool, thiếu nguồn ba nhóm tool và test evidence.
-- Việc tiếp theo: sửa regression + test chống tái diễn trước, sau đó chốt contract và báo cáo.
+- Main snapshot `e9e1d35` đã sửa registration bằng cách lấy tên Tool trước khi move.
+- `benchmark/test_tools.cpp` build và pass các fixture instance registration, Factory create/fresh/unknown, alias, allow/deny và `register_all_tools`.
+- Header/source thống nhất duplicate creator theo semantics overwrite; còn thiếu focused duplicate-creator test.
+- `docs/report_tools.md` vẫn còn hai claim Factory stale và thiếu URL nguồn OpenClaw/Hermes trực tiếp.
+- Error-path tests riêng cho Exec/Git/Web/Memory chưa có trong `test_tools.cpp`.
 
-### Role C — PARTIALLY DONE cho phạm vi Tuần 9.5
+### Role C — DONE phần có thể thực hiện, BLOCKED benchmark thật
 
 - Harness dùng `Environment` abstraction; Native chạy thật, Sandbox dùng trong focused test.
 - Phần run/evidence/fallback trong `docs/report_evaluation.md` đã audit theo source và artifact.
 - README đã phân biệt test offline, benchmark thật và fallback-assisted pipeline evidence.
 - Submission checklist và video storyboard đã đối chiếu yêu cầu Tuần 12 và trajectory thật.
-- C-9.5-01 đang chờ patch B; C chưa thể xác nhận lại toàn bộ offline integration gate.
+- C-9.5-01 đã xác minh lại trên HEAD `86c7d49`: bốn executable test pass và CTest 4/4.
+- C-9.5-02 đã review xong: số liệu run lịch sử khớp artifact; README/report/checklist/storyboard không đánh đồng fallback với model reasoning. Report Tools bị trả lại Role B vì còn hai claim Factory stale và thiếu URL nguồn.
+- C-9.5-03 chưa chạy vì cấu hình dùng provider thật (`use_mock=false`) và chưa có xác nhận quota/network/artifact.
 - Checklist A/B/C được gom vào `KH_TUAN9.5.md`; không duy trì checklist riêng của C.
 
 ## Xác minh gần nhất
 
-Ngày 2026-08-05:
+Ngày 2026-08-06:
 
-- `cmake --build build -j2`: PASS, đủ 5 target.
-- `./build/test_harness`: FAIL, pass hai fixture đầu rồi segfault trước fixture StepHook/tool registration.
+- `cmake -S . -B build`: configure thành công; lượt build đầu timeout, incremental build hoàn tất exit 0.
+- Bảy target build: `OopAgent`, `run_eval`, `test_multi_agent`, `test_harness`, `test_tools`, `test_template_method`, `demo_multi_agent`.
+- `./build/test_tools`: `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY`.
+- `./build/test_harness`: `ALL HARNESS TESTS PASSED`.
 - `./build/test_multi_agent`: `ALL PASSED`.
-- `ctest --test-dir build --output-on-failure`: 1/2 PASS; `harness` segfault.
-- Warning còn lại đến từ deprecated trait trong nlohmann vendored header; không có build error.
+- `./build/test_template_method`: `ALL ROLE A TESTS PASSED SUCCESSFULLY`.
+- CTest: 4/4, 100% pass.
 - Không chạy `run_eval` thật trong lượt này.
 
 ## Việc tiếp theo
 
-1. Role B sửa regression đăng ký Tool và thêm focused Registry/Factory tests.
-2. Role B freeze contract; Role A cập nhật UML/OOP report theo contract cuối.
-3. Role C chạy lại toàn bộ offline integration gate và ghi exact result.
-4. A/B/C review chéo tài liệu theo checklist trong `KH_TUAN9.5.md`.
-5. Chỉ chạy benchmark provider thật khi offline gate pass và người dùng xác nhận quota/network/artifact.
+1. Role B thêm duplicate-creator/error-path tests và sửa hai claim Factory stale + URL nguồn trong report Tools.
+2. Role A sửa ba claim stale/không có bằng chứng trong `docs/report_oop_design.md` và hoàn tất MSVC flags hoặc ghi limitation.
+3. Role B nhận và xử lý kết quả review của C trong `report_tools.md`.
+4. A/B hoàn tất review chéo phần mình trong các file dùng chung.
+5. Chỉ chạy benchmark provider thật khi code/docs freeze và người dùng xác nhận quota/network/artifact.
 
 ## Blocked / Cần xác nhận
 
-- Tool registration regression: chờ Role B patch và regression test.
-- Benchmark sạch bằng provider thật: chờ offline gate, A/B freeze và xác nhận người dùng.
+- Benchmark sạch bằng provider thật: offline gate đã pass; còn chờ A/B freeze và xác nhận người dùng.
+- Report Tools còn claim stale/link nguồn; chưa đóng documentation DoD.
+- Report OOP còn reference test sai, class không tồn tại và claim MSVC chưa khớp CMake.
+- Tám artifact root đã được đánh dấu xóa và thêm ignore rule; cần commit để chúng thực sự rời Git.
 - Rubric có bắt buộc ToolRegistry dùng trực tiếp `Registry<T>` hay Factory hiện tại kèm test là đủ.
 - Có môi trường MSVC để xác minh `/std:c++latest` cho mọi target hay không.
 - Có chọn bonus Harness→MultiAgentRunner hay không; mặc định chưa làm.

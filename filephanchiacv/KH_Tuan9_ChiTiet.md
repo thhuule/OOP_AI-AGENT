@@ -71,6 +71,7 @@ Xây dựng một AI Agent framework bằng C++ có khả năng kết nối LLM,
 | Báo cáo OOP | A | `docs/report_oop_design.md` | Mỗi nhận định có class/file minh chứng; không gắn pattern sai |
 | Báo cáo Tools | B | `docs/report_tools.md` | Đủ tool, alias, args, policy, dependency và error handling |
 | Báo cáo Eval | C | `docs/report_evaluation.md` | Có run thật, so sánh run hỏng/run đạt và failure taxonomy |
+| Quy chuẩn Tech Doc | A chủ trì, B/C review | `docs/DOCUMENTATION_GUIDE.md` | Chốt luồng chín phần, format Markdown, cách ghi evidence và ownership; cả ba Role áp dụng |
 | README | C | `README.md` | Người mới có thể build, cấu hình và chạy đúng executable |
 | Đóng compliance OOP | A/B | Source + focused tests | `AgentLoop::run()` thực sự là Template Method; ToolRegistry/Factory tạo tool theo tên; bốn pattern có test và bằng chứng |
 | Environment abstraction | A | `src/environment/` + UML/test | Có `Environment` abstract và ít nhất `NativeEnvironment`, `SandboxEnvironment` đúng class hierarchy tối thiểu của đề |
@@ -323,6 +324,15 @@ run_eval -> HarnessRunner::exportResults(results)
 
 ### 6.2 Nội dung báo cáo theo role
 
+**Quy chuẩn chung trước khi ghép báo cáo**
+
+- Dùng `docs/DOCUMENTATION_GUIDE.md` làm nguồn format duy nhất cho toàn bộ Tech Doc.
+- Báo cáo tổng `docs/bao_cao_du_an.md` bắt buộc đi theo chín phần: Requirement → Features → Solutions → Architecture/OOP → Logic/AI → Implementation → Verification → Evaluation → Limitations.
+- A chủ trì cấu trúc và ghép báo cáo; B/C chịu trách nhiệm tính đúng của nội dung thuộc layer mình.
+- Mọi claim quan trọng phải có trạng thái, owner, source, test/result và limitation; build pass không thay cho integration pass.
+- Báo cáo Role là nguồn nội dung chuyên môn, không tự tạo thứ tự hoặc thuật ngữ mâu thuẫn với Tech Doc chung.
+- Deliverable: guide được A/B/C review và checklist cuối file được tick trước khi freeze tài liệu.
+
 **A — Systems/Core**
 
 - Hoàn tất bốn UML và `docs/report_oop_design.md`.
@@ -544,15 +554,18 @@ Các hướng điểm thưởng chỉ triển khai khi phần bắt buộc ổn 
 
 - C chốt run id và bảng số liệu; B chốt danh sách tool/alias; A chốt danh sách class và quan hệ.
 - Cả nhóm thống nhất dùng `docs/` ở repository root, không trộn tài liệu mới với ảnh cũ trong `src/docs/`.
+- A tạo/chốt `docs/DOCUMENTATION_GUIDE.md`; B/C review format, evidence và ownership trước khi tiếp tục ghép báo cáo.
 
 ### Giữa tuần
 
 - A mở review UML để B/C kiểm tra quan hệ thuộc layer của mình.
 - B/C hoàn thành báo cáo phần mình và gắn link source/result tương đối.
 - C cập nhật README và thử build từ môi trường/build directory sạch.
+- A đưa nội dung A/B/C vào đúng chín phần của `docs/bao_cao_du_an.md`; không copy nguyên báo cáo Role gây lặp nội dung.
 
 ### Cuối tuần
 
 - Build toàn bộ target và chạy `test_multi_agent`.
 - Review chéo tài liệu theo ma trận yêu cầu.
+- Tick checklist trong `docs/DOCUMENTATION_GUIDE.md`; kiểm tra heading, link, Mermaid, benchmark claim và fallback disclosure.
 - Chỉ chạy `run_eval` sau khi xác nhận config không lộ key và chi phí/quota đã được đồng ý.
