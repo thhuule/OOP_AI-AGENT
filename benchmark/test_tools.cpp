@@ -25,9 +25,8 @@ void test_registry_instance_registration() {
     assert(reg.has_instance("calculator"));
     
     // Lookup returns pointer to registered instance
-    Tool* t = reg.lookup("calculator");
-    assert(t != nullptr);
-    assert(t->get_name() == "calculator");
+    assert(reg.lookup("calculator") != nullptr);
+    assert(reg.lookup("calculator")->get_name() == "calculator");
     
     // Duplicate instance registration returns false
     auto calc2 = std::make_shared<CalculatorTool>();
@@ -98,6 +97,52 @@ void test_allow_deny_policies() {
     std::cout << "  -> PASSED\n";
 }
 
+/// B-9.5-02: Focused test — duplicate creator overwrite semantics.
+///
+/// Theo contract trong ToolRegistry.h:
+///   register_creator() ALWAYS overwrites the existing creator for the same name.
+/// Điều này khác với register_tool() (instance registry) vốn returns false khi trùng.
+///
+/// Test matrix:
+///   1. Register creator A → create() trả instance của A.
+///   2. Register creator B (cùng tên) → creator B overwrite creator A.
+///   3. create() sau overwrite trả instance của B, không phải A.
+///   4. Hai lần create() liên tiếp trả hai object khác nhau (fresh instance).
+///   5. register_creator() returns true cả hai lần (không reject duplicate).
+void test_duplicate_creator_overwrite() {
+    std::cout << "[TEST] Running test_duplicate_creator_overwrite...\n";
+    ToolRegistry reg;
+
+    // --- Round 1: register CalculatorTool creator for "dual_test" ---
+    assert(reg.register_creator("dual_test",
+        []() { return std::make_unique<CalculatorTool>(); }) == true);
+    assert(reg.has_creator("dual_test"));
+
+    auto first = reg.create("dual_test");
+    assert(first != nullptr);
+    // CalculatorTool reports name "calculator"
+    assert(first->get_name() == "calculator");
+
+    // --- Round 2: overwrite with TimeTool creator (same canonical name) ---
+    assert(reg.register_creator("dual_test",
+        []() { return std::make_unique<TimeTool>(); }) == true);   // overwrite always returns true
+    assert(reg.has_creator("dual_test"));
+
+    auto after_overwrite = reg.create("dual_test");
+    assert(after_overwrite != nullptr);
+    // After overwrite, creator produces TimeTool, not CalculatorTool
+    assert(after_overwrite->get_name() == "time");
+
+    // --- Round 3: two consecutive creates → distinct fresh objects ---
+    auto obj_a = reg.create("dual_test");
+    auto obj_b = reg.create("dual_test");
+    assert(obj_a != nullptr);
+    assert(obj_b != nullptr);
+    assert(obj_a.get() != obj_b.get());  // must be different heap objects
+
+    std::cout << "  -> PASSED\n";
+}
+
 void test_register_all_tools() {
     std::cout << "[TEST] Running test_register_all_tools...\n";
     ToolRegistry reg;
@@ -131,13 +176,58 @@ void test_register_all_tools() {
     std::cout << "  -> PASSED\n";
 }
 
+void test_tool_error_paths() {
+    std::cout << "[TEST] Running test_tool_error_paths...\n";
+
+    // ExecTool: empty argument -> InvalidArgument
+    ExecTool exec_tool;
+    auto exec_res = exec_tool.execute("");
+    assert(!exec_res.has_value());
+    assert(exec_res.error() == ToolError::InvalidArgument);
+
+    // GitTool: empty / unallowed subcommand -> InvalidArgument
+    GitTool git_tool;
+    auto git_empty = git_tool.execute("");
+    assert(!git_empty.has_value());
+    assert(git_empty.error() == ToolError::InvalidArgument);
+
+    auto git_unallowed = git_tool.execute("push --force");
+    assert(!git_unallowed.has_value());
+    assert(git_unallowed.error() == ToolError::InvalidArgument);
+
+    // JsonTool: empty -> InvalidArgument, malformed -> ExecutionFailed
+    JsonTool json_tool;
+    auto json_empty = json_tool.execute("");
+    assert(!json_empty.has_value());
+    assert(json_empty.error() == ToolError::InvalidArgument);
+
+    auto json_bad = json_tool.execute("{invalid json");
+    assert(!json_bad.has_value());
+    assert(json_bad.error() == ToolError::ExecutionFailed);
+
+    // MemoryTool: empty / unknown command -> InvalidArgument
+    MemoryTool mem_tool;
+    auto mem_empty = mem_tool.execute("");
+    assert(!mem_empty.has_value());
+    assert(mem_empty.error() == ToolError::InvalidArgument);
+
+    auto mem_bad = mem_tool.execute("unknown_command");
+    assert(!mem_bad.has_value());
+    assert(mem_bad.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
 int main() {
     std::cout << "=== RUNNING ROLE B TOOL REGISTRY & FACTORY FOCUSED TESTS ===\n";
     test_registry_instance_registration();
     test_factory_creation();
     test_aliases_and_normalization();
     test_allow_deny_policies();
+    test_duplicate_creator_overwrite();
     test_register_all_tools();
+    test_tool_error_paths();
     std::cout << "=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===\n";
     return 0;
 }
+
