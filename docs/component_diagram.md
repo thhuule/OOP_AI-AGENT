@@ -11,7 +11,7 @@ graph TD
         EP4[benchmark/demo_multi_agent.cpp]
     end
 
-    subgraph AgentCore["Agent Core  (src/agent/, src/client/, src/skills/)"]
+    subgraph AgentCore["Agent Core  (src/agent/, src/client/, skills/)"]
         AC1[AgentLoop]
         AC2[LLMClient\n«interface»]
         AC3[OllamaClient]

@@ -166,7 +166,7 @@ Both `run_20260805_032212_365` and `run_20260805_034207_664` record:
 - final success rate: `1.0`;
 - all 10 tasks marked `PASS`.
 
-These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** by themselves prove that the current worktree produces the same benchmark score. The offline integration gate on HEAD `86c7d49` was verified on 2026-08-06: all seven targets built; the Tool, Harness, multi-agent, and Template Method executables passed; and CTest passed 4/4. No new real-provider `run_eval` was executed. The stored runs are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
+These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** by themselves prove that the current worktree produces the same benchmark score. The offline integration gate on HEAD `08202f5` was verified on 2026-08-06: all seven targets built; the Tool, Harness, multi-agent, and Template Method executables passed; and CTest passed 4/4. The Tool fixture now includes duplicate-creator overwrite and offline error paths for Exec, Git, Json, and Memory. Web/timeout error paths remain documented Week 10 backlog. No new real-provider `run_eval` was executed. The stored runs are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
 
 The final report must therefore use the wording “pipeline run 10/10” unless a future run records whether each action came from the LLM or fallback. It must not use these artifacts alone to advertise model reasoning quality.
 
@@ -224,7 +224,7 @@ Run it with:
 ./build/test_harness
 ```
 
-A passing run ends with `ALL HARNESS TESTS PASSED`. On HEAD `86c7d49`, the complete fixture set printed this result. The sandbox cleanup and intentional cleanup-failure fixtures therefore provide current runtime evidence that `HarnessRunner` uses the `Environment` abstraction for artifact cleanup and artifact-existence checks.
+A passing run ends with `ALL HARNESS TESTS PASSED`. On HEAD `08202f5`, the complete fixture set printed this result. The sandbox cleanup and intentional cleanup-failure fixtures therefore provide current runtime evidence that `HarnessRunner` uses the `Environment` abstraction for artifact cleanup and artifact-existence checks.
 
 CMake registers `harness`, `multi_agent`, `tools`, and `template_method` with CTest. The current offline gate passes 4/4:
 
