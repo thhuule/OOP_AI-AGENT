@@ -123,22 +123,33 @@ classDiagram
 
         class RegistryT {
             <<template>>
-            -map~string, function~Creator~~ creators_
-            +register_creator(name: string, fn: Creator) void
-            +create(name: string) unique_ptr~T~
-            +has(name: string) bool
+            -unordered_map~string, shared_ptr~T~~ items_
+            +register_item(name: string, item: shared_ptr~T~) bool
+            +set_item(name: string, item: shared_ptr~T~) void
+            +get(name: string) T*
+            +contains(name: string) bool
+            +list() vector~string~
         }
 
         class ToolRegistry {
-            -map~string,unique_ptr~Tool~~ tools_
-            -map~string,string~          aliases_
-            -set~string~                 allow_list_
-            -set~string~                 deny_list_
-            +register_tool(tool: unique_ptr~Tool~) void
-            +register_alias(alias, canonical: string) void
+            -map~string, ToolCreator~ creators_
+            -Registry~Tool~ registry_
+            -map~string, string~ aliases_
+            -set~string~ allow_list_
+            -set~string~ deny_list_
+            +register_creator(canonical_name: string, creator: ToolCreator) bool
+            +create(name: string) unique_ptr~Tool~
+            +register_tool(tool: shared_ptr~Tool~) bool
+            +set_tool(tool: shared_ptr~Tool~) void
             +lookup(name: string) Tool*
-            +is_allowed(name: string) bool
+            +register_alias(alias: string, canonical: string) bool
             +normalize(name: string) string
+            +is_allowed(canonical_name: string) bool
+            +deny(canonical_name: string) void
+            +allow(canonical_name: string) void
+            +register_all_tools() void
+            +has_creator(name: string) bool
+            +has_instance(name: string) bool
         }
 
         class CalculatorTool {
@@ -204,8 +215,9 @@ classDiagram
     Tool <|-- TimeTool
     Tool <|-- JsonTool
     Tool <|-- GitTool
-    ToolRegistry *-- Tool : unique_ptr
-    ToolRegistry ..> RegistryT : uses pattern
+    ToolRegistry *-- RegistryT : registry_
+    RegistryT o-- Tool : shared_ptr
+    ToolRegistry ..> ToolCreator : uses
     Tool ..> ToolError
     AgentLoop *-- ToolRegistry
 
