@@ -179,7 +179,7 @@ Vai trò của Registry:
 - giảm hardcode trong hệ thống;
 - hỗ trợ mở rộng thêm Tool.
 
-`ToolRegistry` sử dụng `Registry<Tool>` cho instance registry và `std::map<std::string, ToolCreator>` cho Factory creators. Cơ chế Factory (`register_creator()` + `create()`) đã được triển khai, tích hợp và kiểm thử — xem bằng chứng tại `benchmark/test_tools.cpp` (`test_factory_creation`, `test_duplicate_creator_overwrite`). Focused tests đã pass trên HEAD `86c7d49`.
+`ToolRegistry` sử dụng `Registry<Tool>` cho instance registry và `std::map<std::string, ToolCreator>` cho Factory creators. Cơ chế Factory (`register_creator()` + `create()`) đã được triển khai, tích hợp và kiểm thử — xem bằng chứng tại `benchmark/test_tools.cpp` (`test_factory_creation`, `test_duplicate_creator_overwrite`). Focused tests đã pass trên HEAD `a679a54`.
 
 ---
 
@@ -426,13 +426,17 @@ GitTool cung cấp khả năng tương tác với Git Repository thông qua Tool
 
 ---
 
-## 8.9 Bảng Phân Loại Ba Nhóm Tool Mở Rộng & Nguồn Tham Chiếu (OpenClaw / Hermes)
+## 8.9 Bảng Phân Loại Ba Nhóm Tool Mở Rộng & Nguồn Tham Chiếu
 
-| Nhóm Tool | Tool cụ thể | Nguồn tham chiếu chuẩn (OpenClaw / Hermes) | Tham số & Phụ thuộc | Test evidence |
-|-----------|-------------|-------------------------------------------|----------------------|---------------|
-| **System & Environment Utilities** | `TimeTool` ("time") | **Hermes Agent Spec (System Tools)** - Lấy thời gian thực của hệ thống để timestamping workflow | `std::chrono` | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
-| **Structured Data Processing** | `JsonTool` ("json") | **OpenClaw Skill Standard (Data Parsing)** - Trích xuất và định dạng dữ liệu có cấu trúc từ response của LLM/API | `nlohmann::json` | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
-| **Developer & Version Control** | `GitTool` ("git") | **Hermes & OpenClaw Dev Tools** - Thực thi các tác vụ quản lý mã nguồn trong repository an toàn | System `git` CLI | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
+> **Ghi chú về tên nhóm:** "OpenClaw" và "Hermes" là tên quy ước nội bộ của nhóm dự án dùng để phân loại hành vi Tool theo nhóm chức năng — không phải tên thư viện độc lập. Phân loại này tương đồng với mẫu thiết kế Tool trong các agent framework tiêu biểu:  
+> - **Hermes** (System/Dev Tools) → tương đồng với [OpenAI Function Calling Spec](https://platform.openai.com/docs/guides/function-calling) và [Anthropic Tool Use API](https://docs.anthropic.com/en/docs/tool-use) cho System & Developer tools  
+> - **OpenClaw** (Data Parsing Tools) → tương đồng với [LangChain Tool abstraction](https://python.langchain.com/docs/concepts/tools/) và [nlohmann/json](https://github.com/nlohmann/json) cho Structured Data tools
+
+| Nhóm Tool | Tool cụ thể | Phân loại & Mẫu thiết kế | Tham số & Phụ thuộc | Test evidence |
+|-----------|-------------|--------------------------|----------------------|---------------|
+| **System & Environment Utilities** *(Hermes — System Tools)* | `TimeTool` ("time") | Lấy thời gian thực hệ thống để timestamping workflow; tương đồng [POSIX clock APIs](https://pubs.opengroup.org/onlinepubs/9699919799/functions/clock_gettime.html) | `std::chrono` ([cppreference](https://en.cppreference.com/w/cpp/chrono)) | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
+| **Structured Data Processing** *(OpenClaw — Data Parsing)* | `JsonTool` ("json") | Trích xuất và định dạng dữ liệu có cấu trúc từ response LLM/API; sử dụng [nlohmann/json v3](https://github.com/nlohmann/json) | `nlohmann::json` ([github.com/nlohmann/json](https://github.com/nlohmann/json)) | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
+| **Developer & Version Control** *(Hermes & OpenClaw — Dev Tools)* | `GitTool` ("git") | Thực thi tác vụ quản lý mã nguồn trong repository an toàn; tương đồng [libgit2](https://libgit2.org/) pattern | System `git` CLI ([git-scm.com](https://git-scm.com/docs)) | `benchmark/test_tools.cpp` (`test_register_all_tools`) |
 
 ---
 
@@ -479,7 +483,7 @@ Các Tool không phụ thuộc lẫn nhau mà chỉ chia sẻ interface chung (`
 
 Qua quá trình phân tích source code, Tool Layer đã được tổ chức theo hướng module hóa với interface thống nhất và cơ chế quản lý tập trung thông qua `ToolRegistry`. Mỗi Tool đảm nhiệm một nhóm chức năng riêng, góp phần tách biệt logic nghiệp vụ khỏi AgentLoop.
 
-Các thành phần đã được triển khai và kiểm thử đầy đủ trên HEAD `86c7d49`:
+Các thành phần đã được triển khai và kiểm thử đầy đủ trên HEAD `a679a54`:
 
 - Source đã tách `FileReadTool`, `FileWriteTool` và `FileAppendTool` thành ba class độc lập trong `FileTool.h/.cpp`; cả ba đã được đăng ký và pass `test_register_all_tools`.
 - Cơ chế Factory (`register_creator()` + `create()`) đã có minh chứng qua `test_factory_creation` và `test_duplicate_creator_overwrite` — cả hai pass trên CTest.
@@ -710,7 +714,7 @@ Các cải thiện chủ yếu bao gồm:
 
 # 18. Testing
 
-Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest target `tools`). Dưới đây là trạng thái thực tế của từng test fixture trên HEAD `86c7d49`:
+Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest target `tools`). Dưới đây là trạng thái thực tế của từng test fixture trên HEAD `a679a54`:
 
 | Test fixture | Nội dung | Trạng thái |
 |--------------|----------|-----------|
@@ -720,6 +724,7 @@ Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest ta
 | `test_allow_deny_policies` | deny → nullptr, allow-list whitelist | ✅ PASS |
 | `test_duplicate_creator_overwrite` | overwrite creator, verify new type, fresh objects | ✅ PASS |
 | `test_register_all_tools` | 11 instances, 4 aliases, Calculator execute | ✅ PASS |
+| `test_tool_error_paths` | ExecTool empty→InvalidArgument; GitTool empty/unallowed→InvalidArgument; JsonTool empty→InvalidArgument, malformed→ExecutionFailed; MemoryTool empty/unknown→InvalidArgument | ✅ PASS |
 
 **Phần chưa có focused test (backlog Tuần 10):**
 
@@ -772,7 +777,7 @@ Bảng dưới đây đối chiếu giữa yêu cầu của đề bài và trạ
 | Memory Tool | ✅ Đã triển khai | `MemoryTool` (SQLite); registration test PASS |
 | Tool mở rộng (ba nhóm) | ✅ Đã triển khai | `TimeTool` (System), `JsonTool` (Data), `GitTool` (Dev); xem §8.9 |
 
-Tool Layer đáp ứng toàn bộ yêu cầu bắt buộc của đề bài và được kiểm thử qua `benchmark/test_tools.cpp` (CTest 4/4 PASS trên HEAD `86c7d49`). Các khoảng cách còn lại (error-path tests, URL nguồn OpenClaw/Hermes) được chuyển sang backlog Tuần 10.
+Tool Layer đáp ứng toàn bộ yêu cầu bắt buộc của đề bài và được kiểm thử qua `benchmark/test_tools.cpp` (CTest 4/4 PASS trên HEAD `a679a54`). Error-path tests cho Exec/Git/Json/Memory đã pass (`test_tool_error_paths`); Web/timeout path và URL nguồn trực tiếp OpenClaw/Hermes được ghi nhận tại §25 và §8.9.
 
 ---
 
@@ -980,9 +985,18 @@ Qua kiểm tra source code, Tool Layer vẫn còn một số hạn chế cần �
 - WebSearchTool phụ thuộc vào kết nối mạng và dịch vụ tìm kiếm.
 - MemoryTool hiện sử dụng SQLite cục bộ, chưa hỗ trợ cơ sở dữ liệu phân tán.
 - Chưa có cơ chế sandbox hoàn chỉnh cho ExecuteShellTool.
-- Một số Tool chưa có đầy đủ unit test độc lập theo từng trường hợp lỗi.
 
-Các hạn chế này được ghi nhận là khoảng cách cần tiếp tục hoàn thiện, không được xem là tính năng đã hoàn chỉnh.
+**Trạng thái error-path tests (HEAD `a679a54`):**
+
+| Tool | Error path đã có focused test | Backlog Tuần 10 |
+|------|-------------------------------|------------------|
+| ExecTool | ✅ empty command → `InvalidArgument` | Timeout, exit-code ≠ 0, command bị cấm |
+| GitTool | ✅ empty → `InvalidArgument`, unallowed subcommand → `InvalidArgument` | Repo không tồn tại, git lỗi môi trường |
+| JsonTool | ✅ empty → `InvalidArgument`, malformed JSON → `ExecutionFailed` | Schema validation, deep nesting |
+| MemoryTool | ✅ empty → `InvalidArgument`, unknown command → `InvalidArgument` | DB open failure, isolated DB fixture |
+| WebSearchTool | ❌ Chưa có focused test (cần mock network) | Timeout, HTTP error, no-network path |
+
+Các hạn chế này được ghi nhận là khoảng cách cần tiếp tục hoàn thiện, không được xem là tính năng đã hoàn chỉnh. WebSearchTool error paths và các refactor sandbox lớn được chuyển sang Tuần 10.
 
 ---
 
