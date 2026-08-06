@@ -176,6 +176,48 @@ void test_register_all_tools() {
     std::cout << "  -> PASSED\n";
 }
 
+void test_tool_error_paths() {
+    std::cout << "[TEST] Running test_tool_error_paths...\n";
+
+    // ExecTool: empty argument -> InvalidArgument
+    ExecTool exec_tool;
+    auto exec_res = exec_tool.execute("");
+    assert(!exec_res.has_value());
+    assert(exec_res.error() == ToolError::InvalidArgument);
+
+    // GitTool: empty / unallowed subcommand -> InvalidArgument
+    GitTool git_tool;
+    auto git_empty = git_tool.execute("");
+    assert(!git_empty.has_value());
+    assert(git_empty.error() == ToolError::InvalidArgument);
+
+    auto git_unallowed = git_tool.execute("push --force");
+    assert(!git_unallowed.has_value());
+    assert(git_unallowed.error() == ToolError::InvalidArgument);
+
+    // JsonTool: empty -> InvalidArgument, malformed -> ExecutionFailed
+    JsonTool json_tool;
+    auto json_empty = json_tool.execute("");
+    assert(!json_empty.has_value());
+    assert(json_empty.error() == ToolError::InvalidArgument);
+
+    auto json_bad = json_tool.execute("{invalid json");
+    assert(!json_bad.has_value());
+    assert(json_bad.error() == ToolError::ExecutionFailed);
+
+    // MemoryTool: empty / unknown command -> InvalidArgument
+    MemoryTool mem_tool;
+    auto mem_empty = mem_tool.execute("");
+    assert(!mem_empty.has_value());
+    assert(mem_empty.error() == ToolError::InvalidArgument);
+
+    auto mem_bad = mem_tool.execute("unknown_command");
+    assert(!mem_bad.has_value());
+    assert(mem_bad.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
 int main() {
     std::cout << "=== RUNNING ROLE B TOOL REGISTRY & FACTORY FOCUSED TESTS ===\n";
     test_registry_instance_registration();
@@ -184,6 +226,8 @@ int main() {
     test_allow_deny_policies();
     test_duplicate_creator_overwrite();
     test_register_all_tools();
+    test_tool_error_paths();
     std::cout << "=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===\n";
     return 0;
 }
+
