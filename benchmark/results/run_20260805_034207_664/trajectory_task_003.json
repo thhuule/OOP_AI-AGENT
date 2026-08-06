@@ -1,0 +1,26 @@
+{
+  "action_level_score": 1.0,
+  "evaluator_score": 1.0,
+  "failure_reason": "NONE",
+  "model": "gemma-4-31b-it",
+  "requires_tool": true,
+  "steps": [
+    {
+      "action": {
+        "args": "notes.txt",
+        "tool": "read_file",
+        "type": "tool_call"
+      },
+      "latency_ms": 0.187109,
+      "step_id": 1,
+      "thought": "",
+      "tokens_used": 0,
+      "tool_result": "Agent test run"
+    }
+  ],
+  "success": true,
+  "task_id": "task_003",
+  "tool_steps_count": 1,
+  "total_time_ms": 0.193651,
+  "total_tokens": 0
+}
