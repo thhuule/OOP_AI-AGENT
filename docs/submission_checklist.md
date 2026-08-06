@@ -20,8 +20,11 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 
 - [ ] `cmake -S . -B build` succeeds.
 - [ ] `cmake --build build -j2` succeeds for every target.
+- [ ] `./build/test_tools` prints `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY`.
 - [ ] `./build/test_harness` prints `ALL HARNESS TESTS PASSED`.
 - [ ] `./build/test_multi_agent` prints `ALL PASSED`.
+- [ ] `./build/test_template_method` prints `ALL ROLE A TESTS PASSED SUCCESSFULLY`.
+- [ ] CTest passes 4/4 tests on the packaged revision.
 - [ ] The final benchmark evidence comes from a new clean-state run that the team approved for quota use.
 - [ ] The run contains 10 tasks: 4 simple, 4 medium, and 2 hard.
 - [ ] A task that requires a tool contains a real and relevant tool step.
@@ -35,12 +38,12 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 
 - [ ] Role A reviews the harness sequence diagram and the LLM/`AgentLoop` content in the README.
 - [ ] Role B reviews tool names, aliases, arguments, and policies in the report and README.
-- [ ] Role C reviews benchmark figures, output paths, and run commands.
-- [ ] Every relative Markdown link opens the correct file.
+- [x] Role C reviews benchmark figures, output paths, and run commands (2026-08-06, HEAD `86c7d49`).
+- [x] Every relative Markdown link in README and the three Role C documents opens the correct file.
 - [ ] All four Mermaid diagrams render without errors.
-- [ ] `VLMEvaluator` is not described as a completed feature.
-- [ ] The multi-agent demo is not described as benchmark-harness integration.
-- [ ] A fallback-assisted 10/10 run is described as pipeline evidence, not proof of model planning quality.
+- [x] `VLMEvaluator` is not described as a completed feature.
+- [x] The multi-agent demo is not described as benchmark-harness integration.
+- [x] A fallback-assisted 10/10 run is described as pipeline evidence, not proof of model planning quality.
 
 ## 4. Secret and Artifact Checks
 
@@ -55,7 +58,7 @@ Run these checks before packaging:
 ```bash
 git status --short
 git diff --check
-git ls-files config.json build memory.db notes.txt result.txt capital.txt calc.txt data.txt output.txt
+git ls-files config.json build memory.db notes.txt result.txt capital.txt calc.txt data.txt output.txt report.txt
 ```
 
 ## 5. ZIP Name and Contents
