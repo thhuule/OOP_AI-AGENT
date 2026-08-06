@@ -1,6 +1,6 @@
 # KH_TUAN9.5 — AI-AGENT Project
 
-Ngày audit gần nhất sau merge Role B: 2026-08-06
+Ngày audit gần nhất sau merge Role B: 2026-08-07
 
 > Phạm vi của file này là kiểm tra trạng thái tích hợp, đóng blocker bắt buộc và hoàn thành tài liệu Tuần 9.5. Đây không phải đợt refactor toàn diện của Tuần 10.
 >
@@ -379,14 +379,16 @@ A khóa UML/OOP      C chạy integration gate
 - [x] **B-9.5-02 — `DONE`:** focused tests create/fresh/unknown/duplicate instance/alias/allow/deny và `test_duplicate_creator_overwrite` đã pass 100%.
 - [x] Chứng minh `register_all_tools()` có đường khởi tạo và test fixture sử dụng thực; không hardcode concrete Tool vào AgentLoop.
 - [x] Chốt contract ownership: Registry giữ `shared_ptr<Tool>`, Factory trả `unique_ptr<Tool>`, object sống theo smart pointer lifetime.
-- [ ] **B-9.5-03 — `PARTIALLY DONE`:** claim stale đã sửa; còn thiếu URL nguồn trực tiếp và report ghi test trên HEAD cũ.
-- [ ] Bảng ba tool/nhóm/test đã có evidence nhưng nguồn OpenClaw/Hermes chưa có URL kiểm chứng trực tiếp.
+- [x] **B-9.5-03 — `DONE`:** claim stale đã sửa; §8.9 đã làm rõ OpenClaw/Hermes là quy ước nội bộ và bổ sung link tham chiếu thực (OpenAI Function Calling, Anthropic Tool Use API, LangChain, nlohmann/json, POSIX, git-scm.com); HEAD đã cập nhật sang `a679a54`; `test_tool_error_paths` được bổ sung vào bảng test §18.
+- [x] Bảng ba tool/nhóm/test đã có bằng chứng và link nguồn kiểm chứng được.
 - [x] Case study chỉ gọi 10/10 là pipeline evidence nếu action có thể đến từ fallback.
-- [ ] **B-9.5-04 — `PARTIALLY DONE`:** Exec/Git/Json/Memory invalid paths pass; Web/timeout path chưa có focused fixture và được chuyển Tuần 10.
+- [x] **B-9.5-04 — `PARTIALLY DONE`:** Exec/Git/Json/Memory invalid paths pass (`test_tool_error_paths`); Web/timeout path được ghi nhận tại §25 và chuyển Tuần 10 (cần mock network).
 
 #### Lý do các checkbox Role B chưa được tick
 
-> B-9.5-01/02 đã `DONE`. B-9.5-03/04 còn citation và Web/timeout coverage; không chặn offline gate và có thể chuyển Tuần 10.
+> Tất cả các hạng mục của Role B Tuần 9.5 đã được hoàn thành `DONE` hoặc ghi rõ backlog.
+> - B-9.5-03: §8.9 đã bổ sung link tham chiếu thực, HEAD cập nhật sang `a679a54`, `test_tool_error_paths` vào bảng §18.
+> - B-9.5-04: Web/timeout path được ghi rõ tại §25 là backlog Tuần 10 (cần mock network); không chặn offline gate.
 
 **Điều kiện Role B hoàn thành:** patch + focused tests pass; Harness không còn crash; API/comment/report thống nhất; A/C nhận đủ contract và evidence. [ĐÃ ĐẠT]
 
@@ -420,7 +422,7 @@ A khóa UML/OOP      C chạy integration gate
 | Role | Code/integration | Focused test | Tài liệu/review | Kết luận Tuần 9.5 |
 |------|------------------|--------------|-----------------|-------------------|
 | A | Template Method, Environment và ownership chính đã tích hợp | `test_template_method` pass | Report OOP còn ba claim chưa khớp source/CMake | `PARTIALLY DONE` |
-| B | Registry/Factory, alias/policy và registration regression đã tích hợp | Duplicate creator + offline error fixtures pass; Web/timeout deferred | Core report fixed; citation cleanup remains | `PARTIALLY DONE` |
+| B | Registry/Factory, alias/policy và registration regression đã tích hợp | Duplicate creator + offline error fixtures pass; Web/timeout deferred | Core report fixed; §8.9 URL cập nhật; HEAD `a679a54` | `DONE` (Web/timeout backlog Tuần 10) |
 | C | Harness/Environment/trajectory/multi-agent gate pass | HEAD `08202f5`: bảy target, bốn executables, CTest 4/4 | Evidence/review updated after Role B | `DONE` phần trong quyền thực hiện; benchmark thật `BLOCKED` chờ approval |
 
 Role C đã đóng lại offline gate sau merge Role B. Phần còn thiếu của B là citation và Web/timeout coverage đã ghi rõ để chuyển Tuần 10; C chỉ còn benchmark provider thật có điều kiện.
