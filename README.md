@@ -90,11 +90,13 @@ Never commit `config.json`. It may contain an API key and is listed in `.gitigno
 Run the local tests first:
 
 ```bash
+./build/test_tools
 ./build/test_harness
 ./build/test_multi_agent
+./build/test_template_method
 ```
 
-Alternatively, run both through CTest:
+Alternatively, run all four through CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
@@ -103,8 +105,10 @@ ctest --test-dir build --output-on-failure
 A successful direct run ends with these messages:
 
 ```text
+=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===
 ALL HARNESS TESTS PASSED
 ALL PASSED
+=== ALL ROLE A TESTS PASSED SUCCESSFULLY ===
 ```
 
 Run the multi-agent demo only when network access to DuckDuckGo is acceptable:

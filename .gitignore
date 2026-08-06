@@ -3,3 +3,11 @@ build/
 config.json
 ROLE_C_FIX_REPORT
 AGENTS.md
+memory.db
+notes.txt
+result.txt
+capital.txt
+calc.txt
+data.txt
+output.txt
+report.txt
