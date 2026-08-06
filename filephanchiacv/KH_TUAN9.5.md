@@ -10,7 +10,7 @@ Ngày audit gần nhất sau merge Role B: 2026-08-06
 
 ## Nguồn đã dùng
 
-- Git HEAD `86c7d49` và các commit tích hợp liên quan: `e9e1d35`, `624b778`, `8e87371`.
+- Git HEAD `08202f5` và các commit Role B mới: `6a05464`, `a63901b`.
 - Source hiện tại: `src/tools/`, integration point trong `src/agent/agent_loop.h`, Harness và test hiện tại.
 - `docs/report_tools.md`, `docs/bao_cao_du_an.md` và tài liệu A/C hiện có.
 - `KH_Tuan6_ChiTiet (1).md`, `KH_Tuan6_Updated.md`, `KH_Tuan7_8_ChiTiet.md`, `KH_Tuan9_ChiTiet.md`, `OOP_PHANVIEC.md` và bản KH Tuần 9.5 trước audit.
@@ -28,22 +28,22 @@ Ngày audit gần nhất sau merge Role B: 2026-08-06
 
 | Hạng mục | Kết quả | Bằng chứng | Trạng thái | Vấn đề còn lại |
 |----------|---------|------------|------------|----------------|
-| Commit/thay đổi mới của B | Main mới đã gom patch Registry/Factory và test | `e9e1d35`; lịch sử trước gồm `f2cff55`, `4a9f959`, `1582f91` | `DONE` | Lịch sử remote đã được tạo lại nên commit mới là root snapshot |
+| Commit/thay đổi mới của B | Duplicate-creator test, report fixes và offline error-path fixture | `6a05464`, `a63901b`, merge `08202f5` | `DONE` | C review lại trên merge HEAD |
 | Generic `Registry<T>` | Registration lấy tên trước khi move; null/duplicate instance được test | `ToolRegistry.cpp`, `Registry.h`, `test_tools.cpp` | `DONE` | Không còn regression crash trong Harness |
-| Factory creator theo tên | Creator API, built-in registration và fresh-instance test chạy thành công | `test_tools`: `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY` | `PARTIALLY DONE` | Chưa có focused duplicate-creator test dù semantics overwrite đã khớp header/source |
+| Factory creator theo tên | Create/fresh/unknown và duplicate overwrite đều chạy thành công | `test_factory_creation`, `test_duplicate_creator_overwrite` | `DONE` | Không còn khoảng trống bắt buộc của B-9.5-02 |
 | Alias và allow/deny policy | Source và fixture đều chạy thành công | `test_aliases_and_normalization`, `test_allow_deny_policies` | `DONE` | Error/security test rộng vẫn là việc tài liệu/backlog riêng |
 | Tích hợp AgentLoop→Registry | AgentLoop chỉ gọi abstraction; Harness qua được StepHook/tool registration | `test_harness`: `ALL HARNESS TESTS PASSED` | `DONE` | Không chạy benchmark provider thật trong lượt này |
-| Build toàn bộ | Bảy target build thành công trên WSL | Thêm `test_template_method` vào sáu target trước đó | `DONE` | Configure và build HEAD `86c7d49` đều exit 0 |
+| Build toàn bộ | Bảy target build thành công trên WSL | HEAD `08202f5` | `DONE` | Configure/build exit 0 |
 | Offline integration tests | Tool, Harness, multi-agent, Template Method và CTest đều pass | CTest 4/4, 100% | `DONE` | Chưa phải bằng chứng benchmark provider thật |
-| `docs/report_tools.md` | Deliverable đã xuất hiện, có inventory/case study/pattern/SOLID | Commit `4a9f959`, file 978 dòng | `PARTIALLY DONE` | Nhiều đoạn mâu thuẫn source mới; phần Testing là danh sách cần test, không phải log test pass |
-| Tính đúng của báo cáo Tools | Một số phần cuối mô tả Factory/alias hiện có | `report_tools.md` §21–§24 | `PARTIALLY DONE` | §5/§11/§19 vẫn nói Factory chưa có; §8/§11 nói không có FileRead/Write/Append dù source có các class này |
+| `docs/report_tools.md` | Factory/File/alias/policy claim stale đã sửa; test matrix đã có | Commit `6a05464` | `PARTIALLY DONE` | Thiếu URL nguồn trực tiếp và còn ghi test pass trên HEAD cũ `86c7d49` |
+| Tính đúng của báo cáo Tools | Contract chính khớp source/test mới | `report_tools.md` §5/§11/§18/§19 | `PARTIALLY DONE` | Web/timeout test vẫn là backlog, không được gọi là focused evidence hiện tại |
 | Ba tool bổ sung | Time/JSON/Git có source, registration, bảng ba nhóm và registration test pass | Tool source; `report_tools.md` §8.9; `test_register_all_tools` | `PARTIALLY DONE` | Tên nguồn OpenClaw/Hermes chưa có URL kiểm chứng trực tiếp |
 | Benchmark case study | Có bảng run 2/10→10/10 và mô tả cải thiện | `report_tools.md` §17 | `PARTIALLY DONE` | Chưa tách đóng góp B khỏi A/C và chưa ghi giới hạn fallback; không thay thế clean run hiện tại |
-| Unit/focused tests của B | Target Tools chạy pass và được CTest đăng ký | `test_tools`; CTest test số 3 | `PARTIALLY DONE` | Thiếu duplicate creator và focused error paths Exec/Git/Web/Memory |
+| Unit/focused tests của B | Duplicate creator và Exec/Git/Json/Memory invalid paths pass | `test_tools`; CTest test số 3 | `PARTIALLY DONE` | Chưa có Web/timeout focused path; có thể dời Tuần 10 |
 
 ### Kết luận Role B
 
-Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Factory tests chạy được trên main mới `e9e1d35`. Phần code cốt lõi đã tích hợp; phần còn lại là bổ sung edge-case test, sửa claim stale trong báo cáo Tools và thêm link nguồn trực tiếp.
+Role B đã hoàn thành code cốt lõi, duplicate-creator regression và nhóm offline error paths trên HEAD `08202f5`. B-9.5-03/04 chưa đạt trọn acceptance gốc vì thiếu URL nguồn trực tiếp, HEAD evidence còn cũ và chưa có Web/timeout focused path; các mục này không chặn Role C và có thể chuyển Tuần 10.
 
 ---
 
@@ -53,11 +53,11 @@ Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Fa
 |------|---------------|------------|-----------|---------------------|
 | A | LLM clients, AgentLoop/StepHook, parser, loop detection từ Tuần 6–8 | `DONE` | Source hiện có; CTest 4/4 pass; build sạch trên GCC | Không |
 | A | Template Method, Environment, UML và báo cáo OOP Tuần 9 | `DONE` | Báo cáo OOP đã đồng bộ; test_template_method pass; MSVC compile flags đã thêm | Không |
-| B | Tool core, Memory, Time/JSON/Git từ Tuần 6–8 | `DONE` | Tool source tồn tại, build & test_tool_error_paths pass | Không |
-| B | Registry/Factory, alias/policy Tuần 8–9 | `DONE` | `test_tools` pass với duplicate creator & error paths; CTest 4/4 (100%) | Không |
-| B | Báo cáo Tools Tuần 9 | `DONE` | `docs/report_tools.md` đồng bộ với source code & CTest evidence | Không |
-| C | Harness, evaluator, Environment integration, trajectory, multi-agent | `DONE` | HEAD `86c7d49`: bốn test executable pass; CTest 4/4 | Benchmark provider thật vẫn có điều kiện |
-| C | Report Eval, README, checklist, storyboard Tuần 9.5 | `DONE` | Run IDs/scores, links, commands và fallback wording đã review | Shared documentation DoD còn chờ B sửa report Tools |
+| B | Tool core, Memory, Time/JSON/Git từ Tuần 6–8 | `PARTIALLY DONE` | Offline error paths Exec/Git/Json/Memory pass | Web/timeout path dời Tuần 10 |
+| B | Registry/Factory, alias/policy Tuần 8–9 | `DONE` | Duplicate creator + core fixtures pass; CTest 4/4 | Không |
+| B | Báo cáo Tools Tuần 9 | `PARTIALLY DONE` | Claim stale đã sửa và test matrix có evidence | Thiếu URL nguồn trực tiếp; HEAD evidence cần cập nhật |
+| C | Harness, evaluator, Environment integration, trajectory, multi-agent | `DONE` | HEAD `08202f5`: bốn test executable pass; CTest 4/4 | Benchmark provider thật vẫn có điều kiện |
+| C | Report Eval, README, checklist, storyboard Tuần 9.5 | `DONE` | Evidence được review lại sau merge Role B | Shared docs còn backlog B không chặn gate |
 | C | Clean current-provider benchmark | `BLOCKED` | Không chạy trong audit này | Offline gate đã pass; còn chờ code/docs freeze và người dùng xác nhận mạng/quota/artifact |
 
 ### Đối chiếu theo tuần
@@ -76,12 +76,12 @@ Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Fa
 |----|------------|---------------|---------------|------------|----------------|----------------|
 | DEP-MERGE-00 | **Build/quy trình:** source và CMake không còn conflict marker | B, repo maintainer | A, C | `DONE` | Main mới `e9e1d35` là snapshot sạch | Source/build files không còn marker; configure/build pass |
 | DEP-CODE-01 | **Code/API:** đăng ký `shared_ptr<Tool>` không được crash | B | A, C | `DONE` | Lấy tên trước move và test valid/null/duplicate instance | Harness qua StepHook/tool registration; CTest 100% |
-| DEP-API-02 | **Code/API:** Factory phải được khởi tạo và có đường dùng thực | B | A, C | `PARTIALLY DONE` | Runtime fixture đã pass; bổ sung duplicate creator test | Fresh/alias/unknown/denied pass; duplicate creator còn thiếu |
-| DEP-TEST-03 | **Test/evaluation:** focused test Tools/Registry | B | C | `PARTIALLY DONE` | `test_tools` đã pass; thêm duplicate creator/error paths | Core target pass; edge-case matrix còn thiếu |
-| DEP-DOC-04 | **Tài liệu/handoff:** contract tool chính xác | B | A, C | `IN PROGRESS` | Sửa report Tools theo source cuối: name/args/error/alias/policy/ownership/test | A/C review không còn claim mâu thuẫn; link source/test mở được |
+| DEP-API-02 | **Code/API:** Factory phải được khởi tạo và có đường dùng thực | B | A, C | `DONE` | Duplicate overwrite + fresh/alias/unknown/denied pass | Contract đã có focused evidence |
+| DEP-TEST-03 | **Test/evaluation:** focused test Tools/Registry | B | C | `DONE` | `test_tools` pass và CTest đăng ký | Core Registry/Factory matrix đã đóng |
+| DEP-DOC-04 | **Tài liệu/handoff:** contract tool chính xác | B | A, C | `PARTIALLY DONE` | Claim stale đã sửa; bổ sung URL và HEAD mới | Core contract pass, citation cleanup còn lại |
 | DEP-DESIGN-05 | **Quyết định thiết kế:** ownership Registry dùng `shared_ptr`, Factory trả `unique_ptr` | B | A | `DONE` | A đã cập nhật UML/report theo contract hiện tại | Source, UML và report OOP mô tả cùng ownership |
-| DEP-DATA-06 | **Dữ liệu/tài liệu:** ba tool thuộc ba nhóm và nguồn OpenClaw/Hermes | B | A, C | `IN PROGRESS` | Bổ sung URL nguồn thật vào bảng hiện có và thay test dự kiến bằng log pass | Có ba nhóm khác nhau, link nguồn và test evidence kiểm tra được |
-| DEP-SEC-07 | **Code/quy trình:** shell restriction và ToolError | B | C | `PARTIALLY DONE` | Audit Exec/Git/Web/Memory error paths; ghi limitation hoặc đóng blocker bảo mật tối thiểu | Command bị cấm/timeout/error có test và reason rõ; báo cáo khớp source |
+| DEP-DATA-06 | **Dữ liệu/tài liệu:** ba tool thuộc ba nhóm và nguồn OpenClaw/Hermes | B | A, C | `PARTIALLY DONE` | Bảng nhóm/test có; URL trực tiếp dời Tuần 10 nếu cần | Thiếu link nguồn kiểm tra được |
+| DEP-SEC-07 | **Code/quy trình:** shell restriction và ToolError | B | C | `PARTIALLY DONE` | Exec/Git/Json/Memory invalid paths pass; Web/timeout ghi limitation | Refactor/test rộng dời Tuần 10 |
 | DEP-BUILD-08 | **Build/môi trường:** WSL toolchain | A, B, C | A, B, C | `DONE` | Giữ build command hiện tại | Bảy target, gồm `test_tools` và `test_template_method`, build trên HEAD hiện tại |
 | DEP-EVAL-09 | **Evaluation/config:** benchmark provider thật | A, B, người dùng | C | `BLOCKED` | Chỉ chạy sau offline gate; kiểm tra config không lộ key và xin xác nhận quota | Có approval, run directory mới, 10 task đủ evidence, ghi rõ fallback/model |
 | DEP-HANDOFF-10 | **Quy trình:** worktree đang dirty và có file đổi tên/xóa | A, B, C | A, B, C | `CẦN XÁC NHẬN` | Mỗi Role xác nhận file thuộc mình trước commit; không gom thay đổi ngoài scope | Danh sách staged rõ owner, không mất tài liệu lịch sử/secret/artifact |
@@ -198,6 +198,7 @@ Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Fa
 - **Cập nhật 2026-08-05:** `BLOCKED`; chưa có commit B mới sau `4a9f959`. Bằng chứng crash và điều kiện chạy lại được theo dõi tại checklist Role C trong mục 9 của file này.
 - **Cập nhật 2026-08-06:** main mới `e9e1d35` đã sạch; sáu target build, ba executable test pass và CTest đạt 3/3. `C-9.5-01` chuyển `DONE`.
 - **Cập nhật 2026-08-06 trên HEAD `86c7d49`:** bảy target build; bốn executable test pass; CTest đạt 4/4. Bằng chứng cũ 3/3 được giữ như lịch sử, không còn là gate mới nhất.
+- **Cập nhật 2026-08-06 trên HEAD `08202f5`:** configure/build lại thành công với bảy target; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` đều pass; CTest đạt 4/4 (100%). Đây là gate mới nhất sau khi merge toàn bộ patch Role B.
 
 ### C-9.5-02 — Review evidence Tools trong tài liệu chung
 
@@ -215,6 +216,7 @@ Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Fa
 - **Cập nhật 2026-08-05:** `PARTIALLY DONE`; phần run/evidence/fallback đã review và chỉnh trong `docs/report_evaluation.md`. Phần contract Tools vẫn chờ B-9.5-01 đến B-9.5-03. Deliverable được theo dõi trực tiếp tại checklist Role C trong mục 9.
 - **Cập nhật 2026-08-06:** static review xác nhận test source đã có nhưng report Tools và duplicate semantics chưa thống nhất; final review vẫn chờ B.
 - **Cập nhật 2026-08-06 trên HEAD `86c7d49`:** `DONE` cho phần review của C. Bốn artifact lịch sử có đúng 10 task và score đã ghi; link Role C không hỏng; README/report/checklist/storyboard dùng đúng nhãn pipeline evidence. Review không pass `report_tools.md` của B (dòng 182/483 và URL nguồn), đồng thời không pass `report_oop_design.md` của A (dòng 212, 328–330, 403).
+- **Cập nhật 2026-08-06 trên HEAD `08202f5`:** review sau merge xác nhận B-9.5-01 và B-9.5-02 đạt; B-9.5-03/B-9.5-04 chỉ còn thiếu URL nguồn trực tiếp, hash bằng chứng cũ và coverage Web/timeout. Các phần này không chặn integration gate và được chuyển sang backlog tuần 10.
 
 ### C-9.5-03 — Benchmark thật có điều kiện
 
@@ -229,6 +231,7 @@ Role B đã đóng regression đăng ký Tool và cung cấp focused Registry/Fa
 - **Mức ưu tiên:** P1 có điều kiện.
 - **Có thể làm:** đang `BLOCKED`; có thể dời Tuần 10.
 - **Mở khóa:** final benchmark evidence, không phải điều kiện để sửa crash hiện tại.
+- **Cập nhật 2026-08-06 trên HEAD `08202f5`:** offline gate và code freeze đã đạt; cấu hình Gemini có key, `use_mock=false`, artifact dọn trước run đã được kiểm tra. Lệnh benchmark thật bị chặn **trước khi gửi request** vì chưa có xác nhận riêng cho việc gửi nội dung task/project-derived ra Gemini và tiêu tốn quota/chi phí. Không có quota bị dùng và không có run mới được tạo.
 
 ---
 
@@ -314,13 +317,13 @@ A khóa UML/OOP      C chạy integration gate
 ### Build
 
 - [x] Worktree hiện tại configure và build thành công trên WSL/Linux.
-- [x] Bảy target build trên HEAD `86c7d49`, gồm `test_tools` và `test_template_method`; configure/build exit 0.
+- [x] Bảy target build trên HEAD `08202f5`, gồm `test_tools` và `test_template_method`; configure/build exit 0.
 - [ ] Nếu chưa có MSVC thì ghi `CẦN XÁC NHẬN`, không tuyên bố pass.
 
 ### Test
 
-- [ ] Có focused test Registry/Factory: create/fresh/unknown/duplicate instance/alias/allow/deny đã pass; còn thiếu duplicate creator.
-- [ ] Có focused test tool args/error tối thiểu cho claim bắt buộc.
+- [x] Có focused test Registry/Factory: create/fresh/unknown/duplicate instance/duplicate creator/alias/allow/deny đã pass.
+- [ ] Error matrix chưa đóng hoàn toàn: Exec/Git/Json/Memory invalid path đã pass; Web/timeout chuyển backlog tuần 10.
 - [x] `test_harness` kết thúc với `ALL HARNESS TESTS PASSED`.
 - [x] `test_multi_agent` kết thúc với `ALL PASSED` trên revision sau merge.
 - [x] CTest đạt 100%: 4/4 gồm Harness, multi-agent, Tools và Template Method.
@@ -333,7 +336,7 @@ A khóa UML/OOP      C chạy integration gate
 
 ### Tài liệu
 
-- [ ] `report_tools.md` khớp source mới, không còn đoạn Factory/FileTool stale.
+- [x] `report_tools.md` đã bỏ các claim Factory/FileTool stale và khớp source hiện tại ở các mục này.
 - [ ] Ba tool bổ sung có ba nhóm, nguồn OpenClaw/Hermes, args/dependency và test evidence.
 - [ ] Case study phân biệt đóng góp A/B/C và giới hạn fallback.
 - [ ] UML/report OOP của A chưa hoàn toàn khớp source: ownership chính đúng nhưng còn test path, `SharedToolWrapper` và claim MSVC stale.
@@ -376,14 +379,14 @@ A khóa UML/OOP      C chạy integration gate
 - [x] **B-9.5-02 — `DONE`:** focused tests create/fresh/unknown/duplicate instance/alias/allow/deny và `test_duplicate_creator_overwrite` đã pass 100%.
 - [x] Chứng minh `register_all_tools()` có đường khởi tạo và test fixture sử dụng thực; không hardcode concrete Tool vào AgentLoop.
 - [x] Chốt contract ownership: Registry giữ `shared_ptr<Tool>`, Factory trả `unique_ptr<Tool>`, object sống theo smart pointer lifetime.
-- [x] **B-9.5-03 — `DONE`:** `docs/report_tools.md` đồng bộ với source code, các claim stale về Factory, File tools, alias/policy đã được cập nhật chính xác với minh chứng CTest.
-- [x] Bảng ba tool/nhóm/test đã có minh chứng và tài liệu mô tả đầy đủ.
+- [ ] **B-9.5-03 — `PARTIALLY DONE`:** claim stale đã sửa; còn thiếu URL nguồn trực tiếp và report ghi test trên HEAD cũ.
+- [ ] Bảng ba tool/nhóm/test đã có evidence nhưng nguồn OpenClaw/Hermes chưa có URL kiểm chứng trực tiếp.
 - [x] Case study chỉ gọi 10/10 là pipeline evidence nếu action có thể đến từ fallback.
-- [x] **B-9.5-04 — `DONE`:** `test_tools.cpp` bổ sung `test_tool_error_paths()` kiểm thử error paths cho Exec, Git, Json, Memory (exit 0, CTest 4/4 pass 100%).
+- [ ] **B-9.5-04 — `PARTIALLY DONE`:** Exec/Git/Json/Memory invalid paths pass; Web/timeout path chưa có focused fixture và được chuyển Tuần 10.
 
 #### Lý do các checkbox Role B chưa được tick
 
-> Tất cả các hạng mục của Role B đã được hoàn thành 100% (`DONE`).
+> B-9.5-01/02 đã `DONE`. B-9.5-03/04 còn citation và Web/timeout coverage; không chặn offline gate và có thể chuyển Tuần 10.
 
 **Điều kiện Role B hoàn thành:** patch + focused tests pass; Harness không còn crash; API/comment/report thống nhất; A/C nhận đủ contract và evidence. [ĐÃ ĐẠT]
 
@@ -396,18 +399,18 @@ A khóa UML/OOP      C chạy integration gate
 - [x] Sửa mô tả trajectory: `thought` có thể rỗng khi action đến từ fallback.
 - [x] Xác nhận source có Sandbox/cleanup-failure fixtures và toàn Harness suite pass.
 - [x] Xác minh main mới `e9e1d35` không còn conflict marker trong source/build files.
-- [x] **C-9.5-01 — `DONE`:** sáu target build; `test_tools`, `test_harness`, `test_multi_agent` pass; CTest 3/3.
+- [x] **C-9.5-01 — `DONE`:** HEAD `08202f5` build đủ bảy target; bốn executable test pass; CTest 4/4.
 - [x] Ghi exact output mới và đóng DEP-CODE-01/DEP-BUILD-08.
-- [x] **C-9.5-02 — `DONE` phần Role C:** review đã hoàn tất; trả claim stale/thiếu nguồn về Role B và ba claim không khớp source/CMake về Role A. Shared documentation DoD vẫn chưa pass.
+- [x] **C-9.5-02 — `DONE` phần Role C:** review lại sau Role B; xác nhận Factory/File/alias/policy fixes và trả citation/Web/timeout gaps về B/Tuần 10.
 - [x] Xác nhận README/report/checklist/storyboard không nhận run fallback-assisted là chất lượng suy luận model.
-- [ ] **C-9.5-03 — `BLOCKED`:** chỉ chạy benchmark provider thật sau offline gate, code freeze và xác nhận quota/network/artifact của người dùng.
+- [ ] **C-9.5-03 — `BLOCKED CHỜ XÁC NHẬN`:** offline gate, code freeze, config và artifact preflight đã đạt; còn cần người dùng xác nhận rõ việc gửi task/project-derived data ra Gemini và chấp nhận quota/chi phí.
 - [x] Chưa chạy benchmark thật; giữ trạng thái `BLOCKED` và dùng đúng nhãn “historical pipeline evidence”.
 
 #### Lý do checkbox Role C chưa được tick
 
 | Mục | Lỗi/điều kiện còn lại | Lý do chưa tick | Role xử lý | Có thể dời |
 |-----|------------------------|-----------------|------------|------------|
-| C-9.5-03 | Chưa có clean run bằng provider thật trên revision cuối | `config.json` dùng provider thật, `use_mock=false`; chưa có xác nhận quota/network/artifact và A/B chưa freeze tài liệu | C chạy sau khi người dùng duyệt; A/B freeze trước | Có, chuyển Tuần 10 |
+| C-9.5-03 | Chưa có clean run bằng provider thật trên revision cuối | Preflight đã đạt; lần gọi bị chặn trước request vì chưa có xác nhận riêng về gửi dữ liệu ra Gemini và quota/chi phí | C chạy sau khi người dùng duyệt rõ hai rủi ro này | Có, chuyển Tuần 10 |
 | Artifact đóng gói | `test_tools` có thể tạo lại `memory.db` khi khởi tạo `MemoryTool`; file vẫn đang được Git theo dõi | Không làm CTest fail nhưng không nên nằm trong commit/gói nộp | C theo dõi đóng gói; B kiểm tra lifecycle MemoryTool nếu cần | Có, xử lý trước lúc đóng gói |
 
 **Điều kiện Role C hoàn thành:** offline integration gate pass sau patch B; review chéo tài liệu xong; benchmark thật hoặc được ghi hoãn minh bạch theo quyết định người dùng.
@@ -417,14 +420,14 @@ A khóa UML/OOP      C chạy integration gate
 | Role | Code/integration | Focused test | Tài liệu/review | Kết luận Tuần 9.5 |
 |------|------------------|--------------|-----------------|-------------------|
 | A | Template Method, Environment và ownership chính đã tích hợp | `test_template_method` pass | Report OOP còn ba claim chưa khớp source/CMake | `PARTIALLY DONE` |
-| B | Registry/Factory, alias/policy và registration regression đã tích hợp | Core fixture pass; thiếu duplicate creator và error paths | Report Tools còn claim stale và thiếu URL nguồn | `PARTIALLY DONE` |
-| C | Harness/Environment/trajectory/multi-agent gate pass | Harness + full CTest 4/4 pass; artifacts cũ không còn là điều kiện pass | Tài liệu C và review chéo đã xong; đã trả finding đúng owner | `DONE` phần trong quyền thực hiện; benchmark thật `BLOCKED` chờ approval |
+| B | Registry/Factory, alias/policy và registration regression đã tích hợp | Duplicate creator + offline error fixtures pass; Web/timeout deferred | Core report fixed; citation cleanup remains | `PARTIALLY DONE` |
+| C | Harness/Environment/trajectory/multi-agent gate pass | HEAD `08202f5`: bảy target, bốn executables, CTest 4/4 | Evidence/review updated after Role B | `DONE` phần trong quyền thực hiện; benchmark thật `BLOCKED` chờ approval |
 
-Role C có phạm vi và bằng chứng tương xứng với hai Role còn lại, đồng thời đang hoàn thiện hơn ở integration/test/documentation. Phần còn thiếu của cả nhóm không nên được chuyển sang C sửa thay: A phải sửa report OOP; B phải bổ sung edge-case test và sửa report Tools. C chỉ còn benchmark provider thật có điều kiện.
+Role C đã đóng lại offline gate sau merge Role B. Phần còn thiếu của B là citation và Web/timeout coverage đã ghi rõ để chuyển Tuần 10; C chỉ còn benchmark provider thật có điều kiện.
 
 ## Điểm cần người dùng xác nhận
 
-1. Có yêu cầu chạy benchmark provider thật sau khi offline gate pass hay dời sang Tuần 10.
+1. Xác nhận rõ có cho phép gửi nội dung task/project-derived ra Gemini và dùng API quota/chi phí để chạy 10 task hay dời sang Tuần 10.
 2. Có môi trường MSVC để xác minh `/std:c++latest` hay không.
 3. Bonus Harness→MultiAgentRunner có nằm trong phạm vi hiện tại không; mặc định không.
 4. Các artifact root và `memory.db` đã được xác nhận là file sinh ra; Role C đã đánh dấu xóa và thêm ignore rule. Chúng sẽ rời Git sau khi nhóm commit thay đổi này.
