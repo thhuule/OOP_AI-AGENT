@@ -12,7 +12,7 @@ Goal: demonstrate the project requirements with a short, reproducible video that
 | 2:15–3:15 | `AgentLoop` source and one tool call | An action may come from the LLM or deterministic fallback; identify which path is shown, then explain registry lookup and observation | Agent-run sequence diagram |
 | 3:15–4:00 | Tool inventory | File, exec, web, memory, calculator, and additional tools | Tools report |
 | 4:00–5:00 | `benchmark/tasks.json` and harness sequence | 10 tasks, evaluator Strategy, `StepHook`, and artifact cleanup | Batch-evaluation sequence diagram |
-| 5:00–6:15 | Run `test_harness` and `test_multi_agent`, then open the test source | Harness validation and trajectories pass; the message bus delivers the correct result and shuts down cleanly | Both tests pass |
+| 5:00–6:15 | Run CTest, then open the four focused test sources | Tools, Harness, multi-agent, and Template Method fixtures pass | CTest 4/4 |
 | 6:15–7:30 | Prepared confirmation benchmark run | Total score, categories, trajectories for tasks 005/010, and whether fallback may have supplied actions | New run directory |
 | 7:30–8:20 | Compare the 2/10 and 10/10 runs | Explain the artifact-parsing failure and improved pipeline evidence without claiming the score proves model reasoning | Evaluation report |
 | 8:20–9:00 | Limitations and backlog | Tokens are not measured, VLM is a skeleton, and the harness does not integrate sub-agents | Limitations section |
@@ -25,8 +25,11 @@ Prepare before recording; do not show lengthy package installation in the video:
 ```bash
 cmake -S . -B build
 cmake --build build -j2
+./build/test_tools
 ./build/test_harness
 ./build/test_multi_agent
+./build/test_template_method
+ctest --test-dir build --output-on-failure
 ```
 
 Record a real `run_eval` execution only if:
