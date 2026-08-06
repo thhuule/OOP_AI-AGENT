@@ -355,6 +355,7 @@ A khóa UML/OOP      C chạy integration gate
 ### Checklist Role B
 
 - [x] Hai deliverable đã xuất hiện: commit `f2cff55` cho Registry/Factory source và `4a9f959` cho `docs/report_tools.md`.
+<<<<<<< HEAD
 - [x] **B-9.5-01 — `DONE`:** sửa segfault trên đường `ToolRegistry::register_tool()` bằng cách lấy tên tool trước khi move.
 - [x] Xử lý rõ input `shared_ptr<Tool>` null và đăng ký trùng tên, không crash/undefined behavior.
 - [x] **B-9.5-02 — `DONE`:** thêm focused unit tests cho create/fresh instance/unknown/duplicate/alias/allow/deny (`benchmark/test_tools.cpp`).
@@ -364,6 +365,17 @@ A khóa UML/OOP      C chạy integration gate
 - [x] Bổ sung bảng ba tool thuộc ba nhóm, nguồn OpenClaw/Hermes, args/dependency và test evidence.
 - [x] Case study chỉ gọi 10/10 là pipeline evidence nếu action có thể đến từ fallback.
 - [x] **B-9.5-04 — `DONE`:** audit error/security tối thiểu cho Exec/Git/Web/Memory và bổ sung test cases kiểm tra error path.
+=======
+- [ ] **B-9.5-01 — `BLOCKED`:** sửa segfault trên đường `ToolRegistry::register_tool()` và thêm regression test.
+- [ ] Xử lý rõ input `shared_ptr<Tool>` null và đăng ký trùng tên, không crash/undefined behavior.
+- [ ] **B-9.5-02 — `NOT STARTED`:** thêm focused tests cho create/fresh instance/unknown/duplicate/alias/allow/deny.
+- [ ] Chứng minh `register_all_tools()` có đường khởi tạo hoặc fixture sử dụng thực; không hardcode concrete Tool vào AgentLoop.
+- [ ] Chốt contract ownership: Registry giữ gì, Factory trả gì, object sống bao lâu.
+- [ ] **B-9.5-03 — `IN PROGRESS`:** sửa các đoạn tự mâu thuẫn trong `docs/report_tools.md` về Factory và FileRead/Write/Append.
+- [ ] Bổ sung bảng ba tool thuộc ba nhóm, nguồn OpenClaw/Hermes, args/dependency và test evidence.
+- [ ] Case study chỉ gọi 10/10 là pipeline evidence nếu action có thể đến từ fallback.
+- [ ] **B-9.5-04 — `IN PROGRESS`:** audit error/security tối thiểu cho Exec/Git/Web/Memory và ghi limitation chưa xử lý.
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 
 **Điều kiện Role B hoàn thành:** patch + focused tests pass; Harness không còn crash; API/comment/report thống nhất; A/C nhận đủ contract và evidence.
 

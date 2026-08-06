@@ -20,6 +20,12 @@ bool ToolRegistry::register_creator(
     const std::string& canonical_name,
     ToolCreator creator)
 {
+<<<<<<< HEAD
+=======
+    if (creators_.find(canonical_name) != creators_.end())
+        return false;
+
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
     creators_[canonical_name] = std::move(creator);
     return true;
 }
@@ -45,8 +51,14 @@ bool ToolRegistry::register_tool(std::shared_ptr<Tool> tool)
     if (!tool)
         return false;
 
+<<<<<<< HEAD
     std::string name = std::string(tool->get_name());
     return registry_.register_item(name, std::move(tool));
+=======
+    return registry_.register_item(
+        std::string(tool->get_name()),
+        std::move(tool));
+>>>>>>> cf111427bf1483acb031b067d6a52f319e93a40f
 }
 
 Tool* ToolRegistry::lookup(const std::string& name)
