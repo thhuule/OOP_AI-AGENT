@@ -9,6 +9,8 @@
 #include "TimeTool.h"
 #include "JsonTool.h"
 #include "GitTool.h"
+#include "ScreenshotTool.h"
+#include "ActionTool.h"
 
 #include <print>    // C++23
 
@@ -124,6 +126,8 @@ void ToolRegistry::register_all_tools() {
     register_creator("time",          [] { return std::make_unique<TimeTool>(); });
     register_creator("json",          [] { return std::make_unique<JsonTool>(); });
     register_creator("git",           [] { return std::make_unique<GitTool>(); });
+    register_creator("capture_screenshot", [] { return std::make_unique<ScreenshotTool>(); });
+    register_creator("gui_action",    [] { return std::make_unique<ActionTool>(); });
 
     // ── Instances (Registry) ─────────────────────────────────────────────
     // Pre-instantiate all tools so lookup() works without create()
@@ -138,6 +142,8 @@ void ToolRegistry::register_all_tools() {
     register_tool(std::make_shared<TimeTool>());
     register_tool(std::make_shared<JsonTool>());
     register_tool(std::make_shared<GitTool>());
+    register_tool(std::make_shared<ScreenshotTool>());
+    register_tool(std::make_shared<ActionTool>());
 
     // ── Aliases (normalize before lookup or policy check) ─────────────────
     // These aliases point to the dedicated specialized tools,
@@ -146,6 +152,7 @@ void ToolRegistry::register_all_tools() {
     register_alias("exec",          "execute_shell");
     register_alias("google_search", "web_search");
     register_alias("create_file",   "write_file");   // → FileWriteTool
+    register_alias("screenshot",    "capture_screenshot");
     // "read_file", "write_file", "append_file" are canonical names now —
     // no alias needed (they are registered directly above).
 }
