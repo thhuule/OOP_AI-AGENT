@@ -3,6 +3,7 @@ build/
 config.json
 ROLE_C_FIX_REPORT
 AGENTS.md
+.idea/
 memory.db
 notes.txt
 result.txt
@@ -11,3 +12,14 @@ calc.txt
 data.txt
 output.txt
 report.txt
+
+# Generated benchmark output is local evidence by default. Keep only an
+# explicitly approved baseline under benchmark/results/latest/ in Git.
+benchmark/results/*
+!benchmark/results/latest/
+!benchmark/results/latest/**
+
+# Generated demo and local tool output.
+artifacts/*
+!artifacts/.gitkeep
+!artifacts/README.md
