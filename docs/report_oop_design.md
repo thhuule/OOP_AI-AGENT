@@ -418,5 +418,5 @@ target_compile_features(demo_multi_agent  PRIVATE cxx_std_26)
 
 - Gamma, Helm, Johnson, Vlissides. *Design Patterns: Elements of Reusable Object-Oriented Software.* Addison-Wesley, 1994.
 - cppreference.com — `std::expected` (C++23), `std::inplace_vector` (C++26), `std::ranges` (C++20).
-- Tài liệu đề bài: `filephanchiacv/OOP Project 2026 AI Agent.docx (1).md`.
+- Tài liệu đề bài: [`planning/reference/OOP Project 2026 AI Agent.docx (1).md`](../planning/reference/OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md).
 - Kết quả benchmark: `benchmark/results/run_20260801_220549_361/`.

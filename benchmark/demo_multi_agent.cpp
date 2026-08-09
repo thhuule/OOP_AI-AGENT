@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <filesystem>
 #include <memory>
 #include <string_view>
 
@@ -80,10 +81,19 @@ int main() {
     // Gửi tín hiệu dừng an toàn cho các thread
     runner.stopAndJoinAll();
 
-    // ── 4. GỘP KẾT QUẢ VÀ XUẤT OUT REPORT.TXT ────────────────────────
-    std::string report_path = "report.txt";
+    // ── 4. GỘP KẾT QUẢ VÀ XUẤT VÀO ARTIFACT CỤC BỘ ───────────────────
+    const std::filesystem::path report_path =
+        std::filesystem::path("artifacts") / "demo" / "report.txt";
     if (calc_data.empty() || search_data.empty()) {
         std::cerr << "[Main] Không nhận đủ kết quả để tạo báo cáo.\n";
+        return 1;
+    }
+
+    std::error_code directory_error;
+    std::filesystem::create_directories(report_path.parent_path(), directory_error);
+    if (directory_error) {
+        std::cerr << "[Main] Không thể tạo thư mục artifact: "
+                  << directory_error.message() << "\n";
         return 1;
     }
 
@@ -96,9 +106,10 @@ int main() {
         report_file << "2. " << search_data << "\n";
         report_file << "========================================\n";
         report_file.close();
-        std::cout << "\n[Main] Đã tạo thành công file báo cáo gộp: " << report_path << "\n";
+        std::cout << "\n[Main] Đã tạo thành công file báo cáo gộp: "
+                  << report_path.string() << "\n";
     } else {
-        std::cerr << "[Main] Lỗi không thể tạo file " << report_path << "\n";
+        std::cerr << "[Main] Lỗi không thể tạo file " << report_path.string() << "\n";
         return 1;
     }
 

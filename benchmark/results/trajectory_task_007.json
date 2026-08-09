@@ -1,8 +1,0 @@
-{
-  "model": "gemma-4-31b-it",
-  "steps": [],
-  "success": true,
-  "task_id": "task_007",
-  "total_time_ms": 5537,
-  "total_tokens": 0
-}
