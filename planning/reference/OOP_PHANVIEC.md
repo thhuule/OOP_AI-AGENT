@@ -1,10 +1,10 @@
 # Phân việc nhóm — Đồ án OOP 2026: AI Agent với Ollama API
  
 > **Nhóm:** 3 người, năng lực tương đương  
-> **Bắt đầu:** Tuần 3 | **Freeze nội bộ:** Tuần 11 | **Nộp đầy đủ:** trước 21:00 Chủ nhật Tuần 12
-> **Điểm thưởng target:** Multi-agent (+3đ)
+> **Bắt đầu:** Tuần 3 | **Code freeze nội bộ:** cuối Tuần 10 | **Nộp đầy đủ:** trước 21:00 Chủ nhật Tuần 12
+> **Điểm thưởng đã chốt Tuần 10:** Vector Search (+4đ), Multi-agent (+3đ) và VLM/GUI Agent (+8đ); chỉ bắt đầu/merge sau mọi gate bắt buộc.
 >
-> **Nguồn ràng buộc hiện hành:** [`OOP Project 2026 AI Agent.docx (1).md`](OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md). Mốc Tuần 11 và demo live Tuần 13 trong bản đề cũ đã bị hủy; Tuần 12 phải nộp thiết kế, source, báo cáo hoàn chỉnh và link YouTube video demo ở chế độ Unlisted.
+> **Nguồn ràng buộc hiện hành:** [`OOP Project 2026 AI Agent.docx (1).md`](OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md), [tổng quan Tuần 10](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) và [kế hoạch chi tiết Tuần 10](../weekly-plans/KH_Tuan10_ChiTiet.md). Mốc demo live Tuần 13 đã bị hủy; Tuần 12 phải nộp thiết kế, source, báo cáo hoàn chỉnh và link YouTube video demo ở chế độ Unlisted.
  
 ---
  
@@ -145,20 +145,21 @@
 - Lập ma trận C++: ≥4 C++17, ≥2 C++20, ≥2 C++23, ≥1 C++26; mỗi feature có file, mục đích, test và fallback nếu cần
 ---
  
-### Tuần 10 — Bug fix + Polish + Slide
- 
-- Full benchmark run, fix issues
-- Memory leak check (Valgrind hoặc AddressSanitizer)
-- Slide thuyết trình: C làm skeleton, cả nhóm review
-- Quay thử video demo: ưu tiên một agent task hoàn chỉnh, benchmark/result JSON và bằng chứng OOP; đây là lựa chọn trình bày của nhóm, không phải phục hồi checklist demo live đã bị hủy
+### Tuần 10 — Hoàn tất implementation + Code Freeze
+
+- Đóng toàn bộ requirement bắt buộc, bug, focused test và evidence/source path cho docs theo `KH_Tuan10_ChiTiet.md`; render 4 UML.
+- Clean build, 4 test executable, CTest, clean-state/benchmark evidence, sanitizer (hoặc limitation), package dry-run và clean extraction.
+- Sau mọi gate bắt buộc PASS, triển khai/merge lần lượt Vector Search (+4), Multi-agent Coordination (+3) và VLM/GUI Agent (+8); mỗi bonus merge xong phải full regression lại.
+- Chốt final revision/freeze note cuối tuần. Sau freeze: không thêm feature mới, trừ Critical Fix → targeted test → regression → re-freeze.
 ---
  
-### Tuần 11 — Freeze nội bộ + hoàn thiện video
- 
-- Review và render đủ bốn UML theo Mục IV.3 của đề.
-- Chạy quy trình build/test từ môi trường sạch, rà secret và đường dẫn tài liệu.
-- Quay/chỉnh video, đặt chế độ YouTube Unlisted và kiểm tra link bằng cửa sổ chưa đăng nhập.
-- Đây không còn là deadline nộp chính thức.
+### Tuần 11 — Presentation Phase (sau Code Freeze)
+
+- Merge, format và review cuối reports/README/submission checklist theo evidence của revision đã freeze; không thêm claim hoặc feature mới.
+- Làm slide theo final revision; cả nhóm review tính chính xác kỹ thuật.
+- Chốt demo flow, quay/chỉnh video, đặt YouTube Unlisted và kiểm tra link bằng cửa sổ chưa đăng nhập.
+- Chuẩn bị oral: mỗi người giải thích phần code/test/limitation mình phụ trách.
+- Không thêm implementation feature mới; chỉ Critical Fix theo quy trình re-freeze.
  
 ---
  
@@ -195,7 +196,8 @@
 | 7 | C++20/23/26 | Smart ptr audit | Multi-agent foundation |
 | 8 | Integration refactor | VLMEvaluator | Multi-agent demo |
 | 9 | UML + báo cáo OOP | Báo cáo Tools | README + Báo cáo Eval |
-| 10 | Bug fix | Bug fix | Slide + quay thử video |
+| 10 | Core/parser/client bug fix + docs/UML | Tool error/package fix + docs | Full regression/benchmark/freeze |
+| 11 | Review frozen code + oral | Review frozen code + oral | Slide/video/demo flow |
  
 **8 tuần × 3 người = 24 commit** → đủ an toàn, mỗi người ≥8 commit riêng.
  
@@ -232,7 +234,7 @@
 - [ ] Báo cáo: thiết kế, khó khăn, kết quả
 - [ ] Slide thuyết trình mạch lạc
 - [ ] Trước 21:00 Chủ nhật Tuần 12: thiết kế + source + báo cáo hoàn chỉnh + link YouTube Unlisted đã kiểm tra
-### Điểm thưởng (+3đ)
-- [ ] Multi-agent: spawn sub-agent trên thread mới
-- [ ] Message queue với `std::queue` + `mutex`
-- [ ] Demo task phức tạp chia 2 agent song song
+### Điểm thưởng đã chốt (tối đa +15đ; chỉ sau mandatory gates)
+- [ ] Vector Search (+4đ): embedding-based memory, cosine similarity, focused ranking test và regression pass.
+- [ ] Multi-agent (+3đ): Harness spawn sub-agent trên thread mới; message queue với `std::queue` + `mutex`; demo task phức tạp chia 2 agent song song.
+- [ ] GUI Agent (+8đ): screenshot → VLM → bounded action executor → controlled browser-search/copy demo; focused test + regression pass.

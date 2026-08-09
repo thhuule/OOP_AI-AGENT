@@ -1,83 +1,71 @@
 # Project Status — AI-AGENT OOP 2026
 
-Cập nhật lần cuối: 2026-08-06
-
-> Đây là bộ nhớ ngắn của dự án. Khi bắt đầu phiên làm việc mới, đọc file này, kế hoạch tuần hiện tại và mục mới nhất trong `../history/LICH_SU_LOI_THEO_TUAN_ROLE_ABC.md`.
+**Cập nhật lần cuối:** 2026-08-09
+**Nguồn điều phối hiện hành:** [`KH_Tuan10_TongQuan_1Trang.md`](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) để theo dõi hằng ngày và [`KH_Tuan10_ChiTiet.md`](../weekly-plans/KH_Tuan10_ChiTiet.md) cho task/DoD chi tiết. Đề chính thức, source/test/CMake và artifact mới là nguồn xác minh; file này chỉ là trạng thái tóm tắt.
 
 ## Giai đoạn hiện tại
 
-Tuần 9.5 — hoàn thành UML/báo cáo draft, đóng blocker bắt buộc ở mức tối thiểu và chuẩn bị backlog Tuần 10.
+**Tuần 10 — Completion and code-freeze week.** Mục tiêu là hoàn tất requirement bắt buộc, test evidence và toàn bộ gate rồi freeze code **trong tuần này**. Tuần sau merge/format docs, làm slide, video/demo flow và oral preparation.
+
+**Trạng thái freeze hiện tại: NO.** Không được coi code/docs/test đã freeze chỉ dựa vào evidence ở revision cũ; mọi gate phải được chạy lại trên final freeze candidate.
 
 ## Trạng thái theo Role
 
-### Role A — DONE core, pending documentation commit
+### Role A — Systems/Core: PARTIALLY DONE, verification/bug-fix remaining
 
-- Environment hierarchy đã có và đã được Role C tích hợp vào Harness.
-- Guarded C++26 fallback đã build được trên WSL bằng nhánh `std::vector`.
-- UML, report OOP, ownership Registry/Factory và MSVC flags đã được Role A sửa; focused Template Method test pass.
-- Worktree còn thay đổi `component_diagram.md` và xóa checklist trùng chưa commit; Mermaid render vẫn là bước đóng tài liệu.
-- Parser/fallback/CMake/MSVC mở rộng không mặc định thuộc Tuần 9.5; chuyển Tuần 10 nếu không phải blocker tài liệu.
+- Client, AgentLoop, LoopDetector, SkillLoader, Environment, Template Method và guarded C++26 `inplace_vector` fallback đã có source.
+- Còn phải đóng evidence/test cho multimodal và lỗi client; parser formats/malformed intent; skill selection + injection trước mỗi run; failure signals; C++ feature matrix, sanitizer/MSVC limitation; 4 Mermaid render và report/layer audit.
+- Owner tasks: A-10-01 đến A-10-07 trong kế hoạch tuần hiện hành.
 
-### Role B — DONE core, PARTIALLY DONE documentation/error matrix
+### Role B — Tools/Data: PARTIALLY DONE, error matrix/package remaining
 
-- Tool source và built-in registration đã có.
-- Main snapshot `e9e1d35` đã sửa registration bằng cách lấy tên Tool trước khi move.
-- `benchmark/test_tools.cpp` pass instance registration, Factory create/fresh/unknown, alias, allow/deny, duplicate-creator overwrite và `register_all_tools`.
-- Factory/File/alias/policy claim stale đã được sửa trong `docs/report_tools.md`.
-- URL nguồn OpenClaw/Hermes vẫn chưa có; report còn viện dẫn test trên HEAD cũ `86c7d49`.
-- Error-path fixture đã có cho Exec/Git/Json/Memory; Web/timeout path được ghi backlog Tuần 10.
+- Registry/Factory, 5 tools, 3 tool bổ sung, alias/policy và focused registry test đã có.
+- URL tham chiếu bổ sung và clean provider run được ghi trong artifact/kế hoạch mới hơn status cũ; vẫn phải đồng bộ lại revision/claim ở final docs.
+- Còn phải đóng args/error matrix, Web/Exec timeout offline fixture, memory database lifecycle và tool report review.
+- Owner tasks: B-10-01 đến B-10-05.
 
-### Role C — DONE phần có thể thực hiện, BLOCKED benchmark thật
+### Role C — Eval/Infra: PARTIALLY DONE, final verification/freeze remaining
 
-- Harness dùng `Environment` abstraction; Native chạy thật, Sandbox dùng trong focused test.
-- Phần run/evidence/fallback trong `docs/report_evaluation.md` đã audit theo source và artifact.
-- README đã phân biệt test offline, benchmark thật và fallback-assisted pipeline evidence.
-- Submission checklist và video storyboard đã đối chiếu yêu cầu Tuần 12 và trajectory thật.
-- C-9.5-01 đã xác minh lại trên HEAD `08202f5`: bảy target build, bốn executable test pass và CTest 4/4.
-- C-9.5-02 đã review lại sau Role B: claim Factory/File/alias/policy đã sửa; còn URL nguồn, HEAD evidence và Web/timeout matrix được chuyển đúng owner/backlog.
-- C-9.5-03 chưa chạy vì cấu hình dùng provider thật (`use_mock=false`) và chưa có xác nhận quota/network/artifact.
-- Checklist A/B/C được gom vào `KH_TUAN9.5.md`; không duy trì checklist riêng của C.
+- Harness, evaluator, trajectory, multi-agent queue/thread baseline, CMake targets và 4 CTest tests đã có.
+- Có clean provider artifact `run_20260807_085427_143` với 10/10 pipeline PASS; nó không chứng minh model reasoning và phải được re-verify/ghi limitation ở freeze candidate.
+- Còn phải chốt clean-state/action-level/failure/post-condition audit, full offline regression, benchmark approved quota, docs merge, package dry-run, clean extraction và freeze note.
+- Owner tasks: C-10-01 đến C-10-05.
 
-## Xác minh gần nhất
+## Mandatory requirements not yet closed
 
-Ngày 2026-08-06:
+- LLM multimodal + timeout/connection/malformed-JSON verification.
+- Skill injection-before-every-run proof; parser/invalid tool-intent and loop/failure coverage.
+- Tool args and Web/timeout offline error coverage.
+- Feature/test matrix C++17/20/23/26, sanitizer and MSVC evidence/limitation.
+- All four diagram renders; report/README claim and link audit.
+- Clean final build, full tests/CTest, action-level/post-condition inspection, clean package/extraction.
 
-- `cmake -S . -B build` và `cmake --build build -j2`: thành công trên HEAD `08202f5`.
-- Bảy target build: `OopAgent`, `run_eval`, `test_multi_agent`, `test_harness`, `test_tools`, `test_template_method`, `demo_multi_agent`.
-- `./build/test_tools`: `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY`.
-- `./build/test_harness`: `ALL HARNESS TESTS PASSED`.
-- `./build/test_multi_agent`: `ALL PASSED`.
-- `./build/test_template_method`: `ALL ROLE A TESTS PASSED SUCCESSFULLY`.
-- CTest: 4/4, 100% pass.
-- Không chạy `run_eval` thật trong lượt này.
+## Bonus status — committed for Tuần 10
 
-## Việc tiếp theo
+- **Vector search (+4): NOT STARTED.** `std::inplace_vector` is the C++26 requirement, not the embedding/cosine vector-search bonus.
+- **Multi-agent (+3): PARTIAL BASELINE.** Queue/thread ping-pong works, but Harness spawning two parallel sub-agents for a decomposed complex task is not yet proven.
+- **VLM/GUI Agent (+8): NOT STARTED.** The current `VLMEvaluator` skeleton is not this bonus; the bonus needs screenshot → image-capable model → bounded action executor → controlled demo.
+- The team has committed all three for Tuần 10. Each starts/merges only after mandatory gates PASS and requires focused tests plus full regression.
 
-1. Role B bổ sung URL nguồn trực tiếp, cập nhật HEAD evidence và để Web/timeout tests trong backlog Tuần 10 nếu chưa cần.
-2. Role A commit hai thay đổi tài liệu đang ở worktree và cung cấp render evidence khi đóng gói.
-3. Chỉ chạy benchmark provider thật khi code/docs freeze và người dùng xác nhận quota/network/artifact.
+## Latest recorded evidence (not a freeze declaration)
 
-## Blocked / Cần xác nhận
+- Plan/artifact records a clean provider run `run_20260807_085427_143` with 10 tasks PASS, labelled pipeline evidence with fallback limitation.
+- Earlier documented offline gate: all 7 targets built; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` passed; CTest 4/4.
+- These results must be repeated on the final candidate because the current repository has commits after the cited historical revisions.
 
-- Benchmark sạch bằng provider thật: offline gate đã pass; còn chờ A/B freeze và xác nhận người dùng.
-- Report Tools còn thiếu link nguồn trực tiếp và dùng HEAD evidence cũ; Web/timeout error paths chưa có focused test.
-- Tám artifact root đã được đánh dấu xóa và thêm ignore rule; cần commit để chúng thực sự rời Git.
-- Rubric có bắt buộc ToolRegistry dùng trực tiếp `Registry<T>` hay Factory hiện tại kèm test là đủ.
-- Có môi trường MSVC để xác minh `/std:c++latest` cho mọi target hay không.
-- Có chọn bonus Harness→MultiAgentRunner hay không; mặc định chưa làm.
+## Freeze blockers / confirmations
 
-## Backlog Tuần 10
+- Any failing mandatory test, requirement without source/test/doc mapping, or package secret/artifact leak blocks freeze.
+- Provider quota/network approval is needed only for a new real-provider benchmark. Without it, record the limitation; do not fabricate a fresh run.
+- MSVC availability determines whether there is a real MSVC build log or an explicit limitation.
+- Every deletion/rename and final ZIP name requires owner/team confirmation before packaging.
 
-- Parser/fallback refactor và focused regression tests.
-- Failure taxonomy: rate limit, timeout, loop, incomplete task và parser signal.
-- Token telemetry thật; không suy token từ độ dài chuỗi.
-- Ghi nguồn action `llm` hoặc `fallback` vào trajectory.
-- Artifact isolation nâng cao, sanitizer/Valgrind và bug-fix rộng.
-- Benchmark sạch cuối cùng sau code freeze.
+## Next action order
 
-## Tài liệu cần đọc tiếp
+1. A/B close focused code/test gaps in parallel; C prepares clean-state checks.
+2. Merge to one freeze candidate and run clean build, all focused tests, CTest and sanitizer.
+3. Lock source/test evidence and render diagrams; merge/format/final-review docs in Tuần 11.
+4. Implement and merge Vector Search, Multi-agent and VLM/GUI Agent one at a time; repeat full regression after each.
+5. Dry-run package + clean extraction, record final revision, declare code freeze.
 
-- Kế hoạch chuyển tiếp: [`../weekly-plans/KH_TUAN9.5.md`](../weekly-plans/KH_TUAN9.5.md).
-- Lịch sử thay đổi/lỗi: [`../history/LICH_SU_LOI_THEO_TUAN_ROLE_ABC.md`](../history/LICH_SU_LOI_THEO_TUAN_ROLE_ABC.md).
-- Role C Environment fix: ghi nhận trong lịch sử lỗi; file log riêng không có trong worktree hiện tại.
-- Báo cáo Evaluation: `docs/report_evaluation.md`.
+After freeze: **No feature changes unless Critical Fix → targeted test → regression → re-freeze.** Tuần 11 docs chỉ được merge từ evidence đã khóa.
