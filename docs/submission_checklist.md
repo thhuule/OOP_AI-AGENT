@@ -59,7 +59,11 @@ Run these checks before packaging:
 git status --short
 git diff --check
 git ls-files config.json build memory.db notes.txt result.txt capital.txt calc.txt data.txt output.txt report.txt
+git ls-files benchmark/results
+./scripts/check_repo_hygiene.sh --package
 ```
+
+Only `benchmark/results/latest/` may contain committed benchmark evidence. The hygiene gate also checks for local build output, secrets, root artifacts, and IDE/cache folders before packaging.
 
 ## 5. ZIP Name and Contents
 

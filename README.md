@@ -9,7 +9,7 @@ A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, 
 | LLM client | Sends conversation history to Gemini or Ollama | `src/client/` |
 | Agent loop | Coordinates prompts, LLM responses, tool calls, and stopping conditions | `src/agent/` |
 | Tool registry | Registers, resolves, and executes tools | `src/tools/` |
-| Skill system | Loads Markdown instructions into the system prompt | `src/skills/` |
+| Skill system | Loads Markdown instructions into the system prompt | `skills/` |
 | Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories | `src/harness/`, `benchmark/` |
 | Environment | Provides real-filesystem and in-memory artifact operations for the harness | `src/environment/` |
 | Multi-agent | Provides worker threads, a dispatcher, and message queues | `src/multiagent/` |
@@ -27,6 +27,35 @@ sudo apt install cmake g++ libcurl4-openssl-dev nlohmann-json3-dev libsqlite3-de
 
 The project requires CMake 3.28 or newer. GNU and Clang builds use `-std=c++26`, so the compiler must support the C++ features used by the source code.
 
+## Start Here
+
+Use this order when joining the project or returning after a break:
+
+1. Read [current project status](planning/status/PROJECT_STATUS.md) for the active goal, blockers, and latest verified gate.
+2. Read the current weekly plan in [`planning/weekly-plans/`](planning/weekly-plans/). Older weekly plans and error logs are historical context, not the current source of truth.
+3. Read this README, then build and run the local tests before changing code.
+4. Use [documentation guidance](docs/DOCUMENTATION_GUIDE.md) when updating a report, diagram, benchmark claim, or checklist.
+
+The repository uses these top-level areas:
+
+| Area | Purpose |
+|---|---|
+| `src/` | Product code, grouped by responsibility. |
+| `skills/` | Markdown instructions loaded by the agent. |
+| `benchmark/` | Evaluation tasks, runners, focused tests, and local result output. |
+| `docs/` | User-facing technical reports, diagrams, and submission material. |
+| `planning/` | Team status, weekly plans, ownership notes, and historical decision/error records. |
+| `include/` | Vendored and shared headers. |
+| `artifacts/` | Local demo output and other generated files that must stay out of Git. |
+
+## Repository Hygiene
+
+- Treat files in the repository root such as `result.txt`, `report.txt`, and `memory.db` as generated local output. They must not be added to Git.
+- `benchmark/results/latest/` is the only location where the team may commit an approved benchmark baseline. All other benchmark output is ignored.
+- Demo output belongs in `artifacts/`, not the repository root.
+- IDE folders such as `.idea/` and build output are local-only.
+- `.gitignore` does not remove a file that Git already tracks. Before final packaging, review tracked legacy artifacts with the command in the submission checklist and remove them from the index only in a dedicated, reviewed cleanup commit.
+
 ## Build
 
 Run the following commands from the repository root inside WSL:
@@ -42,7 +71,7 @@ The build produces five executables in `build/`:
 - `run_eval`: runs the 10-task batch from `benchmark/tasks.json` and exports results.
 - `test_harness`: runs local focused tests for task validation, evaluator Strategy selection, StepHook recording, cleanup, failure taxonomy, and score aggregation; it does not require an LLM API.
 - `test_multi_agent`: runs local tests for the dispatcher, message queue, and clean shutdown; it does not require an LLM API.
-- `demo_multi_agent`: runs calculator and search workers, then creates `report.txt`. Its web-search path may use the network.
+- `demo_multi_agent`: runs calculator and search workers, then creates `artifacts/demo/report.txt`. Its web-search path may use the network.
 
 ## Configuration
 
@@ -117,7 +146,7 @@ Run the multi-agent demo only when network access to DuckDuckGo is acceptable:
 ./build/demo_multi_agent
 ```
 
-The demo creates `report.txt` in the working directory. It is an independent extension and is not evidence that the benchmark harness coordinates sub-agents.
+The demo creates `artifacts/demo/report.txt`. It is an independent extension and is not evidence that the benchmark harness coordinates sub-agents.
 
 ## Running the Benchmark
 
@@ -144,6 +173,8 @@ benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
 └── ...
 ```
 
+The timestamped directory is local output. To preserve an approved baseline, review it and copy only the selected files to `benchmark/results/latest/`, including a short note with its run ID, revision, provider/model, and fallback limitation.
+
 `eval_results.json` contains the evaluator score, action-level score, and final success rate. Each trajectory contains the thought, action, tool result, and latency for its recorded tool steps.
 
 `tokens_used` is currently `0` because the clients do not pass provider token metadata to the harness. This value means **not measured**; it does not mean that the model used no tokens.
@@ -160,7 +191,7 @@ A task that requires tools reaches final success only when its evaluator passes 
 
 The current `AgentLoop` contains a deterministic fallback plan for known benchmark instructions. It checks this plan before asking the LLM and includes task-specific filenames and values. A fallback action still calls the real registered tool and can prove that the tool/harness/evaluator pipeline works, but it does **not** prove that the configured model selected the tool or calculated the answer independently.
 
-Files under `benchmark/results/` are historical evidence. A claim about the current revision must come from a new, clean run using the stated provider. Until trajectories record the source of each action, report a passing run as **pipeline evidence** and state that it may be fallback-assisted; do not describe it as proof of model reasoning quality.
+Files under `benchmark/results/latest/` are the selected baseline evidence. Timestamped run directories are local history. A claim about the current revision must come from a new, clean run using the stated provider. Until trajectories record the source of each action, report a passing run as **pipeline evidence** and state that it may be fallback-assisted; do not describe it as proof of model reasoning quality.
 
 ## Security
 
