@@ -16,7 +16,8 @@ JsonTool::get_name() const noexcept
 std::string_view
 JsonTool::get_description() const noexcept
 {
-    return "Parse and pretty print JSON.";
+    return "Parse and pretty print JSON. Args: the JSON string to format. "
+           "Example: {\"a\":1}";
 }
 
 std::expected<std::string, ToolError>

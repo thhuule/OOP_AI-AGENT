@@ -1,5 +1,9 @@
 #include <cassert>
+#include <chrono>
+#include <cmath>
+#include <filesystem>
 #include <iostream>
+#include <string>
 #include "tools/ToolRegistry.h"
 #include "tools/CalculatorTool.h"
 #include "tools/FileTool.h"
@@ -9,6 +13,9 @@
 #include "tools/TimeTool.h"
 #include "tools/JsonTool.h"
 #include "tools/GitTool.h"
+#include "tools/Embedding.h"
+#include "tools/ScreenshotTool.h"
+#include "tools/ActionTool.h"
 
 using namespace oop_agent;
 
@@ -160,12 +167,15 @@ void test_register_all_tools() {
     assert(reg.has_instance("time"));
     assert(reg.has_instance("json"));
     assert(reg.has_instance("git"));
+    assert(reg.has_instance("capture_screenshot"));
+    assert(reg.has_instance("gui_action"));
     
     // Verify aliases
     assert(reg.lookup("calculate") != nullptr);
     assert(reg.lookup("exec") != nullptr);
     assert(reg.lookup("google_search") != nullptr);
     assert(reg.lookup("create_file") != nullptr);
+    assert(reg.lookup("screenshot") != nullptr);
     
     // Verify tool execution returns valid result
     Tool* calc = reg.lookup("calculator");
@@ -218,6 +228,462 @@ void test_tool_error_paths() {
     std::cout << "  -> PASSED\n";
 }
 
+/// B-10-01: Canonical names & description contract.
+///
+/// Mọi tool được expose phải:
+///   1. Có get_name() trùng canonical name được lookup trong registry.
+///   2. Có description không rỗng và không gọi tên tool không tồn tại
+///      (ví dụ legacy "python_interpreter" từ danh sách lỗi lịch sử).
+///   3. Alias phải resolve về canonical name thật.
+void test_canonical_names_and_descriptions() {
+    std::cout << "[TEST] Running test_canonical_names_and_descriptions...\n";
+    ToolRegistry reg;
+    reg.register_all_tools();
+
+    for (const char* name : {"calculator", "file", "read_file", "write_file",
+                             "append_file", "execute_shell", "web_search",
+                             "memory", "time", "json", "git",
+                             "capture_screenshot", "gui_action"}) {
+        Tool* t = reg.lookup(name);
+        assert(t != nullptr);
+        assert(std::string(t->get_name()) == name);
+        assert(!t->get_description().empty());
+
+        const std::string desc(t->get_description());
+        assert(desc.find("python_interpreter") == std::string::npos);
+    }
+
+    // Aliases must resolve to a registered canonical tool.
+    assert(reg.lookup("calculate")->get_name() == "calculator");
+    assert(reg.lookup("exec")->get_name() == "execute_shell");
+    assert(reg.lookup("google_search")->get_name() == "web_search");
+    assert(reg.lookup("create_file")->get_name() == "write_file");
+    assert(reg.lookup("screenshot")->get_name() == "capture_screenshot");
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-02: FileWriteTool / FileReadTool args parsing đa format.
+///
+///   - CSV string:      "result.txt,1081"
+///   - JSON {"path"...}   {"path":"notes.txt","content":"Agent test run"}
+///   - JSON {"filename"}  {"filename":"capital.txt","content":"Tokyo"}
+///   - invalid input phải trả ToolError (std::unexpected), không throw.
+void test_file_args_formats() {
+    std::cout << "[TEST] Running test_file_args_formats...\n";
+    FileWriteTool writer;
+    FileAppendTool appender;
+    FileReadTool reader;
+
+    // CSV string format: filename,content
+    auto csv = writer.execute("result.txt,1081");
+    assert(csv.has_value());
+
+    // JSON with "path" key
+    auto jpath = writer.execute(R"({"path":"notes.txt","content":"Agent test run"})");
+    assert(jpath.has_value());
+
+    // JSON with "filename" key
+    auto jfname = writer.execute(R"({"filename":"capital.txt","content":"Tokyo"})");
+    assert(jfname.has_value());
+
+    // Append CSV format
+    auto append = appender.execute("data.txt,appended");
+    assert(append.has_value());
+
+    // Read back with plain path and JSON {"path":...}
+    auto plain = reader.execute("result.txt");
+    assert(plain.has_value());
+    assert(plain.value().find("1081") != std::string::npos);
+
+    auto jread = reader.execute(R"({"path":"capital.txt"})");
+    assert(jread.has_value());
+    assert(jread.value().find("Tokyo") != std::string::npos);
+
+    // Invalid inputs -> ToolError::InvalidArgument
+    auto empty = writer.execute("");
+    assert(!empty.has_value());
+    assert(empty.error() == ToolError::InvalidArgument);
+
+    auto missing_content = writer.execute(R"({"filename":"only_name.txt"})");
+    assert(!missing_content.has_value());
+    assert(missing_content.error() == ToolError::InvalidArgument);
+
+    std::filesystem::remove("result.txt");
+    std::filesystem::remove("notes.txt");
+    std::filesystem::remove("capital.txt");
+    std::filesystem::remove("data.txt");
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-02: CalculatorTool trim khoảng trắng và trả ToolError cho input xấu.
+void test_calculator_args_trim() {
+    std::cout << "[TEST] Running test_calculator_args_trim...\n";
+    CalculatorTool calc;
+
+    // Không khoảng trắng
+    auto no_space = calc.execute("47*23");
+    assert(no_space.has_value());
+    assert(no_space.value().find("1081") != std::string::npos);
+
+    // Có khoảng trắng thừa
+    auto spaced = calc.execute(" 47 * 23 ");
+    assert(spaced.has_value());
+    assert(spaced.value().find("1081") != std::string::npos);
+
+    auto add = calc.execute("2+3");
+    assert(add.has_value());
+    assert(add.value().find("5") != std::string::npos);
+
+    // Invalid -> InvalidArgument; chia cho 0 -> ExecutionFailed
+    auto bad = calc.execute("abc");
+    assert(!bad.has_value());
+    assert(bad.error() == ToolError::InvalidArgument);
+
+    auto div0 = calc.execute("1/0");
+    assert(!div0.has_value());
+    assert(div0.error() == ToolError::ExecutionFailed);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-02: MemoryTool hai mode save/search và invalid input trả ToolError.
+void test_memory_modes() {
+    std::cout << "[TEST] Running test_memory_modes...\n";
+    MemoryTool mem;
+
+    auto saved = mem.execute("save Tokyo");
+    assert(saved.has_value());
+
+    auto found = mem.execute("search Tokyo");
+    assert(found.has_value());
+    assert(found.value().find("Tokyo") != std::string::npos);
+
+    auto notfound = mem.execute("search zzz_no_such_keyword_zzz");
+    assert(notfound.has_value());
+    assert(notfound.value().find("No memory found") != std::string::npos);
+
+    auto bad = mem.execute("unknown_command");
+    assert(!bad.has_value());
+    assert(bad.error() == ToolError::InvalidArgument);
+
+    auto empty = mem.execute("");
+    assert(!empty.has_value());
+    assert(empty.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-02: ExecTool policy (deny qua registry) và args rỗng trả ToolError.
+void test_exec_policy() {
+    std::cout << "[TEST] Running test_exec_policy...\n";
+    ToolRegistry reg;
+    reg.register_all_tools();
+    reg.deny("execute_shell");
+
+    // Deny chặn cả alias "exec" trước lookup/create.
+    assert(!reg.is_allowed("execute_shell"));
+    assert(reg.lookup("exec") == nullptr);
+    assert(reg.create("exec") == nullptr);
+
+    ExecTool exec;
+    auto empty = exec.execute("");
+    assert(!empty.has_value());
+    assert(empty.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-03: ExecTool timeout offline fixture.
+///
+///   - Lệnh sleep dài hơn timeout -> ExecutionFailed (không cần mạng).
+///   - Lệnh hợp lệ exit 0 -> trả về output.
+/// Chạy offline, không phụ thuộc network. Exit-code khác 0 không bị classify
+/// thành ToolError vì FunctionalEvaluator dựa trên output nội dung ("PASS")
+/// khi script như "test -f missing.txt && echo PASS" trả non-zero.
+void test_exec_timeout_offline() {
+    std::cout << "[TEST] Running test_exec_timeout_offline...\n";
+
+    // Timeout 200ms, lệnh sleep 2s -> bị kill, trả ExecutionFailed.
+    ExecTool fast(std::chrono::milliseconds(200));
+    auto timed_out = fast.execute("sleep 2");
+    assert(!timed_out.has_value());
+    assert(timed_out.error() == ToolError::ExecutionFailed);
+
+    // Lệnh hợp lệ -> có value chứa output.
+    ExecTool exec;
+    auto ok = exec.execute("printf hello");
+    assert(ok.has_value());
+    assert(ok.value().find("hello") != std::string::npos);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// B-10-03: WebSearchTool offline fixture.
+///
+/// Override http_get() (protected virtual seam) để inject:
+///   - network failure  -> ExecutionFailed
+///   - timeout          -> ExecutionFailed
+///   - HTTP error body  -> ExecutionFailed / NotFound theo parse
+///   - JSON hợp lệ      -> parse trả AbstractText/Answer
+/// Không gửi request thật, chạy ổn định offline.
+class FakeWebSearchTool : public WebSearchTool
+{
+public:
+    std::expected<std::string, ToolError> response;
+
+    std::expected<std::string, ToolError>
+    http_get(const std::string&) override
+    {
+        return response;
+    }
+};
+
+void test_websearch_offline_fixture() {
+    std::cout << "[TEST] Running test_websearch_offline_fixture...\n";
+
+    FakeWebSearchTool tool;
+
+    // Network failure / timeout -> ExecutionFailed, không throw.
+    tool.response = std::unexpected(ToolError::ExecutionFailed);
+    auto net = tool.execute("C++ programming");
+    assert(!net.has_value());
+    assert(net.error() == ToolError::ExecutionFailed);
+
+    // HTTP error body (JSON không có AbstractText/Answer/RelatedTopics).
+    tool.response = R"({"error": "internal server error"})";
+    auto http_err = tool.execute("C++");
+    assert(!http_err.has_value());
+    assert(http_err.error() == ToolError::NotFound);
+
+    // JSON hợp lệ: AbstractText -> trả về nội dung.
+    tool.response = R"({"AbstractText": "C++ is a compiled language."})";
+    auto ok = tool.execute("C++");
+    assert(ok.has_value());
+    assert(ok.value().find("compiled") != std::string::npos);
+
+    // JSON hợp lệ: chỉ có Answer -> trả về Answer.
+    tool.response = R"({"Answer": "42"})";
+    auto answer = tool.execute("life");
+    assert(answer.has_value());
+    assert(answer.value().find("42") != std::string::npos);
+
+    // Args rỗng -> InvalidArgument.
+    auto empty = tool.execute("");
+    assert(!empty.has_value());
+    assert(empty.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// BNS-V-01: cosine similarity với fixed vectors (deterministic, không mạng).
+void test_cosine_similarity_fixed_vectors() {
+    std::cout << "[TEST] Running test_cosine_similarity_fixed_vectors...\n";
+
+    // Trùng nhau -> ~1.0
+    EmbeddingVector a = {1.0f, 0.0f, 0.0f};
+    EmbeddingVector b = {1.0f, 0.0f, 0.0f};
+    assert(std::abs(cosine_similarity(a, b) - 1.0f) < 1e-5f);
+
+    // Trực giao -> ~0.0
+    EmbeddingVector c = {0.0f, 1.0f, 0.0f};
+    assert(std::abs(cosine_similarity(a, c)) < 1e-5f);
+
+    // Ngược chiều -> ~-1.0
+    EmbeddingVector d = {-1.0f, 0.0f, 0.0f};
+    assert(std::abs(cosine_similarity(a, d) + 1.0f) < 1e-5f);
+
+    // Cùng hướng, khác norm -> ~1.0 (bất biến scale)
+    EmbeddingVector e = {3.0f, 0.0f, 0.0f};
+    assert(std::abs(cosine_similarity(a, e) - 1.0f) < 1e-5f);
+
+    // Rỗng / lệch size -> 0.0
+    assert(cosine_similarity({}, {}) == 0.0f);
+    assert(cosine_similarity({1.0f}, {1.0f, 2.0f}) == 0.0f);
+
+    // HashEmbedder deterministic: cùng text -> cùng vector, chiều cố định.
+    HashEmbedder he;
+    const auto v1 = he.embed("Tokyo weather");
+    const auto v2 = he.embed("Tokyo weather");
+    const auto v3 = he.embed("Beijing food");
+    assert(v1.size() == kEmbeddingDim);
+    assert(v1 == v2);
+    assert(cosine_similarity(v1, v2) > 0.999f);
+    // Text khác nhau về ngữ nghĩa cùng domain vẫn cho similarity hợp lý.
+    assert(cosine_similarity(v1, v3) < 1.0f);
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// BNS-V-01: integration — lưu memory kèm embedding và ranking theo cosine.
+void test_memory_vector_search_ranking() {
+    std::cout << "[TEST] Running test_memory_vector_search_ranking...\n";
+    MemoryTool mem;
+
+    // vsave lưu kèm vector; vsearch trả về ranking theo độ tương đồng.
+    auto s1 = mem.execute("vsave weather in Tokyo");
+    assert(s1.has_value());
+
+    auto s2 = mem.execute("vsave food in Vietnam");
+    assert(s2.has_value());
+
+    auto s3 = mem.execute("vsave C++ programming");
+    assert(s3.has_value());
+
+    // Query về weather -> kết quả weather đứng đầu.
+    auto q1 = mem.execute("vsearch Tokyo climate");
+    assert(q1.has_value());
+    assert(q1.value().find("weather") != std::string::npos);
+    assert(q1.value().find("1.") != std::string::npos);
+
+    // Query về lập trình -> kết quả C++ đứng đầu.
+    // (Char n-gram hasher cần lexical overlap; "c++ coding" share "c++/ing"
+    // với doc lưu, trong khi weather/food hầu như không có.)
+    auto q2 = mem.execute("vsearch c++ coding");
+    assert(q2.has_value());
+    assert(q2.value().find("C++") != std::string::npos);
+
+    // Invalid: vsave/vsearch rỗng -> InvalidArgument.
+    auto bad_save = mem.execute("vsave");
+    assert(!bad_save.has_value());
+    assert(bad_save.error() == ToolError::InvalidArgument);
+
+    auto bad_search = mem.execute("vsearch");
+    assert(!bad_search.has_value());
+    assert(bad_search.error() == ToolError::InvalidArgument);
+
+    // save/search cũ vẫn hoạt động (regression).
+    auto old_save = mem.execute("save legacy entry");
+    assert(old_save.has_value());
+    auto old_search = mem.execute("search legacy");
+    assert(old_search.has_value());
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// BNS-G-01 (B): ScreenshotTool contract — mock capture, base64 encode.
+class FakeScreenshotTool : public ScreenshotTool
+{
+public:
+    std::expected<std::string, ToolError> fake_png;
+
+    std::expected<std::string, ToolError>
+    capture_png() override
+    {
+        return fake_png;
+    }
+};
+
+void test_screenshot_contract() {
+    std::cout << "[TEST] Running test_screenshot_contract...\n";
+
+    // Capture thành công (PNG giả) -> base64 data URI, không throw.
+    FakeScreenshotTool ok;
+    ok.fake_png = std::string("\x89PNG\r\n\x1a\n fakebytes", 14);
+    auto res = ok.execute("");
+    assert(res.has_value());
+    assert(res.value().find("data:image/png;base64,") == 0);
+    // base64 đầy đủ của 14 byte giả = "iVBORw0KGgogZmFrZWI=" (đã verify roundtrip).
+    assert(res.value().find("iVBORw0KGgogZmFrZWI=") != std::string::npos);
+
+    // Capture thất bại -> NotFound, không throw/crash.
+    FakeScreenshotTool fail;
+    fail.fake_png = std::unexpected(ToolError::NotFound);
+    auto err = fail.execute("hint");
+    assert(!err.has_value());
+    assert(err.error() == ToolError::NotFound);
+
+    // base64_encode padding 1 byte và 2 byte đúng chuẩn.
+    assert(ScreenshotTool::base64_encode("M") == "TQ==");
+    assert(ScreenshotTool::base64_encode("Ma") == "TWE=");
+    assert(ScreenshotTool::base64_encode("Man") == "TWFu");
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// BNS-G-01 (B): ActionTool — allow-list, validate input, deny không hợp lệ.
+class RecordingActionTool : public ActionTool
+{
+public:
+    bool performed = false;
+    std::string last_action;
+    std::string last_payload;
+
+    std::expected<std::string, ToolError>
+    perform_action(const std::string& action,
+                   const std::string& payload) override
+    {
+        performed = true;
+        last_action = action;
+        last_payload = payload;
+        return std::string("ok");
+    }
+};
+
+void test_action_tool_safety() {
+    std::cout << "[TEST] Running test_action_tool_safety...\n";
+
+    // click hợp lệ -> perform_action được gọi, payload đúng.
+    RecordingActionTool click;
+    auto c = click.execute("click 100 200");
+    assert(c.has_value());
+    assert(click.performed);
+    assert(click.last_action == "click");
+    assert(click.last_payload == "100 200");
+
+    // type_text hợp lệ -> payload là text.
+    RecordingActionTool type;
+    auto t = type.execute("type_text hello world");
+    assert(t.has_value());
+    assert(type.last_action == "type_text");
+    assert(type.last_payload == "hello world");
+
+    // key_press với key trong allow-list -> pass.
+    RecordingActionTool key;
+    auto k = key.execute("key_press return");
+    assert(k.has_value());
+    assert(key.last_action == "key_press");
+    assert(key.last_payload == "return");
+
+    // Hành động ngoài allow-list -> AccessDenied.
+    RecordingActionTool denied;
+    auto d = denied.execute("run_any_shell rm -rf /");
+    assert(!d.has_value());
+    assert(d.error() == ToolError::AccessDenied);
+    assert(!denied.performed);
+
+    // Key ngoài allow-list -> AccessDenied.
+    auto bad_key = denied.execute("key_press ctrl+c");
+    assert(!bad_key.has_value());
+    assert(bad_key.error() == ToolError::AccessDenied);
+
+    // Toạ độ âm / quá lớn -> InvalidArgument.
+    auto neg = denied.execute("click -5 10");
+    assert(!neg.has_value());
+    assert(neg.error() == ToolError::InvalidArgument);
+
+    auto huge = denied.execute("click 1000001 0");
+    assert(!huge.has_value());
+    assert(huge.error() == ToolError::InvalidArgument);
+
+    // Args rỗng / thiếu thành phần -> InvalidArgument.
+    auto empty = denied.execute("");
+    assert(!empty.has_value());
+    assert(empty.error() == ToolError::InvalidArgument);
+
+    auto no_xy = denied.execute("click 10");
+    assert(!no_xy.has_value());
+    assert(no_xy.error() == ToolError::InvalidArgument);
+
+    // type_text quá dài -> InvalidArgument.
+    std::string long_text(ActionTool::kMaxTextLength + 1, 'a');
+    auto too_long = denied.execute("type_text " + long_text);
+    assert(!too_long.has_value());
+    assert(too_long.error() == ToolError::InvalidArgument);
+
+    std::cout << "  -> PASSED\n";
+}
+
 int main() {
     std::cout << "=== RUNNING ROLE B TOOL REGISTRY & FACTORY FOCUSED TESTS ===\n";
     test_registry_instance_registration();
@@ -227,6 +693,17 @@ int main() {
     test_duplicate_creator_overwrite();
     test_register_all_tools();
     test_tool_error_paths();
+    test_canonical_names_and_descriptions();
+    test_file_args_formats();
+    test_calculator_args_trim();
+    test_memory_modes();
+    test_exec_policy();
+    test_exec_timeout_offline();
+    test_websearch_offline_fixture();
+    test_cosine_similarity_fixed_vectors();
+    test_memory_vector_search_ranking();
+    test_screenshot_contract();
+    test_action_tool_safety();
     std::cout << "=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===\n";
     return 0;
 }

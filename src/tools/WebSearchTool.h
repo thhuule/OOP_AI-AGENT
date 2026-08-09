@@ -25,7 +25,7 @@ public:
     std::expected<std::string, ToolError>
     execute(const std::string& arguments) override;
 
-private:
+protected:
 
     /**
      * @brief Callback của libcurl để ghi dữ liệu nhận được.
@@ -37,9 +37,10 @@ private:
         void* userp);
 
     /**
-     * @brief Thực hiện HTTP GET.
+     * @brief Thực hiện HTTP GET (virtual để test offline có thể inject
+     *        một transport giả lập network failure / timeout).
      */
-    std::expected<std::string, ToolError>
+    virtual std::expected<std::string, ToolError>
     http_get(const std::string& url);
 
     /**

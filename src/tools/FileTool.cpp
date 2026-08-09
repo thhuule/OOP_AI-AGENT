@@ -135,7 +135,8 @@ std::string_view FileTool::get_name() const noexcept
 
 std::string_view FileTool::get_description() const noexcept
 {
-    return "Read or write files. Usage: read <path> | write <path> <content>";
+    return "Read or write files. Usage: read <path> or write <path> <content>. "
+           "Example: write result.txt 1081";
 }
 
 std::expected<std::string, ToolError>
