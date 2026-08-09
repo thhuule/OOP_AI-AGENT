@@ -30,7 +30,11 @@ public:
 
     [[nodiscard]]
     std::string_view
-    get_description() const noexcept override { return "Read a file. Example: notes.txt"; }
+    get_description() const noexcept override {
+        return "Read a file and return its contents. Args: filename or JSON "
+               "{\"filename\":\"notes.txt\"} or {\"path\":\"notes.txt\"}. "
+               "Example: notes.txt";
+    }
 
     std::expected<std::string, ToolError>
     execute(const std::string& arguments) override;
@@ -46,7 +50,9 @@ public:
     [[nodiscard]]
     std::string_view
     get_description() const noexcept override {
-        return "Overwrite a file. Args: filename,content or JSON {\"filename\":\"...\",\"content\":\"...\"}.";
+        return "Overwrite a file. Args: filename,content or JSON "
+               "{\"filename\":\"result.txt\",\"content\":\"1081\"}. "
+               "Example: result.txt,1081";
     }
 
     std::expected<std::string, ToolError>
@@ -63,7 +69,9 @@ public:
     [[nodiscard]]
     std::string_view
     get_description() const noexcept override {
-        return "Append content to a file. Args: filename,content or JSON {\"filename\":\"...\",\"content\":\"...\"}.";
+        return "Append content to a file. Args: filename,content or JSON "
+               "{\"filename\":\"data.txt\",\"content\":\"appended\"}. "
+               "Example: data.txt,appended";
     }
 
     std::expected<std::string, ToolError>

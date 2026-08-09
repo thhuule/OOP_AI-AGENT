@@ -52,6 +52,9 @@ add_executable(OopAgent
     src/tools/TimeTool.cpp
     src/tools/JsonTool.cpp
     src/tools/GitTool.cpp
+    src/tools/Embedding.cpp
+    src/tools/ScreenshotTool.cpp
+    src/tools/ActionTool.cpp
     src/multiagent/MultiAgentRunner.cpp
 )
 

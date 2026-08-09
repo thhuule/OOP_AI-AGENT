@@ -11,7 +11,8 @@ std::string_view CalculatorTool::get_name() const noexcept
 
 std::string_view CalculatorTool::get_description() const noexcept
 {
-    return "Evaluate a mathematical expression. Example: 2+3*5";
+    return "Evaluate a mathematical expression. Args: an arithmetic expression string. "
+           "Example: 47*23";
 }
 
 std::expected<std::string, ToolError>

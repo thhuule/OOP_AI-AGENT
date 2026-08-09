@@ -19,15 +19,9 @@ std::string_view WebSearchTool::get_name() const noexcept
 std::string_view WebSearchTool::get_description() const noexcept
 {
     return R"(Search the web using DuckDuckGo Instant Answer API.
-
-Input:
-A search query.
-
-Example:
-C++ programming
-
-Output:
-A short summary related to the query.)";
+Args: the search query string.
+Example: C++ programming
+Output: a short summary related to the query.)";
 }
 
 size_t WebSearchTool::write_callback(
@@ -65,9 +59,22 @@ WebSearchTool::http_get(const std::string& url)
                      &response);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
+    // Giới hạn thời gian chờ để tránh treo vô hạn; classify timeout riêng
+    // (không throw, trả ToolError ổn định).
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10'000L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5'000L);
+
     CURLcode result = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
+
+    if (result == CURLE_OPERATION_TIMEDOUT ||
+        result == CURLE_COULDNT_CONNECT ||
+        result == CURLE_COULDNT_RESOLVE_HOST)
+    {
+        return std::unexpected(
+            ToolError::ExecutionFailed);
+    }
 
     if (result != CURLE_OK)
     {

@@ -1,6 +1,6 @@
 # Báo cáo Tools Architecture — Role B
 
-> **Phiên bản:** Tuần 9 — AI-AGENT OOP 2026  
+> **Phiên bản:** Tuần 10 — AI-AGENT OOP 2026  
 > **Chủ trì:** B — Tools/Data  
 > **Repository:** OOP_AI-AGENT-main  
 > **Nguyên tắc:** Báo cáo phản ánh đúng source code hiện tại; không mô tả các thành phần chưa được triển khai như tính năng hoàn chỉnh; các khoảng cách so với yêu cầu đề được nêu rõ.
@@ -179,7 +179,7 @@ Vai trò của Registry:
 - giảm hardcode trong hệ thống;
 - hỗ trợ mở rộng thêm Tool.
 
-`ToolRegistry` sử dụng `Registry<Tool>` cho instance registry và `std::map<std::string, ToolCreator>` cho Factory creators. Cơ chế Factory (`register_creator()` + `create()`) đã được triển khai, tích hợp và kiểm thử — xem bằng chứng tại `benchmark/test_tools.cpp` (`test_factory_creation`, `test_duplicate_creator_overwrite`). Focused tests đã pass trên HEAD `a679a54`.
+`ToolRegistry` sử dụng `Registry<Tool>` cho instance registry và `std::map<std::string, ToolCreator>` cho Factory creators. Cơ chế Factory (`register_creator()` + `create()`) đã được triển khai, tích hợp và kiểm thử — xem bằng chứng tại `benchmark/test_tools.cpp` (`test_factory_creation`, `test_duplicate_creator_overwrite`). Focused tests đã pass trên HEAD `f5af96c`.
 
 ---
 
@@ -336,6 +336,40 @@ Memory Database
 
 MemoryTool được triển khai độc lập với AgentLoop và chỉ giao tiếp thông qua interface Tool.
 
+### BNS-V-01 — Persistent Memory with Vector Search (+4)
+
+Triển khai bonus vector search cho persistent memory:
+
+- **Embedding:** `src/tools/Embedding.h/.cpp` — interface `Embedder` (Strategy Pattern) + `HashEmbedder` deterministic (character n-gram hashing, 64 chiều, L2-normalize). Không cần mạng/model ngoài nên test chạy offline và lặp lại ổn định. Có thể thay bằng provider thật (ví dụ `nomic-embed-text`) qua interface mà không đổi MemoryTool.
+- **Cosine similarity:** `cosine_similarity()` thuần C++, deterministic; bất biến scale, rỗng/lệch size → 0.
+- **Schema migration:** `memories` có thêm cột `embedding BLOB`; nếu DB cũ chưa có, `init_database()` tự `ALTER TABLE` — không mất dữ liệu cũ.
+- **Lệnh mới:** `vsave <text>` (lưu text kèm vector), `vsearch <text>` (trả top-3 theo cosine similarity, kèm score). `save`/`search` cũ giữ nguyên.
+- **Tests:** `test_cosine_similarity_fixed_vectors` (fixed vectors: trùng→1, trực giao→0, ngược→-1, bất biến scale; HashEmbedder deterministic cùng text → cùng vector) và `test_memory_vector_search_ranking` (integration: lưu 3 chủ đề, query về weather/code → kết quả đúng đứng đầu; invalid args → `InvalidArgument`; regression `save`/`search`).
+
+Giới hạn trung thực: `HashEmbedder` là provider nội bộ dùng cho evidence/test deterministic; để chứng minh semantic ranking bằng model embedding thật (ví dụ `nomic-embed-text`) cần provider/quota được nhóm phê duyệt — không tự nhận là đã chạy model thật.
+
+---
+
+### BNS-G-01 (phần B) — Contract `capture_screenshot` và action-tool an toàn
+
+Phần B của bonus VLM/GUI Agent cung cấp hai contract an toàn; phần C triển khai action executor, end-to-end demo, test/log và regression.
+
+- **`capture_screenshot`** — `src/tools/ScreenshotTool.h/.cpp`, canonical `capture_screenshot`, alias `screenshot`. Chụp màn hình và trả về `data:image/png;base64,...` để gửi qua cùng interface client cho VLM. `capture_png()` là virtual seam để test offline inject capture giả; default dùng `screencapture` (macOS) khi có display, lỗi → `NotFound`. Không ghi file trong workspace (dùng temp + tự xoá). `base64_encode` thuần C++ deterministic.
+- **`gui_action`** — `src/tools/ActionTool.h/.cpp`, canonical `gui_action`. Allow-list có giới hạn: `click <x> <y>`, `type_text <text>` (tối đa 512 ký tự), `key_press <key>` (chỉ `return/tab/escape/space/up/down/left/right/backspace/delete`). Toạ độ validate trong `[0, 100000]`; hành động/key ngoài allow-list → `AccessDenied`; args thiếu/quá dài/toạ độ âm → `InvalidArgument`. Không thực thi shell/browser tuỳ ý. `perform_action()` là virtual seam cho test mock và demo có kiểm soát (không gây side effect ngoài ý muốn).
+- **Tests:** `test_screenshot_contract` (base64 encode padding, data URI, capture fail → `NotFound`) và `test_action_tool_safety` (allow-list pass, action/key ngoài allow-list → `AccessDenied`, toạ độ âm/quá lớn/text quá dài/args rỗng → `InvalidArgument`).
+- **Đăng ký:** cả hai tool có creator + instance trong `register_all_tools()`, pass `test_register_all_tools` và `test_canonical_names_and_descriptions`.
+
+Giới hạn trung thực: contract + validation + mock test đã có; **chưa** có end-to-end demo thật (screenshot thật → VLM → action executor) — phần đó thuộc C và cần môi trường desktop/VLM được duyệt.
+
+---
+
+### B-10-04 — Memory DB lifecycle & repository hygiene
+
+- `memory.db` được mở bằng `sqlite3_open("memory.db", ...)` ở thư mục làm việc hiện tại (cwd); dữ liệu là local evidence, **không** được commit.
+- `.gitignore` đã chặn `memory.db`, `config.json`, `build/` và các artifact sinh ra bởi test (`notes.txt`, `result.txt`, `data.txt`, ...).
+- Kiểm chứng: `git ls-files | grep memory.db` → rỗng; `git check-ignore memory.db` → khớp rule; sau khi chạy `test_tools` hai lần offline không có file mới nào bị track.
+- Tests `test_memory_modes` chỉ dùng dữ liệu tự sinh (`save Tokyo` / `search Tokyo`) và không đóng gói/user data thật.
+
 ---
 
 ## 8.5 WebSearchTool
@@ -378,7 +412,7 @@ Response
 AgentLoop
 ```
 
-Các lỗi mạng hoặc timeout được trả về dưới dạng kết quả lỗi để Agent có thể tiếp tục vòng lặp ReAct.
+Các lỗi mạng hoặc timeout được trả về dưới dạng kết quả lỗi để Agent có thể tiếp tục vòng lặp ReAct. Từ Tuần 10, `http_get()` là phương thức `virtual` (seam) cho phép test offline inject transport giả lập network failure/timeout mà không gọi mạng thật (`test_websearch_offline_fixture`). Curl được cấu hình `CURLOPT_TIMEOUT_MS=10s` và `CURLOPT_CONNECTTIMEOUT_MS=5s` để tránh treo vô hạn.
 
 ---
 
@@ -440,6 +474,30 @@ GitTool cung cấp khả năng tương tác với Git Repository thông qua Tool
 
 ---
 
+## 8.10 Bảng canonical names, alias và description (B-10-01)
+
+> Bảng này khớp với `get_name()` / `get_description()` hiện tại trong `src/tools` và alias trong `ToolRegistry::register_all_tools()`. Mọi tool được expose đều đã đăng ký; không có description nào gọi tên tool không tồn tại (tên legacy `python_interpreter` không còn). Focused test: `test_canonical_names_and_descriptions`.
+
+| Canonical name | Alias | Class | Description (trích) | Ví dụ args (string) |
+|---|---|---|---|---|
+| `calculator` | `calculate` | `CalculatorTool` | Evaluate a mathematical expression | `47*23` |
+| `file` | — | `FileTool` | Read or write files | `write result.txt 1081` |
+| `read_file` | — | `FileReadTool` | Read a file and return its contents | `notes.txt` hoặc JSON `{"path":"notes.txt"}` |
+| `write_file` | `create_file` | `FileWriteTool` | Overwrite a file | `result.txt,1081` hoặc JSON `{"filename":"result.txt","content":"1081"}` |
+| `append_file` | — | `FileAppendTool` | Append content to a file | `data.txt,appended` hoặc JSON `{"filename":"data.txt","content":"appended"}` |
+| `execute_shell` | `exec` | `ExecTool` | Execute an allowed shell command | `pwd` |
+| `web_search` | `google_search` | `WebSearchTool` | Search the web (DuckDuckGo Instant Answer API) | `C++ programming` |
+| `memory` | — | `MemoryTool` | Save and search memories using SQLite | `save Tokyo` / `search Tokyo` / `vsave ...` / `vsearch ...` |
+| `time` | — | `TimeTool` | Get the current local date and time | `(trống)` |
+| `json` | — | `JsonTool` | Parse and pretty print JSON | `{"a":1}` |
+| `git` | — | `GitTool` | Run git commands (status/branch/log/diff) | `status` |
+| `capture_screenshot` | `screenshot` | `ScreenshotTool` | Capture screen → base64 PNG (BNS-G-01) | `(trống)` |
+| `gui_action` | — | `ActionTool` | Bounded GUI action: click/type_text/key_press (BNS-G-01) | `click 100 200` |
+
+AgentLoop không hardcode concrete tool: chỉ dùng `registry_.lookup()` + `execute()` qua interface `Tool` (xem `src/agent/agent_loop.cpp`, `execute_tool`). Fallback plan có thể dùng canonical name (`write_file`, `execute_shell`, `read_file`, `calculator`, `append_file`) nhưng luôn resolve qua `ToolRegistry` — không gọi constructor của class cụ thể.
+
+---
+
 # 9. Dependency của Tool Layer
 
 | Tool | Dependency |
@@ -483,13 +541,14 @@ Các Tool không phụ thuộc lẫn nhau mà chỉ chia sẻ interface chung (`
 
 Qua quá trình phân tích source code, Tool Layer đã được tổ chức theo hướng module hóa với interface thống nhất và cơ chế quản lý tập trung thông qua `ToolRegistry`. Mỗi Tool đảm nhiệm một nhóm chức năng riêng, góp phần tách biệt logic nghiệp vụ khỏi AgentLoop.
 
-Các thành phần đã được triển khai và kiểm thử đầy đủ trên HEAD `a679a54`:
+Các thành phần đã được triển khai và kiểm thử đầy đủ trên HEAD `f5af96c`:
 
 - Source đã tách `FileReadTool`, `FileWriteTool` và `FileAppendTool` thành ba class độc lập trong `FileTool.h/.cpp`; cả ba đã được đăng ký và pass `test_register_all_tools`.
 - Cơ chế Factory (`register_creator()` + `create()`) đã có minh chứng qua `test_factory_creation` và `test_duplicate_creator_overwrite` — cả hai pass trên CTest.
 - Alias (`calculate`, `exec`, `google_search`, `create_file`) và policy (allow-list, deny-list) đã được kiểm thử qua `test_aliases_and_normalization` và `test_allow_deny_policies` — đều pass.
+- B-10-01: canonical names/descriptions đồng bộ (`test_canonical_names_and_descriptions`); B-10-02: args matrix và negative path (`test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy`); B-10-03: WebSearch + Exec timeout offline fixture (`test_websearch_offline_fixture`, `test_exec_timeout_offline`) — tất cả pass trên CTest.
 
-Các hạn chế còn lại (error-path tests cho Exec/Git/Web/Memory, URL nguồn OpenClaw/Hermes) được ghi nhận tại §25 và backlog Tuần 10.
+Các hạn chế còn lại (GitTool error-path, MemoryTool DB-open isolated fixture) được ghi nhận tại §25.
 ---
 
 # 12. Error Handling
@@ -714,7 +773,7 @@ Các cải thiện chủ yếu bao gồm:
 
 # 18. Testing
 
-Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest target `tools`). Dưới đây là trạng thái thực tế của từng test fixture trên HEAD `a679a54`:
+Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest target `tools`). Dưới đây là trạng thái thực tế của từng test fixture trên HEAD `f5af96c`:
 
 | Test fixture | Nội dung | Trạng thái |
 |--------------|----------|-----------|
@@ -723,17 +782,33 @@ Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest ta
 | `test_aliases_and_normalization` | alias resolve, create qua alias, normalize unknown | ✅ PASS |
 | `test_allow_deny_policies` | deny → nullptr, allow-list whitelist | ✅ PASS |
 | `test_duplicate_creator_overwrite` | overwrite creator, verify new type, fresh objects | ✅ PASS |
-| `test_register_all_tools` | 11 instances, 4 aliases, Calculator execute | ✅ PASS |
+| `test_register_all_tools` | 13 instances, 5 aliases, Calculator execute | ✅ PASS |
 | `test_tool_error_paths` | ExecTool empty→InvalidArgument; GitTool empty/unallowed→InvalidArgument; JsonTool empty→InvalidArgument, malformed→ExecutionFailed; MemoryTool empty/unknown→InvalidArgument | ✅ PASS |
+| `test_canonical_names_and_descriptions` | 13 canonical name self-consistent, description không rỗng và không gọi `python_interpreter`, 5 alias resolve về tool thật (B-10-01) | ✅ PASS |
+| `test_file_args_formats` | CSV `result.txt,1081`; JSON `{"path":...,"content":...}`; JSON `{"filename":...,"content":...}`; append CSV; read plain/JSON; invalid → `InvalidArgument` (B-10-02) | ✅ PASS |
+| `test_calculator_args_trim` | `47*23` và ` 47 * 23 ` → 1081; `2+3` → 5; `abc` → `InvalidArgument`; `1/0` → `ExecutionFailed` (B-10-02) | ✅ PASS |
+| `test_memory_modes` | `save`/`search` roundtrip; no-match → `No memory found`; unknown/empty → `InvalidArgument` (B-10-02) | ✅ PASS |
+| `test_exec_policy` | deny `execute_shell` chặn cả alias `exec`; empty args → `InvalidArgument` (B-10-02) | ✅ PASS |
+| `test_exec_timeout_offline` | timeout 200ms với `sleep 2` → `ExecutionFailed`; lệnh hợp lệ `printf hello` → output (B-10-03) | ✅ PASS |
+| `test_websearch_offline_fixture` | inject transport: network failure/timeout → `ExecutionFailed`; body lỗi → `NotFound`; `AbstractText`/`Answer` parse OK; empty args → `InvalidArgument` (B-10-03) | ✅ PASS |
+| `test_cosine_similarity_fixed_vectors` | fixed vectors: trùng→1, trực giao→0, ngược→-1, bất biến scale; HashEmbedder deterministic (BNS-V-01) | ✅ PASS |
+| `test_memory_vector_search_ranking` | `vsave`/`vsearch` ranking đúng thứ tự, invalid args → `InvalidArgument`, regression `save`/`search` (BNS-V-01) | ✅ PASS |
+| `test_screenshot_contract` | mock capture → `data:image/png;base64,...`; capture fail → `NotFound`; base64 padding chuẩn (BNS-G-01) | ✅ PASS |
+| `test_action_tool_safety` | allow-list `click`/`type_text`/`key_press` pass; action/key ngoài allow-list → `AccessDenied`; toạ độ âm/lớn, text quá dài, args rỗng → `InvalidArgument` (BNS-G-01) | ✅ PASS |
 
-**Phần chưa có focused test (backlog Tuần 10):**
+**Backlog đã đóng trong Tuần 10 (B-10-03):**
+
+| Thành phần | Nội dung đã test | Cách test offline |
+|------------|-------------------|-------------------|
+| ExecTool | timeout lệnh shell | `ExecTool(std::chrono::milliseconds)` cấu hình timeout ngắn; `sleep 2` bị kill |
+| WebSearchTool | network failure, timeout, HTTP body lỗi, parse hợp lệ | `http_get()` là virtual seam; test subclass inject response, không gọi mạng thật |
+
+**Phần còn lại chưa có focused test (backlog):**
 
 | Thành phần | Nội dung cần test | Lý do dời |
 |------------|-------------------|----------|
-| ExecTool | command bị cấm, timeout, exit-code lỗi | Gate offline đã pass; refactor sandbox lớn |
 | GitTool | lệnh git lỗi, repo không tồn tại | Phụ thuộc môi trường |
-| WebSearchTool | timeout, HTTP error, no-network path | Cần mock network |
-| MemoryTool | lỗi mở DB, truy vấn không tồn tại | Cần isolated DB fixture |
+| MemoryTool | lỗi mở DB, isolated DB fixture | Cần isolated DB fixture |
 
 Việc kiểm thử focused giúp giảm lỗi khi tích hợp vào AgentLoop và Harness.
 
@@ -777,7 +852,7 @@ Bảng dưới đây đối chiếu giữa yêu cầu của đề bài và trạ
 | Memory Tool | ✅ Đã triển khai | `MemoryTool` (SQLite); registration test PASS |
 | Tool mở rộng (ba nhóm) | ✅ Đã triển khai | `TimeTool` (System), `JsonTool` (Data), `GitTool` (Dev); xem §8.9 |
 
-Tool Layer đáp ứng toàn bộ yêu cầu bắt buộc của đề bài và được kiểm thử qua `benchmark/test_tools.cpp` (CTest 4/4 PASS trên HEAD `a679a54`). Error-path tests cho Exec/Git/Json/Memory đã pass (`test_tool_error_paths`); Web/timeout path và URL nguồn trực tiếp OpenClaw/Hermes được ghi nhận tại §25 và §8.9.
+Tool Layer đáp ứng toàn bộ yêu cầu bắt buộc của đề bài và được kiểm thử qua `benchmark/test_tools.cpp` (CTest 4/4 PASS trên HEAD `f5af96c`). Error-path tests cho Exec/Git/Json/Memory/Web đã pass (`test_tool_error_paths`, `test_exec_policy`, `test_memory_modes`, `test_websearch_offline_fixture`, `test_exec_timeout_offline`); GitTool error-path môi trường và URL nguồn trực tiếp OpenClaw/Hermes được ghi nhận tại §25 và §8.9.
 
 ---
 
@@ -986,17 +1061,17 @@ Qua kiểm tra source code, Tool Layer vẫn còn một số hạn chế cần �
 - MemoryTool hiện sử dụng SQLite cục bộ, chưa hỗ trợ cơ sở dữ liệu phân tán.
 - Chưa có cơ chế sandbox hoàn chỉnh cho ExecuteShellTool.
 
-**Trạng thái error-path tests (HEAD `a679a54`):**
+**Trạng thái error-path tests (HEAD `f5af96c`):**
 
 | Tool | Error path đã có focused test | Backlog Tuần 10 |
 |------|-------------------------------|------------------|
-| ExecTool | ✅ empty command → `InvalidArgument` | Timeout, exit-code ≠ 0, command bị cấm |
+| ExecTool | ✅ empty command → `InvalidArgument`; policy deny qua alias `exec` (B-10-02); timeout → `ExecutionFailed` (B-10-03) | Command bị cấm ở cấp sandbox nội bộ (hiện deny qua registry) |
 | GitTool | ✅ empty → `InvalidArgument`, unallowed subcommand → `InvalidArgument` | Repo không tồn tại, git lỗi môi trường |
 | JsonTool | ✅ empty → `InvalidArgument`, malformed JSON → `ExecutionFailed` | Schema validation, deep nesting |
-| MemoryTool | ✅ empty → `InvalidArgument`, unknown command → `InvalidArgument` | DB open failure, isolated DB fixture |
-| WebSearchTool | ❌ Chưa có focused test (cần mock network) | Timeout, HTTP error, no-network path |
+| MemoryTool | ✅ empty → `InvalidArgument`, unknown command → `InvalidArgument`, save/search roundtrip, no-match → `No memory found` (B-10-02) | DB open failure, isolated DB fixture |
+| WebSearchTool | ✅ network failure/timeout → `ExecutionFailed`, HTTP body lỗi → `NotFound`, parse hợp lệ, empty → `InvalidArgument` (B-10-03, offline fixture) | Không còn backlog chặn; chỉ phụ thuộc mạng cho lần chạy thật |
 
-Các hạn chế này được ghi nhận là khoảng cách cần tiếp tục hoàn thiện, không được xem là tính năng đã hoàn chỉnh. WebSearchTool error paths và các refactor sandbox lớn được chuyển sang Tuần 10.
+Các hạn chế này được ghi nhận là khoảng cách cần tiếp tục hoàn thiện, không được xem là tính năng đã hoàn chỉnh. GitTool error-path và MemoryTool isolated-DB fixture được ghi backlog; WebSearchTool đã có offline fixture từ Tuần 10.
 
 ---
 
