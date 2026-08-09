@@ -113,21 +113,25 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 
 ## 6. Role B Plan — Tools/Data
 
-- [ ] **B-10-01 — Tool contract/document synchronization**
+- [x] **B-10-01 — Tool contract/document synchronization**
   **P0 · Files:** `src/tools/*`, `docs/report_tools.md`, README.
   **Output:** canonical name, aliases, description, args, allow/deny, ownership and three additional-tool sources match exact source. **DoD:** no stale HEAD reference/dead source URL; AgentLoop has no hardcoded concrete tool. **Verify:** `test_tools` + A/C doc review.
+  **Done 2026-08-09:** canonical/alias/description/args đồng bộ (§8.10); `test_canonical_names_and_descriptions` pass; AgentLoop chỉ include `tools/Tool.h` abstract — không hardcode concrete tool; report Tools HEAD `f5af96c`.
 
-- [ ] **B-10-02 — Tool args and negative-path matrix**
+- [x] **B-10-02 — Tool args and negative-path matrix**
   **P0 · Files:** `benchmark/test_tools.cpp`, `src/tools/*`.
   **Input:** read/write filename/path/content variants; calculator trim/invalid; Exec policy/exit code; memory save/search/invalid; JSON/Git errors. **Output:** valid args create expected artifact; invalid input returns `ToolError`/`std::unexpected`, no throw/crash. **DoD:** one deterministic assertion per listed path and report table update. **Verify:** targeted `test_tools` + CTest.
+  **Done 2026-08-09:** `test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy` pass; bảng §18 cập nhật.
 
-- [ ] **B-10-03 — WebSearch and Exec timeout offline fixture**
+- [x] **B-10-03 — WebSearch and Exec timeout offline fixture**
   **P0 · Files:** `WebSearchTool.*`, `ExecTool.*`, `benchmark/test_tools.cpp` or injected adapter.
   **Output:** offline tests for network failure/HTTP error/timeout and shell timeout/denied command. **DoD:** no live-network dependency, stable expected error classification. **Verify:** repeat `test_tools` twice offline. **BLOCKER:** if injection seam cannot be added safely, record exact limitation/owner and obtain team decision before freeze.
+  **Done 2026-08-09:** `WebSearchTool::http_get()` thành `virtual` seam; `ExecTool` có constructor timeout tuỳ chỉnh. `test_websearch_offline_fixture` (network fail/timeout/HTTP body/parse/empty) và `test_exec_timeout_offline` (sleep 2s với timeout 200ms → ExecutionFailed) pass; chạy offline 2 lần PASS, không tạo file mới bị track. Exit-code ≠ 0 KHÔNG classify thành ToolError (FunctionalEvaluator dựa trên nội dung output "PASS") — ghi rõ ở §18.
 
-- [ ] **B-10-04 — Memory database lifecycle and repository hygiene**
+- [x] **B-10-04 — Memory database lifecycle and repository hygiene**
   **P1 · Files:** `MemoryTool.*`, `.gitignore`, `docs/report_tools.md`, checklist.
   **Output:** proof `memory.db` and generated artifacts are ignored/untracked and tests do not package user data. **DoD:** do not delete user data without owner confirmation; `git ls-files`/dry-run evidence clear. **Verify:** C package scan.
+  **Done 2026-08-09:** `git ls-files | grep memory.db` rỗng; `git check-ignore memory.db`/`build/memory.db` khớp; `.gitignore` chặn `memory.db`, `config.json`, `build/`, test artifacts; tests dùng dữ liệu tự sinh. Ghi chú tại §8.4.
 
 - [ ] **B-10-05 — Tool layer final review**
   **P1 · Files:** report Tools, README, shared docs.
@@ -214,6 +218,8 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 **Work/merge criteria:** persist embedding with each memory entry; cosine similarity search in C++; deterministic focused tests using fixed vectors; integration test proving ranking; README/report source/limitation update.
 **Risk:** network/model availability, schema migration, provider quota. **Decision:** begin only after mandatory gate PASS; merge only with vector focused tests and full regression.
 
+> **Done 2026-08-09 (B):** `Embedding.h/.cpp` (`Embedder` interface + deterministic `HashEmbedder`, `cosine_similarity()`); `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`; focused test `test_cosine_similarity_fixed_vectors` + integration `test_memory_vector_search_ranking` PASS; regression `save`/`search` giữ nguyên. Giới hạn: `HashEmbedder` nội bộ deterministic; chạy model thật (nomic-embed-text) cần provider/quota duyệt. Chưa đủ semantic-proof bằng model ngoài.
+
 ### BNS-M-01 — Multi-agent Coordination (+3)
 
 **Status:** Committed; partial baseline exists only.
@@ -229,6 +235,8 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 **Dependency:** all mandatory gates PASS; approved Linux/desktop environment and VLM model; no secret-bearing browser profile.
 **Work/merge criteria:** capture a screenshot; send base64 image through the same client interface; validate/execute only bounded `click`, `type_text`, `key_press` actions; demonstrate browser search and copy result; record action/timeout/error evidence; update docs.
 **Safety/quality gates:** explicit allow-list and coordinate/input validation; test mocked VLM response and invalid action paths; use a disposable demo environment; no uncontrolled shell/browser side effects. **Merge criteria:** focused test + controlled end-to-end demo + full regression PASS.
+
+> **Done 2026-08-09 (B — contract & validation):** `ScreenshotTool` (`capture_screenshot`, alias `screenshot`) trả `data:image/png;base64,...`, `capture_png()` virtual seam, base64 thuần C++; `ActionTool` (`gui_action`) allow-list `click`/`type_text`/`key_press`, key allow-list, toạ độ/text validate, action/key ngoài allow-list → `AccessDenied`. Tests `test_screenshot_contract` + `test_action_tool_safety` PASS. **Chưa xong:** end-to-end demo thật (screenshot → VLM → action executor) thuộc C; cần môi trường desktop + VLM duyệt.
 
 ## 12. Integration Checklist
 

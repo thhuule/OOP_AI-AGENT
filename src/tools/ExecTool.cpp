@@ -13,6 +13,11 @@
 namespace oop_agent
 {
 
+ExecTool::ExecTool(std::chrono::milliseconds timeout)
+    : timeout_(timeout)
+{
+}
+
 std::string_view ExecTool::get_name() const noexcept
 {
     return "execute_shell";
@@ -20,7 +25,7 @@ std::string_view ExecTool::get_name() const noexcept
 
 std::string_view ExecTool::get_description() const noexcept
 {
-    return "Execute an allowed shell command. Example: pwd";
+    return "Execute an allowed shell command. Args: the command string. Example: pwd";
 }
 
 std::expected<std::string, ToolError>
@@ -113,8 +118,7 @@ ExecTool::execute(const std::string& arguments)
             std::chrono::steady_clock::now()
             - start;
 
-        if (elapsed >
-            std::chrono::seconds(10))
+        if (elapsed > timeout_)
         {
             killpg(pid, SIGKILL);
 

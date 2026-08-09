@@ -2,6 +2,7 @@
 
 #include "Tool.h"
 
+#include <chrono>
 #include <expected>
 #include <string>
 #include <string_view>
@@ -21,6 +22,14 @@ class ExecTool : public Tool
 {
 public:
     ExecTool() = default;
+
+    /**
+     * @brief Tạo ExecTool với timeout tuỳ chỉnh (milliseconds).
+     *        Constructor này phục vụ test offline: chạy lệnh nhanh, đảm bảo
+     *        không phụ thuộc mạng và không phải chờ timeout mặc định 10s.
+     */
+    explicit ExecTool(std::chrono::milliseconds timeout);
+
     ~ExecTool() override = default;
 
     /**
@@ -44,6 +53,10 @@ public:
      */
     std::expected<std::string, ToolError>
     execute(const std::string& arguments) override;
+
+private:
+    /// Timeout tối đa cho một lệnh (mặc định 10 giây).
+    std::chrono::milliseconds timeout_{10'000};
 };
 
 } // namespace oop_agent

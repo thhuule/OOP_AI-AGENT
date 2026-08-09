@@ -16,12 +16,8 @@ std::string_view
 GitTool::get_description() const noexcept
 {
     return
-        "Run git commands.\n"
-        "Supported:\n"
-        "status\n"
-        "branch\n"
-        "log\n"
-        "diff";
+        "Run git commands. Args: one of status, branch, log, diff.\n"
+        "Example: status";
 }
 
 std::expected<std::string, ToolError>

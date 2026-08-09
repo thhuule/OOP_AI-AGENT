@@ -19,11 +19,11 @@
 
 ## Role B — Tools/Data
 
-- [ ] Chốt tool names/aliases/descriptions/args/policy và report Tools.
-- [ ] Test valid/invalid args của các tool; làm fixture Web/Exec timeout offline.
-- [ ] Kiểm tra `memory.db`/artifact lifecycle và package hygiene.
-- [ ] **Bonus Vector Search:** embedding, cosine similarity, ranking test, integration test và regression.
-- [ ] Hỗ trợ GUI bonus: contract `capture_screenshot` và action-tool an toàn.
+- [x] Chốt tool names/aliases/descriptions/args/policy và report Tools. (B-10-01)
+- [x] Test valid/invalid args của các tool; làm fixture Web/Exec timeout offline. (B-10-02, B-10-03)
+- [x] Kiểm tra `memory.db`/artifact lifecycle và package hygiene. (B-10-04)
+- [x] **Bonus Vector Search:** embedding, cosine similarity, ranking test, integration test và regression.
+- [x] Hỗ trợ GUI bonus: contract `capture_screenshot` và action-tool an toàn.
 
 ## Role C — Eval/Infra
 
