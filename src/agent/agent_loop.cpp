@@ -193,6 +193,21 @@ std::string build_fallback_completion_message(const std::string& instruction,
     return tool_result.empty() ? "Task completed." : tool_result;
 }
 
+// ── Map a client error to a human-readable, stable reason ────────────────────
+// Keeps the specific failure class (timeout / connection / malformed JSON / …)
+// visible to the caller instead of a generic "LLM error." so the AgentLoop
+// and any evaluator can classify the failure accurately.
+std::string llmErrorToString(LLMError error) {
+    switch (error) {
+        case LLMError::ConnectionRefused: return "Connection refused";
+        case LLMError::Timeout:           return "Timeout";
+        case LLMError::MalformedJSON:     return "Malformed JSON";
+        case LLMError::RateLimit:         return "Rate limit";
+        case LLMError::UnknownError:
+        default:                          return "Unknown error";
+    }
+}
+
 // ── Serialize tool-call action to JSON ───────────────────────────────────────
 // test_harness expects {"type":"tool_call","tool":"...","args":"..."}
 std::string serializeAction(const std::string& tool_name, const std::string& args) {
@@ -248,7 +263,14 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
         current_step_ = step;
 
         auto action = think_and_act(step);
-        if (abort_) return "Aborted at step " + std::to_string(step);
+        if (abort_) {
+            // A graceful stop was requested (e.g. an LLM client error).
+            // If think_and_act produced a classified final answer, surface
+            // that reason; otherwise report the generic abort.
+            if (auto* fa = std::get_if<FinalAnswerAction>(&action))
+                return fa->answer;
+            return "Aborted at step " + std::to_string(step);
+        }
 
         // ── FINAL ANSWER ─────────────────────────────────────────────────
         if (auto* fa = std::get_if<FinalAnswerAction>(&action)) {
@@ -361,9 +383,12 @@ AgentLoop::think_and_act(int /*step*/) {
     auto response = llm_->generate_chat(history_);
     if (!response) {
         last_thought_ = "";
-        observe("LLM_ERROR: generation failed");
+        const std::string reason = "LLM error: " + llmErrorToString(response.error());
+        observe("LLM_ERROR: " + reason);
         abort_ = true;
-        return FinalAnswerAction{"LLM error."};
+        // Graceful stop with a non-empty, classified reason — never crash,
+        // and the reason is preserved for trajectory/evaluator classification.
+        return FinalAnswerAction{reason};
     }
 
     const std::string& text = *response;
@@ -395,6 +420,9 @@ AgentLoop::think_and_act(int /*step*/) {
     if (apos != std::string::npos) {
         std::string_view sv = text;
         sv = sv.substr(apos + 7);
+        // Skip any whitespace between "ACTION:" and the tool name.
+        while (!sv.empty() && std::isspace(static_cast<unsigned char>(sv.front())))
+            sv.remove_prefix(1);
         auto op = sv.find('(');
         auto cp = sv.rfind(')');
         if (op != std::string_view::npos && cp != std::string_view::npos && cp > op)
@@ -404,8 +432,16 @@ AgentLoop::think_and_act(int /*step*/) {
 
     // ── 5. Final Answer ───────────────────────────────────────────────────
     auto fap = text.find("Final Answer:");
-    if (fap != std::string::npos)
-        return FinalAnswerAction{text.substr(fap + 13)};
+    if (fap != std::string::npos) {
+        std::string answer = text.substr(fap + 13);
+        // Trim leading whitespace so "Final Answer: done" yields "done".
+        auto it = answer.begin();
+        while (it != answer.end() &&
+               std::isspace(static_cast<unsigned char>(*it)))
+            ++it;
+        answer.erase(answer.begin(), it);
+        return FinalAnswerAction{answer};
+    }
 
     return FinalAnswerAction{text};
 }
