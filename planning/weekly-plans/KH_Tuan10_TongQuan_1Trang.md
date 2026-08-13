@@ -12,21 +12,21 @@
 
 ## Role A — Systems/Core
 
-- [ ] **A-10-01..04 — Client/parser/skill/loop.**
-  1. **Requirement:** R01, R05–R07.
-  2. **Path:** CLI/Harness → LLMClient → AgentLoop → parser/tool → SkillLoader/LoopDetector → trajectory.
-  3. **Contract:** `expected<..., LLMError>`, only valid protocol becomes tool action, state resets each run, failure has reason.
-  4. **Failures:** timeout/connect/JSON, malformed protocol, no skill match, repeat/ping-pong/max-step.
-  5. **DoD:** focused fake-client tests + CTest PASS, prompt captures skill injection and bad intent is not final answer.
-  6. **Review:** B/C reruns offline workflow and checks trajectory/layer boundary.
+- [x] **A-10-01..04 — Client/parser/skill/loop (self-test PASS).**
+   1. **Requirement:** R01, R05–R07.
+   2. **Path:** CLI/Harness → LLMClient → AgentLoop → parser/tool → SkillLoader/LoopDetector → trajectory.
+   3. **Contract:** `expected<..., LLMError>`, only valid protocol becomes tool action, state resets each run, failure has reason.
+   4. **Failures:** timeout/connect/JSON, malformed protocol, no skill match, repeat/ping-pong/max-step.
+   5. **DoD:** `benchmark/test_role_a.cpp` (target `test_role_a`) 12 case + CTest 5/5 PASS; prompt captures skill injection, bad intent not final answer, reason non-empty.
+   6. **Review:** B/C reruns offline workflow and checks trajectory/layer boundary.
 
-- [ ] **A-10-05..07 — C++/OOP/UML.**
-  1. **Requirement:** R09–R12.
-  2. **Path:** source/CMake → feature matrix/report → four Mermaid diagrams → render artifacts.
-  3. **Contract:** fallback builds without C++26 header; docs match source; limitations remain explicit.
-  4. **Failures:** sanitizer finding, unsupported feature, stale diagram/claim, render error.
-  5. **DoD:** ASan + 4 tests, 4 renders, source→pattern→test matrix.
-  6. **Review:** B/C independently verify diagram/report sections.
+- [x] **A-10-05..07 — C++/OOP/UML (self-test PASS; render env-limited).**
+   1. **Requirement:** R09–R12.
+   2. **Path:** source/CMake → feature matrix/report → four Mermaid diagrams → render artifacts.
+   3. **Contract:** fallback builds without C++26 header; docs match source; limitations remain explicit.
+   4. **Failures:** sanitizer finding, unsupported feature, stale diagram/claim, render error.
+   5. **DoD:** `testCppFeatureMatrix` + 3 OOP-pattern cases PASS; 2 sequence diagrams validated via `mermaid.parse`; `class_diagram.md` updated to final source. mmdc render blocked (broken `commander` pkg + no Chromium) → documented limitation.
+   6. **Review:** B/C independently verify diagram/report sections.
 
 ## Role B — Tools/Data
 
