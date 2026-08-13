@@ -105,6 +105,16 @@ public:
   std::vector<TaskRunResult> runAll();
 
   /**
+   * @brief Chạy demo task được chia cho hai sub-agent song song.
+   *
+   * Đây là đường tích hợp Harness -> MultiAgentRunner cho bonus multi-agent.
+   * @param report_path File artifact nhận kết quả gộp của hai worker.
+   * @return true khi nhận đủ hai kết quả và ghi report thành công.
+   */
+  bool runMultiAgentDemo(
+      const std::string &report_path = "artifacts/demo/report.txt");
+
+  /**
    * @brief Chạy một Task đơn lẻ.
    * @param task Task cần chạy
    * @return Kết quả chạy + evaluate
