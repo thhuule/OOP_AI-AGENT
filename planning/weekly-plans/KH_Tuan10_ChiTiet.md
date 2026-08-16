@@ -94,6 +94,8 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 
 > **Done 2026-08-13 (A):** `test_role_a` thêm 12 case: `testClientErrorContract` (5 LLMError → reason "LLM error: <class>" không rỗng), `testMultimodalInterface` (text+image cùng `Message`/`LLMClient`), `testParserVariants` (raw/fenced JSON, `ACTION:`, fn-call JSON/provider), `testMalformedToolIntentNotFinalAnswer` (unknown tool → tool call, không phải final answer), `testMaxStepsAndHistoryGrowth`, `testSkillInjectionBeforeEachRun` (≥3 skill inject mỗi run), `testLoopDetectorUnit` + `testLoopAbortIntegration`, `testCppFeatureMatrix`, `testTemplateMethodSkeleton`/`testObserverHook`/`testRegistryFactoryStrategy`. Đồng thời sửa `agent_loop.cpp`: propagate `LLMError` thành reason; trim khoảng trắng sau `Final Answer:` và `ACTION:`; reset `detector_`/`history_` mỗi `run()`.
 
+> **Updated 2026-08-16 (A):** file `benchmark/test_role_a.cpp` thực tế bị thiếu (làm vỡ build/ctest) nên các claim trên chưa có deliverable. Đã tạo lại file với đầy đủ 14 group test đặt tên đúng theo DoD (12 case trên + `test_agent_loop_fallback_real_tools` + `test_native_environment`), và bổ sung parser `functionCall`/`call:provider:tool{}` vào `agent_loop.cpp` để `testParserVariants` cover đủ 5 biến thể. Clean build + `ctest --test-dir build --output-on-failure` = **5/5 PASS**, trong đó `role_a` **0 check fail**. Các sửa `agent_loop.cpp` cũ (propagate LLMError, trim, reset mỗi run) đã xác nhận có trong source.
+
 ### A-10-05..07 — C++ evidence, OOP audit và UML — DONE (self-test; render bị giới hạn env)
 
 1. **Requirement gốc:** R09–R12 / đề §4–§5 — 4 pattern, layer separation, 4 UML, quota C++17/20/23/26 và portability/no-leak evidence.
