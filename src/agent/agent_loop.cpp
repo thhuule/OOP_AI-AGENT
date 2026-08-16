@@ -227,6 +227,53 @@ std::string serializeAction(const std::string& tool_name, const std::string& arg
            "\",\"args\":\"" + esc(args) + "\"}";
 }
 
+// ── Normalize Gemini/OpenAI-style functionCall JSON ───────────────────────────
+// {"functionCall":{"name":"...","args":"..."}}  →  ToolCallAction
+std::optional<ToolCallAction> parse_function_call(const std::string& text) {
+    const auto pos = text.find("functionCall");
+    if (pos == std::string::npos) return std::nullopt;
+
+    const auto np = text.find("\"name\"", pos);
+    if (np == std::string::npos) return std::nullopt;
+    const auto ns = text.find('"', np + 6);
+    const auto ne = text.find('"', ns + 1);
+    if (ns == std::string::npos || ne == std::string::npos) return std::nullopt;
+    const std::string name = text.substr(ns + 1, ne - ns - 1);
+
+    std::string args;
+    const auto ap = text.find("\"args\"", pos);
+    if (ap != std::string::npos) {
+        const auto as = text.find('"', ap + 6);
+        const auto ae = text.find('"', as + 1);
+        if (as != std::string::npos && ae != std::string::npos)
+            args = text.substr(as + 1, ae - as - 1);
+    }
+    if (name.empty()) return std::nullopt;
+    return ToolCallAction{name, args};
+}
+
+// ── Normalize provider-prefixed call: call:<provider>:<tool>{<args>} ──────────
+std::optional<ToolCallAction> parse_provider_call(const std::string& text) {
+    const auto pos = text.find("call:");
+    if (pos == std::string::npos) return std::nullopt;
+
+    const std::string rest = text.substr(pos + 5);
+    const auto colon = rest.find(':');
+    const auto brace = rest.find('{');
+    if (colon == std::string::npos || brace == std::string::npos) return std::nullopt;
+
+    std::string tool = rest.substr(colon + 1, brace - colon - 1);
+    while (!tool.empty() && std::isspace(static_cast<unsigned char>(tool.front()))) tool.erase(0, 1);
+    while (!tool.empty() && std::isspace(static_cast<unsigned char>(tool.back())))  tool.pop_back();
+
+    std::string args = rest.substr(brace + 1);
+    const auto close = args.rfind('}');
+    if (close != std::string::npos) args = args.substr(0, close);
+
+    if (tool.empty()) return std::nullopt;
+    return ToolCallAction{tool, args};
+}
+
 } // namespace
 
 // ── Constructor ───────────────────────────────────────────────────────────────
@@ -414,6 +461,12 @@ AgentLoop::think_and_act(int /*step*/) {
             }
         }
     } catch (...) {}
+
+    // ── 3b. Gemini/OpenAI functionCall normalization ─────────────────────
+    if (auto fc = parse_function_call(text)) return *fc;
+
+    // ── 3c. Provider-prefixed call: call:provider:tool{args} ─────────────
+    if (auto pc = parse_provider_call(text)) return *pc;
 
     // ── 4. Legacy ACTION: tool(args) ─────────────────────────────────────
     auto apos = text.find("ACTION:");
