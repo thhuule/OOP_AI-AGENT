@@ -11,10 +11,11 @@
 
 ## Trạng thái theo Role
 
-### Role A — Systems/Core: CODE/FOCUSED TEST DONE, package hygiene remaining
+### Role A — Systems/Core: CODE/FOCUSED TEST DONE, benchmark-integrity blocker remaining
 
 - `test_role_a` đã được bổ sung; focused tests và CTest 5/5 PASS trên `3db1afb`.
 - Tracked binary dependency `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` phải được owner bỏ khỏi Git trước package/freeze.
+- `AgentLoop` đang có task-specific fallback tự điền benchmark answers; A-10-10 phải tắt nó cho `run_eval` và chỉ giữ ở test fixture trước khi benchmark được dùng làm evidence.
 
 ### Role B — Tools/Data: PARTIALLY DONE, error matrix/package remaining
 
@@ -32,6 +33,7 @@
 
 ## Mandatory requirements not yet closed
 
+- Benchmark integrity: production `run_eval` không được dùng task-specific hardcode/fallback; trajectory phải cho thấy action source và provider run thật.
 - LLM multimodal + timeout/connection/malformed-JSON verification.
 - Skill injection-before-every-run proof; parser/invalid tool-intent and loop/failure coverage.
 - Tool args and Web/timeout offline error coverage.
