@@ -24,21 +24,21 @@ enum class LLMError {
 struct Message {
     std::string role;    
     std::string content; 
-    std::optional<std::vector<std::string>> images; 
+    std::optional<std::vector<std::string>> images = std::nullopt; 
 };
 
-// 3. Khai báo cấu hình tham số dành riêng cho Gemini
+// 3. Khai báo cấu hình tham số
 struct LLMConfig {
     // Phân biệt provider: "gemini" hoặc "ollama"
     std::string provider = "gemini";             
     
     // Cấu hình dành riêng cho Gemini
-    std::string gemini_model = "gemma-4-31b-it"; 
+    std::string gemini_model = "gemini-2.5-flash"; 
     std::string gemini_api_url = "https://generativelanguage.googleapis.com/v1beta";
-    std::string api_key = "YOUR_GEMINI_API_KEY";
+    std::string api_key = "";
 
     // Cấu hình dành riêng cho Ollama (chạy local)
-    std::string ollama_model = "llama3";         // Hoặc mistral, gemma, v.v.
+    std::string ollama_model = "gemma4:e4b";
     std::string ollama_host = "http://localhost:11434";
 
     // Tham số chung
@@ -46,6 +46,7 @@ struct LLMConfig {
     int timeout_seconds = 60;                    
     int max_tokens = 2048;                       
 };
+
 // 4. Lớp giao tiếp cơ sở
 class LLMClient {
 public:
