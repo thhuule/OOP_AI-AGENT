@@ -26,7 +26,7 @@
 
 ### Role C — Eval/Infra: PARTIALLY DONE, final verification/freeze remaining
 
-- Harness, evaluator, trajectory, multi-agent queue/thread baseline, CMake targets và 4 CTest tests đã có.
+- Harness, evaluator, trajectory, multi-agent queue/thread baseline, CMake targets và 5 CTest tests đã có.
 - Có clean provider artifact `run_20260807_085427_143` với 10/10 pipeline PASS; nó không chứng minh model reasoning và phải được re-verify/ghi limitation ở freeze candidate.
 - Còn phải chốt clean-state/action-level/failure/post-condition audit, full offline regression, benchmark approved quota, docs merge, package dry-run, clean extraction và freeze note.
 - Owner tasks: C-10-01 đến C-10-05.
@@ -42,15 +42,15 @@
 
 ## Bonus status — committed for Tuần 10
 
-- **Vector search (+4): IN PROGRESS (BNS-V-01).** `Embedding.h/.cpp` (`HashEmbedder` deterministic + `cosine_similarity`), `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`, focused test fixed vectors + integration ranking test PASS. Remaining: A review interface, C regression, optional real-model semantic proof (provider/quota).
-- **Multi-agent (+3): SELF-TEST PASS, review pending.** `HarnessRunner::runMultiAgentDemo()` now spawns calculator/researcher workers through `MultiAgentRunner`, joins them and writes a combined report; `test_multi_agent` and CTest 4/4 passed on 2026-08-13. A/B must still rerun the demo on the freeze candidate before Accepted.
-- **VLM/GUI Agent (+8): IN PROGRESS (BNS-G-01).** B đã đóng contract `capture_screenshot` (ScreenshotTool → base64) + action-tool an toàn (ActionTool `gui_action`, allow-list click/type_text/key_press + validate) + focused tests PASS. Remaining: C triển khai action executor + controlled end-to-end demo + regression; cần môi trường desktop + VLM duyệt. Không tự nhận demo thật đã chạy.
+- **Vector search (+4): SELF-TEST PASS (BNS-V-01, external-model limitation).** `Embedding.h/.cpp` (`HashEmbedder` deterministic + `cosine_similarity`), `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`, focused test fixed vectors + integration ranking test in `test_tools` PASS. Remaining: A review interface, C regression, optional real-model semantic proof (provider/quota).
+- **Multi-agent (+3): SELF-TEST PASS, review pending.** `HarnessRunner::runMultiAgentDemo()` now spawns calculator/researcher workers through `MultiAgentRunner`, joins them and writes a combined report; `test_multi_agent` and CTest 5/5 passed. A/B must still rerun the demo on the freeze candidate before Accepted.
+- **VLM/GUI Agent (+8): CONTRACT PASS (BNS-G-01-B, full GUI bonus in progress).** B đã đóng contract `capture_screenshot` (ScreenshotTool → base64) + action-tool an toàn (ActionTool `gui_action`, allow-list click/type_text/key_press + validate) + focused tests in `test_tools` PASS. Remaining: C triển khai action executor + controlled end-to-end demo + regression; cần môi trường desktop + VLM duyệt. Không tự nhận demo thật đã chạy.
 - The team has committed all three for Tuần 10. Each starts/merges only after mandatory gates PASS and requires focused tests plus full regression.
 
 ## Latest recorded evidence (not a freeze declaration)
 
-- Plan/artifact records a clean provider run `run_20260807_085427_143` with 10 tasks PASS, labelled pipeline evidence with fallback limitation.
-- Earlier documented offline gate: all 7 targets built; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` passed; CTest 4/4.
+- Plan/artifact records a clean provider run `run_20260807_085427_143` với 10 tasks PASS, labelled pipeline evidence with fallback limitation.
+- Offline gate: all targets built; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a` passed; CTest 5/5.
 - These results must be repeated on the final candidate because the current repository has commits after the cited historical revisions.
 
 ## Freeze blockers / confirmations
