@@ -90,6 +90,10 @@ add_executable(demo_multi_agent
     benchmark/demo_multi_agent.cpp
     ${SOURCE_FILES}
 )
+add_executable(test_websearch_cli
+    benchmark/test_websearch_cli.cpp
+    ${SOURCE_FILES}
+)
 
 if(BUILD_TESTING)
     add_test(NAME harness COMMAND test_harness)
@@ -115,6 +119,7 @@ target_include_directories(test_tools PRIVATE ${common_include_dirs})
 target_include_directories(test_template_method PRIVATE ${common_include_dirs})
 target_include_directories(test_role_a PRIVATE ${common_include_dirs})
 target_include_directories(demo_multi_agent PRIVATE ${common_include_dirs})
+target_include_directories(test_websearch_cli PRIVATE ${common_include_dirs})
 
 # Link Libraries
 target_link_libraries(OopAgent PRIVATE 
@@ -169,6 +174,12 @@ target_link_libraries(demo_multi_agent PRIVATE
     Threads::Threads
     SQLite::SQLite3
 )
+target_link_libraries(test_websearch_cli PRIVATE 
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+    SQLite::SQLite3
+)
 
 # Flag biên dịch nghiêm ngặt
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -180,6 +191,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(test_template_method PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(test_role_a PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
     target_compile_options(demo_multi_agent PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
+    target_compile_options(test_websearch_cli PRIVATE -Wall -Wextra -Wpedantic -std=c++26)
 elseif(MSVC)
     target_compile_options(OopAgent PRIVATE /W4 /std:c++latest)
     target_compile_options(run_eval PRIVATE /W4 /std:c++latest)
@@ -189,4 +201,5 @@ elseif(MSVC)
     target_compile_options(test_template_method PRIVATE /W4 /std:c++latest)
     target_compile_options(test_role_a PRIVATE /W4 /std:c++latest)
     target_compile_options(demo_multi_agent PRIVATE /W4 /std:c++latest)
+    target_compile_options(test_websearch_cli PRIVATE /W4 /std:c++latest)
 endif()
