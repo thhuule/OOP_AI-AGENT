@@ -6,7 +6,7 @@
 ## Việc chung trước khi freeze
 
 - [ ] Merge về một freeze candidate; không còn conflict marker.
-- [ ] Clean build đủ 7 target; chạy `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` và CTest 4/4.
+- [ ] Clean build đủ 8 target; chạy `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a` và CTest 5/5.
 - [ ] Kiểm tra benchmark/action-level, artifact cũ không false-pass, API key/config/database/build không vào package.
 - [ ] Khóa source path, test log và claim cho report/README; render đủ 4 UML.
 
@@ -71,7 +71,7 @@
   2. **Path:** `HarnessRunner::runMultiAgentDemo()` → `MultiAgentRunner` → 2 worker threads → report.
   3. **Contract:** timeout/join, two results required, report only written after both arrive.
   4. **Failures:** missing result/timeout, worker/tool error, report write failure.
-  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 4/4 PASS; report contains `CALC=1081` and `CAPITAL=`.
+  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 5/5 PASS; report contains `CALC=1081` and `CAPITAL=`.
   6. **Review:** A/B rerun demo on freeze candidate before Accepted.
 
 - [ ] **C bonus/freeze — VLM/GUI end-to-end, package.**

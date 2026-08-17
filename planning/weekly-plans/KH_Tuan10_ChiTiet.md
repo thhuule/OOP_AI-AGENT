@@ -32,9 +32,9 @@ Tuần 11 là presentation/documentation phase: merge và format docs theo evide
 | R13 | 10 benchmark task: 4 simple / 4 medium / 2 hard; JSON, success-rate analysis — đề §7 | Mandatory | Có tasks và run sạch 10/10 hiện lưu | Final artifact/action-level/post-condition chưa chốt trên revision freeze | Partial | C | Yes | C-10-01, C-10-02 |
 | R14 | README build/run/config; báo cáo hoàn chỉnh; 4 diagram; source/package — đề §IX, docs guide, submission checklist | Mandatory | Tài liệu đã có khung/nội dung | Render/link/claim/package verification chưa đủ | Partial | A/B/C | Partial | A-10-07, B-10-05, C-10-03, C-10-04 |
 | R15 | Không lộ API key, config thật, DB, build/artifact; clean clone/build/run — checklist nộp | Mandatory | `.gitignore`/checklist có | Chưa có dry-run package cuối | Partial | C/B | Partial | B-10-04, C-10-05 |
-| R16 | Persistent memory vector search: embeddings + cosine similarity — đề §10.2 | Bonus +4 (committed) | **Chưa có implementation**; `std::inplace_vector` không phải vector-search bonus | Chưa có | Chưa có | B (A review) | Now assigned | BNS-V-01, sau mandatory PASS |
-| R17 | Multi-agent: Harness spawn sub-agent, queue+mutex, demo task phức tạp chia 2 agent song song — đề §10.3 | Bonus +3 (committed) | `HarnessRunner::runMultiAgentDemo()` tạo 2 worker; report gộp kết quả | Focused test + CTest PASS; external review pending | Cần đồng bộ evidence | C (A review) | Now assigned | BNS-M-01, self-test PASS; chờ A/B review |
-| R18 | GUI agent: screenshot, VLM, action executor, browser-search-copy demo — đề §10.1 | Bonus +8 (committed) | Chưa có GUI workflow; `VLMEvaluator` skeleton không phải GUI agent | Chưa có | Chưa có | A/B/C | Now assigned | BNS-G-01, sau mandatory PASS |
+| R16 | Persistent memory vector search: embeddings + cosine similarity — đề §10.2 | Bonus +4 (committed) | `HashEmbedder` + cosine similarity + `vsave`/`vsearch` in `MemoryTool` | `test_tools` (vectors + ranking) PASS | Có trong report_tools.md, ghi rõ fallback limitation | B (A review) | Now assigned | BNS-V-01, self-test PASS |
+| R17 | Multi-agent: Harness spawn sub-agent, queue+mutex, demo task phức tạp chia 2 agent song song — đề §10.3 | Bonus +3 (committed) | `HarnessRunner::runMultiAgentDemo()` tạo 2 worker; report gộp kết quả | Focused test + CTest 5/5 PASS; external review pending | Cần đồng bộ evidence | C (A review) | Now assigned | BNS-M-01, self-test PASS; chờ A/B review |
+| R18 | GUI agent: screenshot, VLM, action executor, browser-search-copy demo — đề §10.1 | Bonus +8 (committed) | BNS-G-01-B tool contracts (Screenshot/ActionTool) có; GUI workflow pending C | Focused test contract PASS; end-to-end demo pending | Contract documented | A/B/C | Now assigned | BNS-G-01-B contract DONE; end-to-end in progress |
 
 ### Inconsistency resolved
 
@@ -153,10 +153,10 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 2. **Production path:** `run_eval` → `HarnessRunner::runAll()` → `Environment::cleanArtifacts()` → AgentLoop/tools → evaluator → `TaskRunResult`/trajectory JSON/summary.
 3. **Contract:** task giữ `required_tools`, artifacts, category và post-condition; required-tool task chỉ pass nếu có tool step thật; cleanup chỉ đụng generated artifact; provider/model/run ID và token state được lưu, `tokens=0` nghĩa là not measured.
 4. **Failure cases:** stale artifact false-pass; no-tool execution; invalid task/evaluator spec; tool/parser/loop/timeout/rate-limit error; provider/quota/network không có; trajectory thiếu args/post-condition.
-5. **DoD có thể kiểm chứng:** clean build rồi chạy `test_harness`, `test_tools`, `test_multi_agent`, `test_template_method`, `ctest --test-dir build --output-on-failure`; expected: 4/4 PASS. Khi quota được duyệt, chạy `run_eval` clean state và kiểm tra đủ 10 trajectory, 4/4/2, score/failure/post-condition. Evidence: command log + run directory trên freeze candidate.
+5. **DoD có thể kiểm chứng:** clean build rồi chạy `test_harness`, `test_tools`, `test_multi_agent`, `test_template_method`, `test_role_a`, `ctest --test-dir build --output-on-failure`; expected: 5/5 PASS. Khi quota được duyệt, chạy `run_eval` clean state và kiểm tra đủ 10 trajectory, 4/4/2, score/failure/post-condition. Evidence: command log + run directory trên freeze candidate.
 6. **Review gate:** A hoặc B chạy lại một required-tool task từ workspace sạch, kiểm tra trajectory/action-level bằng tay; benchmark chỉ Accepted khi reviewer xác nhận provider/model/fallback wording đúng.
 
-**Evidence 2026-08-13:** sau thay đổi Role C, `test_multi_agent` PASS và CTest 4/4 PASS. C-10-01..03 vẫn PENDING final clean build, provider benchmark mới và review workflow; không dùng test pass thay cho benchmark evidence.
+**Evidence 2026-08-13:** sau thay đổi Role C và thêm test Role A, `test_multi_agent` PASS và CTest 5/5 PASS. C-10-01..03 vẫn PENDING final clean build, provider benchmark mới và review workflow; không dùng test pass thay cho benchmark evidence.
 
 ### C-10-04..05 — Evidence lock, package và code freeze — PENDING
 
@@ -211,16 +211,16 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 | GUI Agent focused + controlled end-to-end demo | R18 committed bonus | A/B/C | Mocked invalid/timeout actions pass; controlled screenshot→VLM→action demo passes |
 | Gate 3: negative/error review | R01, R03, R06–R08 | A/B/C | timeout, invalid args, malformed protocol, loops and no-tool cases classified |
 | Gate 4: integration | R01–R13 | C | Agent → registry/tool → harness/evaluator works without stale artifact pass |
-| Gate 5/6: CTest + full regression | All mandatory | C | CTest 4/4 and all focused executables pass on final revision; repeat after every merged bonus |
+| Gate 5/6: CTest + full regression | All mandatory | C | CTest 5/5 and all focused executables pass on final revision; repeat after every merged bonus |
 | ASan / MSVC | R12 | A | ASan clean; MSVC build pass or limitation clearly recorded |
 | Approved clean benchmark | R13 | C | 10 tasks 4/4/2, valid JSON, paths/arguments/post-conditions checked |
 | Diagram/link/package verification | R10, R14–R15 | A/C | renders, links, clean extraction and secret scan pass |
 
 ## 11. Bonus Decision
 
-### BNS-V-01 — Persistent Memory with Vector Search (+4)
+### BNS-V-01 — Persistent Memory with Vector Search (+4) — DONE (self-test; external-model limitation)
 
-**Status:** Committed; currently NOT STARTED. `std::inplace_vector` does not count.
+**Status:** `Embedding.h/.cpp` (`HashEmbedder` deterministic + `cosine_similarity`), `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`, focused test fixed vectors + integration ranking test in `test_tools` PASS.
 **Owner:** B; A reviews client/embedding interface, C verifies regression.
 **Dependency:** every mandatory gate PASS and a stable embedding provider/model (for example `nomic-embed-text`) approved.
 **Work/merge criteria:** persist embedding with each memory entry; cosine similarity search in C++; deterministic focused tests using fixed vectors; integration test proving ranking; README/report source/limitation update.
@@ -233,11 +233,11 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 **Status:** `HarnessRunner::runMultiAgentDemo()` tạo `MultiAgentRunner`, đăng ký `calculator` và `researcher`, dispatch hai message, join an toàn và ghi report gộp. `demo_multi_agent` gọi đường Harness này.
 **Owner:** C; A reviews Agent API/layer boundary, B supplies safe subtask/tool contract.
 **Dependency:** every mandatory gate PASS.
-**Evidence:** `test_multi_agent` kiểm tra đường Harness → 2 worker → report (`CALC=1081`, `CAPITAL=...`) PASS; CTest 4/4 PASS; `demo_multi_agent` tạo `artifacts/demo/report.txt` với hai kết quả. **Còn lại:** A/B chạy lại demo trên freeze candidate và review source/doc; chỉ khi đó Accepted.
+**Evidence:** `test_multi_agent` kiểm tra đường Harness → 2 worker → report (`CALC=1081`, `CAPITAL=...`) PASS; CTest 5/5 PASS; `demo_multi_agent` tạo `artifacts/demo/report.txt` với hai kết quả. **Còn lại:** A/B chạy lại demo trên freeze candidate và review source/doc; chỉ khi đó Accepted.
 
-### BNS-G-01 — VLM/GUI Agent (+8)
+### BNS-G-01 — VLM/GUI Agent (+8) — CONTRACT DONE (full GUI bonus in progress)
 
-**Status:** Committed; NOT STARTED. This is the GUI Agent requirement in đề §10.1, not the existing `VLMEvaluator` skeleton.
+**Status:** Contract and validation tools DONE (BNS-G-01-B); full end-to-end GUI Agent workflow in progress by Role C.
 **Owners:** A owns VLM/image request through the shared LLM interface; B owns `capture_screenshot` and action-tool contracts; C owns action executor, end-to-end demo, test/log and regression.
 **Dependency:** all mandatory gates PASS; approved Linux/desktop environment and VLM model; no secret-bearing browser profile.
 **Work/merge criteria:** capture a screenshot; send base64 image through the same client interface; validate/execute only bounded `click`, `type_text`, `key_press` actions; demonstrate browser search and copy result; record action/timeout/error evidence; update docs.
@@ -247,7 +247,7 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 
 ## 12. Integration Checklist
 
-- [ ] Interfaces/contracts from A and B merged with no conflict marker.
+- [ ] Interfaces/contracts from A and B merged với không conflict marker.
 - [ ] C verifies no stale artifacts can satisfy a functional evaluator.
 - [ ] Canonical tool names/descriptions/aliases agree across source, prompt and report.
 - [ ] Every mandatory requirement has an implementation path, test/log and documentation path.
@@ -257,13 +257,13 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 
 ## 13. Full Regression Checklist
 
-- [ ] Clean configure and build all 7 targets.
-- [ ] Run `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`.
-- [ ] Run `ctest --test-dir build --output-on-failure` and obtain 4/4 pass.
+- [ ] Clean configure and build all targets.
+- [ ] Run `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a`.
+- [ ] Run `ctest --test-dir build --output-on-failure` and obtain 5/5 pass.
 - [ ] Run any new focused A/B tests and inspect logs.
 - [ ] Run ASan suite if toolchain supports it; otherwise record limitation.
 - [ ] Run/inspect approved clean benchmark if provider/quota is approved.
-- [ ] After each merged bonus: repeat build, 4 executables, CTest and impacted integration tests.
+- [ ] After each merged bonus: repeat build, executables, CTest and impacted integration tests.
 - [ ] Perform clean extraction/build/test using README.
 
 ## 14. Code Freeze Checklist
