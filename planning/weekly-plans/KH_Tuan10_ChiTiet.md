@@ -133,9 +133,10 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
   **Output:** proof `memory.db` and generated artifacts are ignored/untracked and tests do not package user data. **DoD:** do not delete user data without owner confirmation; `git ls-files`/dry-run evidence clear. **Verify:** C package scan.
   **Done 2026-08-09:** `git ls-files | grep memory.db` rỗng; `git check-ignore memory.db`/`build/memory.db` khớp; `.gitignore` chặn `memory.db`, `config.json`, `build/`, test artifacts; tests dùng dữ liệu tự sinh. Ghi chú tại §8.4.
 
-- [ ] **B-10-05 — Tool layer final review**
+- [x] **B-10-05 — Tool layer final review**
   **P1 · Files:** report Tools, README, shared docs.
   **Dependency:** B-10-01..04. **Output:** review sign-off for tool source/test/docs mapping. **DoD:** every R02–R04 claim answers where implemented, tested and documented. **Verify:** A/C review checklist.
+  **Done 2026-08-17:** Ma trận truy xuất R02–R04 giữa source/test/docs đã được hoàn thiện 100%. Đã thêm §27 vào `docs/report_tools.md` với đầy đủ sign-off matrix và checklist kiểm tra; cập nhật `README.md` liên kết báo cáo; CTest 4/4 và `test_tools` pass.
 
 ## 7. Role C Plan — Eval/Infra/Freeze
 
