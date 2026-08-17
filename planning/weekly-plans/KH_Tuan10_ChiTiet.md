@@ -118,14 +118,20 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 5. **DoD có thể kiểm chứng:** `wsl bash -lc "cmake --build build --target test_tools -j2 && ./build/test_tools"` → `=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===`; evidence là `test_canonical_names_and_descriptions`, `test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy`, `test_exec_timeout_offline`, `test_websearch_offline_fixture` trên commit `b474b50` (đã chạy PASS lại sau pull 2026-08-13). Code sau integrate: `WebSearchTool::http_get()` là virtual test seam; `ExecTool` nhận timeout test được; Registry đăng ký đầy đủ canonical/alias.
 6. **Review gate:** A hoặc C chạy lại đúng command trên freeze candidate, kiểm tra không có request mạng trong web fixture và đối chiếu `docs/report_tools.md` với canonical names trước khi Accepted.
 
-### BNS-V-01 — Persistent Memory Vector Search (+4) — DONE (self-test; external-model limitation)
+### BNS-V-01 — Persistent Memory Vector Search (+4) — PARTIAL
 
 1. **Requirement gốc:** R16 / đề §10.2 — lưu embedding cho memory và tìm bằng cosine similarity trong C++.
-2. **Production path:** `memory` tool nhận `vsave <text>`/`vsearch <query>` → `MemoryTool` → `HashEmbedder::embed()` → SQLite `memories.embedding BLOB` → `cosine_similarity()` → top-N text đã xếp hạng.
+2. **Production path hiện tại:** `memory` tool nhận `vsave <text>`/`vsearch <query>` → `MemoryTool` → `HashEmbedder::embed()` → SQLite `memories.embedding BLOB` → `cosine_similarity()` → top-N text đã xếp hạng. Đây là offline prototype, **không** phải đường bonus cuối.
 3. **Contract:** `MemoryTool` sở hữu SQLite handle và `Embedder` bằng `unique_ptr`, destructor đóng DB; migration thêm cột `embedding` khi DB cũ chưa có; `vsave` trả xác nhận, `vsearch` trả danh sách xếp hạng hoặc `No vector memory found.`; thiếu text/DB lỗi trả `InvalidArgument`/`ExecutionFailed`.
 4. **Failure cases:** `vsave`/`vsearch` không text; DB không mở/prepare/step lỗi; BLOB embedding sai kích thước; database cũ thiếu cột; query không có vector memory.
-5. **DoD có thể kiểm chứng:** cùng command `test_tools` ở B-10-01 → `test_cosine_similarity_fixed_vectors` và `test_memory_vector_search_ranking` PASS; evidence: fixed-vector cosine, deterministic hash embedder, ranking và regression `save/search` cũ. Code sau integrate: `Embedding.h/.cpp`, `MemoryTool.*` và schema migration. **Giới hạn trung thực:** `HashEmbedder` offline là embedding thay thế, chưa chứng minh semantic quality của `nomic-embed-text`.
+5. **DoD hiện tại:** `test_tools` xác nhận cosine/ranking/schema migration và regression `save/search`. **Chưa đủ +4:** đề §10.2 bắt buộc `nomic-embed-text` qua Ollama; `HashEmbedder` chỉ là fake/offline test double.
 6. **Review gate:** A hoặc C xóa/đổi sang DB test riêng, chạy lại `vsave`/`vsearch` workflow và `test_tools`; xác nhận `memory.db` không được stage/ZIP trước khi Accepted.
+
+#### BNS-V-02 — Hoàn tất Vector đúng đề §10.2
+
+- [ ] **B-10-06 — `OllamaEmbedder` (Owner B).** Requirement: dùng `nomic-embed-text` qua Ollama. Path: `MemoryTool::vsave/vsearch` → injected `OllamaEmbedder` → Ollama embed endpoint → `EmbeddingVector` → SQLite/cosine. Contract: text vào, vector có chiều hợp lệ ra; timeout/HTTP/body sai trả `ToolError`, không fallback âm thầm sang `HashEmbedder`. DoD: fake HTTP test cho parse/error + integration thật với Ollama `nomic-embed-text`, rồi `test_tools` PASS. **Ảnh hưởng khi chạy:** `vsave/vsearch` ở production cần Ollama và model đã pull; khi service/model không có, lệnh báo lỗi rõ thay vì trả ranking giả.
+- [ ] **A-10-08 — Wiring cấu hình production (Owner A).** Requirement: production path phải chọn embedder thật, không chỉ test. Path: config runtime → create `OllamaEmbedder` → inject vào `MemoryTool` được registry/AgentLoop dùng. Contract: endpoint/model embedding tách khỏi LLM chat config nhưng có default rõ; API/network lỗi giữ nguyên error taxonomy. DoD: smoke test khởi tạo đúng embedder theo config, không in API key; review B/C xác nhận không có `HashEmbedder` trên production path. **Ảnh hưởng khi chạy:** chỉ các lệnh vector dùng Ollama; benchmark/tool không gọi vector không bị thêm network call.
+- [ ] **C-10-06 — Vector acceptance/regression (Owner C).** Requirement: lưu mỗi entry bằng embedding thật và tìm cosine C++. DoD: từ DB sạch chạy `vsave` cho ít nhất ba memory, `vsearch` query đồng nghĩa/near-semantic, lưu log Ollama/model + top result; sau đó build + CTest 5/5 + `test_tools`. Review: A xác nhận model/endpoint, B xác nhận ranking và migration. **Ảnh hưởng khi chạy:** tạo `memory.db` local (không commit); evidence chỉ được nhận khi Ollama run thật thành công.
 
 ### BNS-G-01-B — GUI tool contracts và validation — DONE (contract only)
 
@@ -220,9 +226,9 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 
 ## 11. Bonus Decision
 
-### BNS-V-01 — Persistent Memory with Vector Search (+4) — DONE (self-test; external-model limitation)
+### BNS-V-01 — Persistent Memory with Vector Search (+4) — PARTIAL
 
-**Status:** `Embedding.h/.cpp` (`HashEmbedder` deterministic + `cosine_similarity`), `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`, focused test fixed vectors + integration ranking test in `test_tools` PASS.
+**Status:** offline prototype PASS: `HashEmbedder` deterministic + cosine/SQLite/ranking tests. Đề §10.2 yêu cầu `nomic-embed-text` qua Ollama, nên chưa Accepted bonus.
 **Owner:** B; A reviews client/embedding interface, C verifies regression.
 **Dependency:** every mandatory gate PASS and a stable embedding provider/model (for example `nomic-embed-text`) approved.
 **Work/merge criteria:** persist embedding with each memory entry; cosine similarity search in C++; deterministic focused tests using fixed vectors; integration test proving ranking; README/report source/limitation update.
@@ -230,12 +236,18 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 
 > **Done 2026-08-09 (B):** `Embedding.h/.cpp` (`Embedder` interface + deterministic `HashEmbedder`, `cosine_similarity()`); `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`; focused test `test_cosine_similarity_fixed_vectors` + integration `test_memory_vector_search_ranking` PASS; regression `save`/`search` giữ nguyên. Giới hạn: `HashEmbedder` nội bộ deterministic; chạy model thật (nomic-embed-text) cần provider/quota duyệt. Chưa đủ semantic-proof bằng model ngoài.
 
-### BNS-M-01 — Multi-agent Coordination (+3) — DONE (self-test; review pending)
+### BNS-M-01 — Multi-agent Coordination (+3) — PARTIAL
 
-**Status:** `HarnessRunner::runMultiAgentDemo()` tạo `MultiAgentRunner`, đăng ký `calculator` và `researcher`, dispatch hai message, join an toàn và ghi report gộp. `demo_multi_agent` gọi đường Harness này.
+**Status:** Harness spawn/thread/queue/join PASS. Demo hiện chia hai subtask đơn giản; `researcher` dùng `value_or("Tokyo")`, nên có thể báo thành công khi web search thất bại. Chưa đủ bằng chứng cho “task phức tạp chia 2 agent chạy song song”.
 **Owner:** C; A reviews Agent API/layer boundary, B supplies safe subtask/tool contract.
 **Dependency:** every mandatory gate PASS.
-**Evidence:** `test_multi_agent` kiểm tra đường Harness → 2 worker → report (`CALC=1081`, `CAPITAL=...`) PASS; CTest 5/5 PASS; `demo_multi_agent` tạo `artifacts/demo/report.txt` với hai kết quả. **Còn lại:** A/B chạy lại demo trên freeze candidate và review source/doc; chỉ khi đó Accepted.
+**Evidence:** `test_multi_agent` kiểm tra đường Harness → 2 worker → report PASS; CTest 5/5 PASS. Đây chứng minh kiến trúc, chưa chứng minh task demo thật khi worker lỗi/network lỗi.
+
+#### BNS-M-02 — Hoàn tất Multi-agent đúng đề §10.3
+
+- [ ] **C-10-07 — Composite parallel demo (Owner C).** Requirement: một task phức tạp chia thành hai subtask độc lập chạy song song. Path: `HarnessRunner` dispatch → two named workers → message queues → aggregator waits both → one combined report. Contract: report chỉ được ghi khi cả hai worker trả kết quả hợp lệ; worker timeout/tool error trả FAIL và process non-zero; bỏ `value_or("Tokyo")`. DoD: success test chứng minh hai worker nhận message, combined report có hai nguồn; negative tests cho worker timeout và web/tool error; `demo_multi_agent` + CTest 5/5 PASS. **Ảnh hưởng khi chạy:** demo không còn tự in dữ liệu fallback; nếu search/network lỗi, demo fail đúng và user thấy reason.
+- [ ] **B-10-07 — Research tool contract review (Owner B).** Requirement: worker error phải phân biệt được timeout/HTTP/body invalid. DoD: `WebSearchTool` focused offline error tests PASS và message lỗi đủ để C đưa vào report; không sửa fallback ở Harness. **Ảnh hưởng khi chạy:** web worker có thể fail nhanh/traceable thay vì tạo kết quả giả.
+- [ ] **A-10-09 — Multi-agent acceptance review (Owner A).** Requirement: Harness spawn nhưng AgentLoop không phụ thuộc Harness. DoD: review source boundary + run `demo_multi_agent`; xác nhận runtime report nêu rõ worker status và no fallback success. **Ảnh hưởng khi chạy:** không thêm feature vào AgentLoop; chỉ xác nhận integration boundary trước Accepted.
 
 ### BNS-G-01 — VLM/GUI Agent (+8) — CONTRACT DONE (full GUI bonus in progress)
 
