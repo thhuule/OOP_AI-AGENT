@@ -371,6 +371,19 @@ void test_memory_modes() {
     assert(!empty.has_value());
     assert(empty.error() == ToolError::InvalidArgument);
 
+    // W10.5-B-02: Test custom DB path injection & getter
+    MemoryTool custom_mem("custom_test_mem.db", std::make_unique<HashEmbedder>());
+    assert(custom_mem.get_db_path() == "custom_test_mem.db");
+    auto custom_save = custom_mem.execute("save test item");
+    assert(custom_save.has_value());
+    std::remove("custom_test_mem.db");
+
+    // W10.5-B-02: Test invalid/unwritable DB path -> returns ToolError::ExecutionFailed safely without crash
+    MemoryTool bad_db_mem("/non_existent_dir_xyz_123/bad.db", std::make_unique<HashEmbedder>());
+    auto bad_db_save = bad_db_mem.execute("save failing item");
+    assert(!bad_db_save.has_value());
+    assert(bad_db_save.error() == ToolError::ExecutionFailed);
+
     std::cout << "  -> PASSED\n";
 }
 
@@ -518,7 +531,7 @@ void test_cosine_similarity_fixed_vectors() {
 /// BNS-V-01: integration — lưu memory kèm embedding và ranking theo cosine.
 void test_memory_vector_search_ranking() {
     std::cout << "[TEST] Running test_memory_vector_search_ranking...\n";
-    MemoryTool mem;
+    MemoryTool mem(std::make_unique<HashEmbedder>());
 
     // vsave lưu kèm vector; vsearch trả về ranking theo độ tương đồng.
     auto s1 = mem.execute("vsave weather in Tokyo");
@@ -557,6 +570,43 @@ void test_memory_vector_search_ranking() {
     assert(old_save.has_value());
     auto old_search = mem.execute("search legacy");
     assert(old_search.has_value());
+
+    std::cout << "  -> PASSED\n";
+}
+
+/// BNS-V-01: OllamaEmbedder contract & error handling (no silent hash fallback).
+void test_ollama_embedder() {
+    std::cout << "[TEST] Running test_ollama_embedder...\n";
+
+    OllamaEmbedder default_emb;
+    assert(default_emb.host() == "http://localhost:11434");
+    assert(default_emb.model() == "nomic-embed-text");
+    assert(default_emb.timeout_seconds() == 10);
+
+    OllamaEmbedder custom_emb("http://localhost:11434", "nomic-embed-text", 5);
+    assert(custom_emb.host() == "http://localhost:11434");
+    assert(custom_emb.model() == "nomic-embed-text");
+    assert(custom_emb.timeout_seconds() == 5);
+
+    // Production MemoryTool defaults to OllamaEmbedder.
+    MemoryTool prod_mem;
+
+    // Unreachable host -> vsave/vsearch return ToolError::ExecutionFailed cleanly (no fallback to HashEmbedder).
+    MemoryTool offline_ollama_mem(std::make_unique<OllamaEmbedder>("http://127.0.0.1:59999", "nomic-embed-text", 1));
+    auto bad_vsave = offline_ollama_mem.execute("vsave test entry");
+    assert(!bad_vsave.has_value());
+    assert(bad_vsave.error() == ToolError::ExecutionFailed);
+
+    auto bad_vsearch = offline_ollama_mem.execute("vsearch test");
+    assert(!bad_vsearch.has_value());
+    assert(bad_vsearch.error() == ToolError::ExecutionFailed);
+
+    // save/search (offline regression) work without vector embedder.
+    auto legacy_save = offline_ollama_mem.execute("save legacy offline note");
+    assert(legacy_save.has_value());
+
+    auto legacy_search = offline_ollama_mem.execute("search offline note");
+    assert(legacy_search.has_value());
 
     std::cout << "  -> PASSED\n";
 }
@@ -702,6 +752,7 @@ int main() {
     test_websearch_offline_fixture();
     test_cosine_similarity_fixed_vectors();
     test_memory_vector_search_ranking();
+    test_ollama_embedder();
     test_screenshot_contract();
     test_action_tool_safety();
     std::cout << "=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===\n";

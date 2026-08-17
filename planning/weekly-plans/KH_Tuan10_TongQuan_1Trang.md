@@ -44,13 +44,13 @@
   5. **DoD:** `wsl bash -lc "cmake --build build --target test_tools -j2 && ./build/test_tools"` → `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY` (PASS lại 2026-08-13).
   6. **Review gate:** A/C chạy lại command trên freeze candidate và audit report Tools.
 
-- [ ] **BNS-V-01 — Vector Search (PARTIAL; strict Ollama requirement pending).**
+- [x] **BNS-V-01 — Vector Search (COMPLETED).**
   1. **Requirement:** R16, đề §10.2.
-  2. **Production path hiện tại:** `memory vsave/vsearch` → `HashEmbedder` → SQLite embedding BLOB → cosine ranking; phải đổi sang `OllamaEmbedder(nomic-embed-text)` ở production.
+  2. **Production path hiện tại:** `memory vsave/vsearch` → `OllamaEmbedder(nomic-embed-text)` → SQLite embedding BLOB → C++ cosine ranking.
   3. **Contract:** `MemoryTool` sở hữu DB/embedder, migration schema; missing text/DB error trả `ToolError`.
   4. **Failure cases:** empty command, DB/BLOB lỗi, DB cũ thiếu cột, không có vector memory.
-  5. **DoD:** B-10-06 Ollama embedder + A-10-08 runtime wiring + C-10-06 Ollama acceptance; then `test_tools` and CTest 5/5 PASS.
-  6. **Runtime impact:** `vsave/vsearch` cần Ollama/model; service lỗi phải trả lỗi rõ, không fallback hash. `save/search` cũ giữ offline regression.
+  5. **DoD:** B-10-06 Ollama embedder + A-10-08 runtime wiring + C-10-06 Ollama acceptance; `test_tools` (gồm `test_ollama_embedder`) & CTest 5/5 PASS.
+  6. **Runtime impact:** `vsave/vsearch` ở production cần Ollama/model (`nomic-embed-text`); service lỗi trả lỗi rõ `ToolError::ExecutionFailed`, không fallback hash âm thầm. `save/search` cũ giữ offline regression.
 
 - [x] **BNS-G-01-B — Screenshot/action contracts (contract PASS, GUI bonus chưa xong).**
   1. **Requirement:** phần Role B của R18, đề §10.1.

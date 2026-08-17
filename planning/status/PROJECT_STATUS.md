@@ -43,7 +43,7 @@
 
 ## Bonus status — committed for Tuần 10
 
-- **Vector search (+4): PARTIAL.** SQLite BLOB + C++ cosine + `HashEmbedder` tests PASS, but đề §10.2 bắt buộc `nomic-embed-text` qua Ollama. B-10-06 implements it, A-10-08 wires it into production, C-10-06 runs acceptance/regression; no silent hash fallback.
+- **Vector search (+4): COMPLETED.** `OllamaEmbedder(nomic-embed-text)` implementation (B-10-06), production runtime wiring in `MemoryTool` & `ToolRegistry` (A-10-08), and error handling without silent hash fallback + contract test (`test_ollama_embedder`) & regression tests PASS. CTest 5/5 PASS.
 - **Multi-agent (+3): PARTIAL.** Harness/thread/queue/join tests PASS, but current calculator/researcher demo can return fallback `Tokyo` on a web failure and is not strong evidence of a complex parallel task. C-10-07 replaces it with a strict composite demo; B-10-07 verifies worker error contract; A-10-09 accepts layer boundary.
 - **VLM/GUI Agent (+8): CONTRACT PASS (BNS-G-01-B, full GUI bonus in progress).** B đã đóng contract `capture_screenshot` (ScreenshotTool → base64) + action-tool an toàn (ActionTool `gui_action`, allow-list click/type_text/key_press + validate) + focused tests in `test_tools` PASS. Remaining: C triển khai action executor + controlled end-to-end demo + regression; cần môi trường desktop + VLM duyệt. Không tự nhận demo thật đã chạy.
 - The team has committed all three for Tuần 10. Each starts/merges only after mandatory gates PASS and requires focused tests plus full regression.
