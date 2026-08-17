@@ -6,7 +6,7 @@
 ## Việc chung trước khi freeze
 
 - [ ] Merge về một freeze candidate; không còn conflict marker.
-- [x] Fresh rebuild đủ 8 target trên revision `3db1afb`; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a` và CTest 5/5 PASS (2026-08-17).
+- [ ] Clean build đủ 8 target; chạy `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a` và CTest 5/5.
 - [ ] Kiểm tra benchmark/action-level, artifact cũ không false-pass, API key/config/database/build không vào package.
 - [ ] Khóa source path, test log và claim cho report/README; render đủ 4 UML.
 
