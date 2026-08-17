@@ -153,10 +153,10 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 2. **Production path:** `run_eval` → `HarnessRunner::runAll()` → `Environment::cleanArtifacts()` → AgentLoop/tools → evaluator → `TaskRunResult`/trajectory JSON/summary.
 3. **Contract:** task giữ `required_tools`, artifacts, category và post-condition; required-tool task chỉ pass nếu có tool step thật; cleanup chỉ đụng generated artifact; provider/model/run ID và token state được lưu, `tokens=0` nghĩa là not measured.
 4. **Failure cases:** stale artifact false-pass; no-tool execution; invalid task/evaluator spec; tool/parser/loop/timeout/rate-limit error; provider/quota/network không có; trajectory thiếu args/post-condition.
-5. **DoD có thể kiểm chứng:** clean build rồi chạy `test_harness`, `test_tools`, `test_multi_agent`, `test_template_method`, `ctest --test-dir build --output-on-failure`; expected: 4/4 PASS. Khi quota được duyệt, chạy `run_eval` clean state và kiểm tra đủ 10 trajectory, 4/4/2, score/failure/post-condition. Evidence: command log + run directory trên freeze candidate.
+5. **DoD có thể kiểm chứng:** clean build rồi chạy `test_harness`, `test_tools`, `test_multi_agent`, `test_template_method`, `test_role_a`, `ctest --test-dir build --output-on-failure`; expected: 5/5 PASS. Khi quota được duyệt, chạy `run_eval` clean state và kiểm tra đủ 10 trajectory, 4/4/2, score/failure/post-condition. Evidence: command log + run directory trên freeze candidate.
 6. **Review gate:** A hoặc B chạy lại một required-tool task từ workspace sạch, kiểm tra trajectory/action-level bằng tay; benchmark chỉ Accepted khi reviewer xác nhận provider/model/fallback wording đúng.
 
-**Evidence 2026-08-13:** sau thay đổi Role C, `test_multi_agent` PASS và CTest 4/4 PASS. C-10-01..03 vẫn PENDING final clean build, provider benchmark mới và review workflow; không dùng test pass thay cho benchmark evidence.
+**Evidence 2026-08-17:** fresh rebuild đủ 8 target trên `3db1afb`; `test_tools`, `test_harness`, `test_multi_agent`, `demo_multi_agent`, `test_template_method`, `test_role_a` và CTest **5/5 PASS**. `benchmark/tasks.json` đúng quota 4 simple/4 medium/2 hard. C-10-01..03 vẫn PENDING benchmark provider mới và review workflow; không dùng test pass thay cho benchmark evidence.
 
 ### C-10-04..05 — Evidence lock, package và code freeze — PENDING
 
@@ -166,6 +166,8 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 4. **Failure cases:** dead link/stale claim; docs vượt evidence; secret/DB/artifact trong ZIP; README không tái lập build; owner không xác nhận file đổi/xóa; test fail sau extraction.
 5. **DoD có thể kiểm chứng:** `git diff --check`, secret/artifact scan, extract ZIP vào directory sạch rồi theo README build và chạy `test_harness`, `test_multi_agent`, CTest; expected: commands PASS, scan sạch, final commit/tag + freeze note ghi rõ. Evidence: package manifest, command log, reviewer record.
 6. **Review gate:** A và B cùng chạy lại clean-extraction workflow hoặc chia build/test + manifest review; C chỉ tuyên bố Code Freeze sau hai xác nhận độc lập.
+
+**Blocker 2026-08-17:** `git ls-files` cho thấy `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` đang được track. Không tạo ZIP/không tuyên bố freeze cho đến khi owner bỏ binary dependency này khỏi Git và scan package sạch.
 
 ## 8. Dependency Map
 

@@ -6,7 +6,7 @@
 ## Việc chung trước khi freeze
 
 - [ ] Merge về một freeze candidate; không còn conflict marker.
-- [ ] Clean build đủ 7 target; chạy `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` và CTest 4/4.
+- [x] Fresh rebuild đủ 8 target trên revision `3db1afb`; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method`, `test_role_a` và CTest 5/5 PASS (2026-08-17).
 - [ ] Kiểm tra benchmark/action-level, artifact cũ không false-pass, API key/config/database/build không vào package.
 - [ ] Khóa source path, test log và claim cho report/README; render đủ 4 UML.
 
@@ -58,12 +58,12 @@
 
 ## Role C — Eval/Infra
 
-- [ ] **C-10-01..03 — Eval/integration/benchmark.**
+- [ ] **C-10-01..03 — Eval/integration/benchmark (offline regression PASS; provider benchmark pending approval).**
   1. **Requirement:** R08, R13.
   2. **Path:** `run_eval` → Harness cleanup/run/evaluate → trajectories/summary.
   3. **Contract:** required-tool needs a real step; cleanup only generated files; token 0 = not measured.
   4. **Failures:** stale artifact, no-tool pass, invalid task, provider/timeout/failure reason.
-  5. **DoD:** clean build + 4 executables + CTest; approved run has 10 trajectories 4/4/2.
+  5. **DoD:** fresh rebuild 8 targets + CTest 5/5 PASS on `3db1afb`; an approved real-provider run must still have 10 trajectories 4/4/2.
   6. **Review:** A/B rerun required-tool workflow from clean state.
 
 - [x] **BNS-M-01 — Multi-agent Harness integration (self-test PASS; review pending).**
@@ -71,15 +71,15 @@
   2. **Path:** `HarnessRunner::runMultiAgentDemo()` → `MultiAgentRunner` → 2 worker threads → report.
   3. **Contract:** timeout/join, two results required, report only written after both arrive.
   4. **Failures:** missing result/timeout, worker/tool error, report write failure.
-  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 4/4 PASS; report contains `CALC=1081` and `CAPITAL=`.
+  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 5/5 PASS; report contains `CALC=1081` and `CAPITAL=`.
   6. **Review:** A/B rerun demo on freeze candidate before Accepted.
 
-- [ ] **C bonus/freeze — VLM/GUI end-to-end, package.**
+- [ ] **C bonus/freeze — VLM/GUI end-to-end, package (blocked).**
   1. **Requirement:** R17, R18, R14–R15.
   2. **Path:** Harness → 2 workers; screenshot → VLM → C executor; evidence → ZIP → clean extract → freeze note.
   3. **Contract:** bounded executor, timeout/join; ZIP excludes secrets/DB/artifacts; critical fix re-freezes.
   4. **Failures:** race/deadlock, invalid VLM action, unavailable display/model, secret/package leak, clean-build failure.
-  5. **DoD:** focused demo + full regression; clean extraction follows README and tests PASS.
+  5. **DoD:** focused demo + full regression; clean extraction follows README and tests PASS. Current blocker: tracked `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` must be removed by its owner before a package is created.
   6. **Review:** A/B run demo/package workflow before C declares Accepted/freeze.
 
 ## Thứ tự và điều kiện freeze
