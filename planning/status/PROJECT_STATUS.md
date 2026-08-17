@@ -1,6 +1,6 @@
 # Project Status — AI-AGENT OOP 2026
 
-**Cập nhật lần cuối:** 2026-08-09
+**Cập nhật lần cuối:** 2026-08-17
 **Nguồn điều phối hiện hành:** [`KH_Tuan10_TongQuan_1Trang.md`](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) để theo dõi hằng ngày và [`KH_Tuan10_ChiTiet.md`](../weekly-plans/KH_Tuan10_ChiTiet.md) cho task/DoD chi tiết. Đề chính thức, source/test/CMake và artifact mới là nguồn xác minh; file này chỉ là trạng thái tóm tắt.
 
 ## Giai đoạn hiện tại
@@ -11,11 +11,10 @@
 
 ## Trạng thái theo Role
 
-### Role A — Systems/Core: PARTIALLY DONE, verification/bug-fix remaining
+### Role A — Systems/Core: CODE/FOCUSED TEST DONE, package hygiene remaining
 
-- Client, AgentLoop, LoopDetector, SkillLoader, Environment, Template Method và guarded C++26 `inplace_vector` fallback đã có source.
-- Còn phải đóng evidence/test cho multimodal và lỗi client; parser formats/malformed intent; skill selection + injection trước mỗi run; failure signals; C++ feature matrix, sanitizer/MSVC limitation; 4 Mermaid render và report/layer audit.
-- Owner tasks: A-10-01 đến A-10-07 trong kế hoạch tuần hiện hành.
+- `test_role_a` đã được bổ sung; focused tests và CTest 5/5 PASS trên `3db1afb`.
+- Tracked binary dependency `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` phải được owner bỏ khỏi Git trước package/freeze.
 
 ### Role B — Tools/Data: PARTIALLY DONE, error matrix/package remaining
 
@@ -24,12 +23,11 @@
 - Còn phải đóng args/error matrix, Web/Exec timeout offline fixture, memory database lifecycle và tool report review.
 - Owner tasks: B-10-01 đến B-10-05.
 
-### Role C — Eval/Infra: PARTIALLY DONE, final verification/freeze remaining
+### Role C — Eval/Infra: OFFLINE REGRESSION DONE, provider/package gates remaining
 
-- Harness, evaluator, trajectory, multi-agent queue/thread baseline, CMake targets và 4 CTest tests đã có.
-- Có clean provider artifact `run_20260807_085427_143` với 10/10 pipeline PASS; nó không chứng minh model reasoning và phải được re-verify/ghi limitation ở freeze candidate.
-- Còn phải chốt clean-state/action-level/failure/post-condition audit, full offline regression, benchmark approved quota, docs merge, package dry-run, clean extraction và freeze note.
-- Owner tasks: C-10-01 đến C-10-05.
+- Fresh rebuild đủ 8 targets, `test_tools`, `test_harness`, `test_multi_agent`, `demo_multi_agent`, `test_template_method`, `test_role_a` và CTest 5/5 PASS trên `3db1afb`.
+- `benchmark/tasks.json` có đúng 10 task theo quota 4 simple/4 medium/2 hard. Real-provider `run_eval` chưa chạy lại vì cần quota/cost approval; historical run vẫn chỉ là pipeline evidence có fallback limitation.
+- Package dry-run, clean extraction và freeze note bị chặn đến khi binary `.deb` bị track được gỡ.
 
 ## Mandatory requirements not yet closed
 
@@ -50,7 +48,7 @@
 ## Latest recorded evidence (not a freeze declaration)
 
 - Plan/artifact records a clean provider run `run_20260807_085427_143` with 10 tasks PASS, labelled pipeline evidence with fallback limitation.
-- Earlier documented offline gate: all 7 targets built; `test_tools`, `test_harness`, `test_multi_agent`, `test_template_method` passed; CTest 4/4.
+- Fresh offline gate on `3db1afb`: all 8 targets rebuilt; CTest 5/5 passed.
 - These results must be repeated on the final candidate because the current repository has commits after the cited historical revisions.
 
 ## Freeze blockers / confirmations
