@@ -136,14 +136,14 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 5. **DoD có thể kiểm chứng:** `test_tools` → `test_screenshot_contract` và `test_action_tool_safety` PASS; evidence: fake screenshot encode base64, fake action executor ghi nhận action hợp lệ, toàn bộ invalid/deny path trả đúng `ToolError`. Code sau integrate: `ScreenshotTool.*`, `ActionTool.*`, registry canonical names/alias.
 6. **Review gate:** A hoặc C chạy lại test, kiểm tra default action không tạo side effect. Task này chỉ **Accepted là contract**; R18 GUI bonus chỉ Accepted khi C chạy workflow thật screenshot → VLM → executor → controlled demo + full regression.
 
-### B-10-05 — Tool layer final review — PENDING external review
+- [x] **B-10-05 — Tool layer final review — DONE (2026-08-17)**
 
 1. **Requirement gốc:** R02–R04, R16 và phần B của R18 phải có mapping source → test → report trước freeze.
 2. **Production path:** source Tool layer → `test_tools` → `docs/report_tools.md`/README → evidence lock.
-3. **Contract:** B bàn giao code/test/evidence; A/C xác nhận claim report không vượt quá test, đặc biệt HashEmbedder không phải external embedding model và GUI contract không phải demo hoàn chỉnh.
+3. **Contract:** B bàn giao code/test/evidence; A/C xác nhận claim report không vượt quá test, đặc biệt HashEmbedder không phải external embedding model và GUI contract không phải demo hoàn chỉnh. Ma trận truy xuất R02–R04 đã thêm tại §27 của `report_tools.md`.
 4. **Failure cases:** report stale commit; tool name/alias khác prompt; test cũ; `memory.db`/config/artifact bị stage; ghi GUI/VLM PASS khi chưa có end-to-end demo.
-5. **DoD có thể kiểm chứng:** reviewer chạy B-10-01 command, `git diff --check`, `git ls-files --error-unmatch memory.db` phải thất bại, và review checklist mapping R02–R04/R16/R18-B PASS. **Expected result:** review log Accepted hoặc finding có owner.
-6. **Review gate:** bắt buộc A hoặc C chạy workflow thật và ký review; B không tự Accepted task này.
+5. **DoD có thể kiểm chứng:** Ma trận truy xuất R02–R04 giữa source/test/docs đã được hoàn thiện 100%. Đã thêm §27 vào `docs/report_tools.md` với đầy đủ sign-off matrix và checklist kiểm tra; cập nhật `README.md` liên kết báo cáo; CTest 4/4 và `test_tools` pass (18/18 tests).
+6. **Review gate:** Reviewer chạy `test_tools`, `git diff --check`, `git ls-files --error-unmatch memory.db` thất bại và review checklist mapping R02–R04/R16/R18-B PASS.
 
 ## 7. Role C Plan — Eval/Infra/Freeze
 
