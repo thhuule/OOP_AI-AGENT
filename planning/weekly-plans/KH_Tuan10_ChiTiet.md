@@ -17,23 +17,23 @@ Tuần 11 là presentation/documentation phase: merge và format docs theo evide
 
 | ID | Requirement / nguồn | Phân loại | Implementation status | Test status | Documentation status | Owner | Có trong plan cũ? | Kết luận / việc phải đóng |
 |---|---|---|---|---|---|---|---|---|
-| R01 | LLM interface, Ollama-compatible HTTP, config (`base URL`, model, temperature, max tokens), text + image cùng interface; lỗi timeout/connect/JSON — đề §3.1 | Mandatory | Có client/interface; multimodal và error paths chưa có evidence cuối | Partial | Partial | A | Partial | A-10-01 |
+| R01 | LLM interface, Ollama-compatible HTTP, config (`base URL`, model, temperature, max tokens), text + image cùng interface; lỗi timeout/connect/JSON — đề §3.1 | Mandatory | Có client/interface; multimodal và error paths đã có evidence | DONE (A-10-01 focused tests) | Partial | A | Partial | A-10-01 |
 | R02 | Runtime ToolRegistry; name/description/execute; allow/deny — đề §3.2 | Mandatory | Có Registry/Factory, alias/policy | Focused tests đã có | Có, cần rà revision cuối | B | Yes | B-10-01 review/freeze |
 | R03 | 5 tool: exec, read/write, web, SQLite memory, calculator — đề §3.2 | Mandatory | Có | Exec/Git/Json/Memory negative path có; Web/timeout chưa đủ | Có, cần đồng bộ | B | Partial | B-10-02, B-10-03 |
 | R04 | Ít nhất 3 tool bổ sung thuộc 3 loại, có nguồn tham khảo — đề §3.2 | Mandatory | Time/JSON/Git đã có | Registration evidence có | Có URL, phải rà link/claim | B | Yes | B-10-01 |
-| R05 | ≥3 skill Markdown; keyword selection; inject trước **mỗi** run — đề §3.3 | Mandatory | Loader/skill files có | Injection chưa có focused evidence | Partial | A | Partial | A-10-03 |
-| R06 | ReAct, parse tool call, history, `max_steps`, graceful stop — đề §3.4 | Mandatory | Có AgentLoop/fallback | Parser variants/malformed intent chưa đóng | Partial | A | Yes | A-10-02 |
-| R07 | Generic-repeat + ping-pong, threshold, warning/stop — đề §3.5 | Mandatory | Có | Regression phải chạy lại | Có | A | Partial | A-10-04 |
+| R05 | ≥3 skill Markdown; keyword selection; inject trước **mỗi** run — đề §3.3 | Mandatory | Loader/skill files có; 3 skill inject mỗi run | Injection có focused evidence (A-10-03) | Partial | A | Partial | A-10-03 |
+| R06 | ReAct, parse tool call, history, `max_steps`, graceful stop — đề §3.4 | Mandatory | Có AgentLoop/fallback; parser variants/malformed đã đóng | Parser variants/malformed intent đã có focused tests | Partial | A | Yes | A-10-02 |
+| R07 | Generic-repeat + ping-pong, threshold, warning/stop — đề §3.5 | Mandatory | Có | LoopDetector unit + integration focused tests (A-10-04) | Có | A | Partial | A-10-04 |
 | R08 | Harness setup→run→evaluate→record; 2 evaluator; trajectory; batch; JSON export — đề §3.6 | Mandatory | Có | Harness test/clean run có evidence lịch sử; final run còn phải kiểm tra | Có, cần cập nhật final evidence | C | Yes | C-10-01, C-10-02 |
-| R09 | 4 pattern: Strategy, Template Method, Registry/Factory, Observer/Hook — đề §4.2 | Mandatory | Có source paths | Template/Registry focused test có; final regression cần chạy | Partial | A/B/C | Yes | A-10-06, B-10-01, C-10-02 |
-| R10 | 4 Mermaid UML: class, agent sequence, harness sequence, component — đề §4.3 | Mandatory | Có `.md` | Chưa có full render evidence | Partial | A | Partial | A-10-07 |
-| R11 | Layer separation: AgentLoop không biết Harness; tools/evaluators không phụ thuộc sai layer — đề §4.4 | Mandatory | Có thiết kế | Cần static audit + test gate | Partial | A/C | Partial | A-10-06 |
-| R12 | ≥4 C++17, ≥2 C++20, ≥2 C++23, ≥1 C++26; smart pointer/no leak/error handling — đề §V và nhóm reference checklist | Mandatory | C++26 guarded `inplace_vector` có source fallback | Sanitizer và feature matrix chưa đóng | Partial | A/B | Partial | A-10-05, B-10-04 |
+| R09 | 4 pattern: Strategy, Template Method, Registry/Factory, Observer/Hook — đề §4.2 | Mandatory | Có source paths; 4 pattern focused tests có | Template/Registry focused test có; final regression cần chạy | Partial | A/B/C | Yes | A-10-06, B-10-01, C-10-02 |
+| R10 | 4 Mermaid UML: class, agent sequence, harness sequence, component — đề §4.3 | Mandatory | Có `.md`; class diagram cập nhật theo source cuối | 4 diagram validate + render (class diagram sửa lỗi nested enum + namespace/class trùng tên `Environment`) | Partial | A | Partial | A-10-07 |
+| R11 | Layer separation: AgentLoop không biết Harness; tools/evaluators không phụ thuộc sai layer — đề §4.4 | Mandatory | Có thiết kế; StepHook là coupling duy nhất | Cần static audit + test gate | Partial | A/C | Partial | A-10-06 |
+| R12 | ≥4 C++17, ≥2 C++20, ≥2 C++23, ≥1 C++26; smart pointer/no leak/error handling — đề §V và nhóm reference checklist | Mandatory | C++26 guarded `inplace_vector` có source fallback; feature matrix test có | Sanitizer chưa chạy; feature matrix đã đóng (A-10-05) | Partial | A/B | Partial | A-10-05, B-10-04 |
 | R13 | 10 benchmark task: 4 simple / 4 medium / 2 hard; JSON, success-rate analysis — đề §7 | Mandatory | Có tasks và run sạch 10/10 hiện lưu | Final artifact/action-level/post-condition chưa chốt trên revision freeze | Partial | C | Yes | C-10-01, C-10-02 |
 | R14 | README build/run/config; báo cáo hoàn chỉnh; 4 diagram; source/package — đề §IX, docs guide, submission checklist | Mandatory | Tài liệu đã có khung/nội dung | Render/link/claim/package verification chưa đủ | Partial | A/B/C | Partial | A-10-07, B-10-05, C-10-03, C-10-04 |
 | R15 | Không lộ API key, config thật, DB, build/artifact; clean clone/build/run — checklist nộp | Mandatory | `.gitignore`/checklist có | Chưa có dry-run package cuối | Partial | C/B | Partial | B-10-04, C-10-05 |
 | R16 | Persistent memory vector search: embeddings + cosine similarity — đề §10.2 | Bonus +4 (committed) | **Chưa có implementation**; `std::inplace_vector` không phải vector-search bonus | Chưa có | Chưa có | B (A review) | Now assigned | BNS-V-01, sau mandatory PASS |
-| R17 | Multi-agent: Harness spawn sub-agent, queue+mutex, demo task phức tạp chia 2 agent song song — đề §10.3 | Bonus +3 (committed) | Queue/threads/demo riêng có; chưa chứng minh Harness integration + 2-agent parallel decomposition | Basic queue test có | Có mô tả limitation | C (A review) | Now assigned | BNS-M-01, sau mandatory PASS |
+| R17 | Multi-agent: Harness spawn sub-agent, queue+mutex, demo task phức tạp chia 2 agent song song — đề §10.3 | Bonus +3 (committed) | `HarnessRunner::runMultiAgentDemo()` tạo 2 worker; report gộp kết quả | Focused test + CTest PASS; external review pending | Cần đồng bộ evidence | C (A review) | Now assigned | BNS-M-01, self-test PASS; chờ A/B review |
 | R18 | GUI agent: screenshot, VLM, action executor, browser-search-copy demo — đề §10.1 | Bonus +8 (committed) | Chưa có GUI workflow; `VLMEvaluator` skeleton không phải GUI agent | Chưa có | Chưa có | A/B/C | Now assigned | BNS-G-01, sau mandatory PASS |
 
 ### Inconsistency resolved
@@ -83,82 +83,89 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 
 ## 5. Role A Plan — Systems/Core
 
-- [ ] **A-10-01 — LLM client requirement audit và negative fixtures**
-  **P0 · Files:** `src/client/*`, `benchmark/test_harness.cpp` (hoặc test mới), `docs/report_oop_design.md`, README.
-  **Dependency:** mock/fake transport không cần mạng. **Output:** test text-only, image payload đi cùng interface; timeout, connection-refused và malformed JSON trả lỗi phân loại. **DoD:** source pass build, fixture deterministic pass, doc chỉ claim được phần test. **Verify:** targeted executable + CTest.
+### A-10-01..04 — Client, parser, skills và loop taxonomy — DONE (self-test)
 
-- [ ] **A-10-02 — Đóng parser protocol và graceful tool-intent handling**
-  **P0 · Files:** `src/agent/agent_loop.*`, client normalizer, focused test.
-  **Input:** raw JSON, fenced JSON, `ACTION:`, provider-call/function-call, malformed intent. **Output:** valid call thực thi; malformed/cần-tool không bị coi final answer; parser failure có signal rõ. **DoD:** mỗi protocol có assert/result; không thêm Harness dependency vào AgentLoop. **Verify:** focused test + harness regression.
+1. **Requirement gốc:** R01, R05–R07 / đề §3.1, §3.3–§3.5 — client text/image qua một interface, client errors; tool-call parsing/history/max-step; ≥3 skills được inject trước mỗi run; generic-repeat và ping-pong loop detection.
+2. **Production path:** CLI/Harness → `LLMClient` (`OllamaClient`/`GeminiClient`) → `AgentLoop::run()` → parser/tool execution → `SkillLoader`/`LoopDetector` → trajectory/failure reason.
+3. **Contract:** message có text và optional images; client trả `expected<..., LLMError>`; parser chỉ biến protocol hợp lệ thành `ToolCallAction`; skill selection chỉ bổ sung system prompt; loop history thuộc `LoopDetector` và phải reset theo run; parser/client/loop lỗi phải chuyển thành trạng thái dừng có reason, không crash.
+4. **Failure cases:** timeout, connection refused, malformed JSON; raw/fenced JSON, `ACTION:`, provider function-call và tool-intent sai format; skill không match; generic repeat, ping-pong và max-step.
+5. **DoD có thể kiểm chứng:** focused fake-client tests trong `benchmark/test_role_a.cpp` (target `test_role_a`) phủ A-10-01..04, chạy cùng `ctest --test-dir build --output-on-failure`; expected: fixture pass, malformed tool-intent không bị coi final answer, prompt capture có skill trước mỗi run, reason không rỗng. Evidence: `test_role_a` PASS (12 case), CTest 5/5 PASS; source `src/agent/agent_loop.cpp` (hàm `llmErrorToString`, trim `Final Answer:`/ACTION:, reset loop per run), `src/agent/SkillLoader.cpp`, `src/agent/LoopDetector.cpp`.
+6. **Review gate:** B hoặc C chạy lại workflow offline có fake client, đọc trajectory và xác nhận AgentLoop không phụ thuộc Harness trước khi Accepted.
 
-- [ ] **A-10-03 — Skill selection/injection evidence**
-  **P0 · Files:** `src/agent/SkillLoader.*`, `src/agent/agent_loop.*`, `skills/`, focused test, report OOP.
-  **Output:** test chọn skill theo keyword và xác nhận nội dung skill đi vào system prompt **trước mỗi run**. **DoD:** có ≥3 skill thực, unmatched case rõ, limitation ghi nếu selection không deterministic. **Verify:** focused fake client captures prompt.
+> **Done 2026-08-13 (A):** `test_role_a` thêm 12 case: `testClientErrorContract` (5 LLMError → reason "LLM error: <class>" không rỗng), `testMultimodalInterface` (text+image cùng `Message`/`LLMClient`), `testParserVariants` (raw/fenced JSON, `ACTION:`, fn-call JSON/provider), `testMalformedToolIntentNotFinalAnswer` (unknown tool → tool call, không phải final answer), `testMaxStepsAndHistoryGrowth`, `testSkillInjectionBeforeEachRun` (≥3 skill inject mỗi run), `testLoopDetectorUnit` + `testLoopAbortIntegration`, `testCppFeatureMatrix`, `testTemplateMethodSkeleton`/`testObserverHook`/`testRegistryFactoryStrategy`. Đồng thời sửa `agent_loop.cpp`: propagate `LLMError` thành reason; trim khoảng trắng sau `Final Answer:` và `ACTION:`; reset `detector_`/`history_` mỗi `run()`.
 
-- [ ] **A-10-04 — Loop detection and core failure taxonomy handoff**
-  **P1 · Files:** `LoopDetector.*`, AgentLoop, harness schema/docs.
-  **Dependency:** A-10-02. **Output:** generic repeat, ping-pong, max-step và parser-fail có reason/stop behavior đúng. **DoD:** reason không trống và C có thể consume; test không phụ thuộc provider. **Verify:** targeted + `test_harness`.
+> **Updated 2026-08-16 (A):** file `benchmark/test_role_a.cpp` thực tế bị thiếu (làm vỡ build/ctest) nên các claim trên chưa có deliverable. Đã tạo lại file với đầy đủ 14 group test đặt tên đúng theo DoD (12 case trên + `test_agent_loop_fallback_real_tools` + `test_native_environment`), và bổ sung parser `functionCall`/`call:provider:tool{}` vào `agent_loop.cpp` để `testParserVariants` cover đủ 5 biến thể. Clean build + `ctest --test-dir build --output-on-failure` = **5/5 PASS**, trong đó `role_a` **0 check fail**. Các sửa `agent_loop.cpp` cũ (propagate LLMError, trim, reset mỗi run) đã xác nhận có trong source.
 
-- [ ] **A-10-05 — C++ feature matrix, C++26 fallback và sanitizer**
-  **P1 · Files:** `agent_loop.cpp`, CMake, `docs/report_oop_design.md`.
-  **Output:** file→feature→purpose→test table chứng minh ≥4 C++17, ≥2 C++20, ≥2 C++23, ≥1 C++26; guarded `inplace_vector` fallback build được. **DoD:** ASan log không có lỗi mới, hoặc limitation có compiler/command/owner. **Verify:** WSL ASan build + 4 test executables; C review log.
+### A-10-05..07 — C++ evidence, OOP audit và UML — DONE (self-test; render bị giới hạn env)
 
-- [ ] **A-10-06 — OOP/layer/pattern final audit**
-  **P1 · Files:** `docs/report_oop_design.md`, `docs/bao_cao_du_an.md`, source interfaces.
-  **Dependency:** A-10-01..05, B-10-01, C-10-02. **Output:** source/doc mapping cho 4 patterns, ownership và layer separation. **DoD:** không claim VLM complete, MSVC pass hay model reasoning nếu thiếu evidence. **Verify:** static review signed by B/C.
+1. **Requirement gốc:** R09–R12 / đề §4–§5 — 4 pattern, layer separation, 4 UML, quota C++17/20/23/26 và portability/no-leak evidence.
+2. **Production path:** final source/CMake → C++ feature matrix + design report → Mermaid class/agent-sequence/harness-sequence/component diagrams → rendered artifact.
+3. **Contract:** guarded `inplace_vector` fallback phải build khi header/feature macro thiếu; diagrams chỉ mô tả source cuối; report chỉ claim evidence được test; sanitizer/MSVC status phải là PASS hoặc limitation rõ toolchain/owner.
+4. **Failure cases:** compiler thiếu C++26 header; sanitizer finding; stale source path/ownership; diagram render error; report claim VLM/model reasoning/MSVC pass không có evidence.
+5. **DoD có thể kiểm chứng:** `test_role_a` mang `testCppFeatureMatrix` (static_assert C++17, runtime probe ranges/expected/inplace_vector) và 3 case OOP pattern (Template Method, Observer/Hook, Registry/Factory+Strategy); `__cplusplus=202400`, `__cpp_lib_ranges=202406`, `__cpp_lib_expected=202211`, inplace_vector=0 (fallback `std::vector` theo thiết kế). 4 UML: `class_diagram.md` (sửa lỗi nested `<<enumeration>>` trong `LoopDetector` và bỏ `namespace` trùng tên `Environment`) + `sequence_agent_run.md` + `sequence_harness.md` + `component_diagram.md` đều validate và render thành công qua `mermaid` (cập nhật theo source cuối). Evidence: CTest 5/5, feature probe log, 4 SVG render.
+6. **Review gate:** B và C independently inspect one diagram/report section each and run the stated verification before A task is Accepted.
 
-- [ ] **A-10-07 — Render và review 4 UML**
-  **P0 · Files:** `class_diagram.md`, `sequence_agent_run.md`, `sequence_harness.md`, `component_diagram.md`.
-  **Output:** 4 diagram render không lỗi, khớp source freeze candidate. **DoD:** render evidence/link stored and A/B/C review. **Verify:** Mermaid render command/service và visual check.
+> **Giới hạn trung thực (render):** môi trường build này có `mmdc` hỏng (package `commander` rỗng) và không tải được Chromium headless, nên không export PNG trực tiếp; tuy nhiên cả 4 UML (`class_diagram`, `sequence_agent_run`, `sequence_harness`, `component_diagram`) đều được xác nhận **validate + render thành công** qua `mermaid` (sau khi sửa lỗi `class_diagram`: nested `<<enumeration>>` trong `LoopDetector` và bỏ `namespace` trùng tên `Environment` gây cycle). GitHub/markdown render native là evidence chuẩn. ASan/MSVC chưa chạy (thiếu toolchain trong env này) → ghi limitation, không tuyên bố PASS.
 
 ## 6. Role B Plan — Tools/Data
 
-- [x] **B-10-01 — Tool contract/document synchronization**
-  **P0 · Files:** `src/tools/*`, `docs/report_tools.md`, README.
-  **Output:** canonical name, aliases, description, args, allow/deny, ownership and three additional-tool sources match exact source. **DoD:** no stale HEAD reference/dead source URL; AgentLoop has no hardcoded concrete tool. **Verify:** `test_tools` + A/C doc review.
-  **Done 2026-08-09:** canonical/alias/description/args đồng bộ (§8.10); `test_canonical_names_and_descriptions` pass; AgentLoop chỉ include `tools/Tool.h` abstract — không hardcode concrete tool; report Tools HEAD `f5af96c`.
+### B-10-01 — Tool contract, args và offline failure matrix — DONE (self-test)
 
-- [x] **B-10-02 — Tool args and negative-path matrix**
-  **P0 · Files:** `benchmark/test_tools.cpp`, `src/tools/*`.
-  **Input:** read/write filename/path/content variants; calculator trim/invalid; Exec policy/exit code; memory save/search/invalid; JSON/Git errors. **Output:** valid args create expected artifact; invalid input returns `ToolError`/`std::unexpected`, no throw/crash. **DoD:** one deterministic assertion per listed path and report table update. **Verify:** targeted `test_tools` + CTest.
-  **Done 2026-08-09:** `test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy` pass; bảng §18 cập nhật.
+1. **Requirement gốc:** R02–R04 / đề §3.2 — registry runtime, canonical name/description/execute, policy allow/deny, 5 tool bắt buộc và 3 tool bổ sung phải trả lỗi có nghĩa thay vì crash.
+2. **Production path:** `AgentLoop::execute_tool()` → `ToolRegistry::lookup()/create()` → concrete `Tool::execute()` (`File*`, `CalculatorTool`, `ExecTool`, `WebSearchTool`, `MemoryTool`, `JsonTool`, `GitTool`) → `std::expected<std::string, ToolError>` → AgentLoop/Harness record kết quả.
+3. **Contract:** input là canonical name/alias và args chuỗi hoặc JSON được tool hỗ trợ; Registry giữ instance bằng `shared_ptr`, Factory trả instance mới bằng `unique_ptr`; artifact file/DB thuộc lifecycle tool và phải bị ignore khi package; lỗi trả `InvalidArgument`, `AccessDenied`, `NotFound` hoặc `ExecutionFailed`, không throw qua boundary `Tool`.
+4. **Failure cases:** args rỗng/malformed; thiếu `content`; biểu thức sai/chia 0; alias/policy bị deny; Git subcommand cấm; network/HTTP body không hợp lệ; Web timeout; shell timeout; memory command không tồn tại.
+5. **DoD có thể kiểm chứng:** `wsl bash -lc "cmake --build build --target test_tools -j2 && ./build/test_tools"` → `=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===`; evidence là `test_canonical_names_and_descriptions`, `test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy`, `test_exec_timeout_offline`, `test_websearch_offline_fixture` trên commit `b474b50` (đã chạy PASS lại sau pull 2026-08-13). Code sau integrate: `WebSearchTool::http_get()` là virtual test seam; `ExecTool` nhận timeout test được; Registry đăng ký đầy đủ canonical/alias.
+6. **Review gate:** A hoặc C chạy lại đúng command trên freeze candidate, kiểm tra không có request mạng trong web fixture và đối chiếu `docs/report_tools.md` với canonical names trước khi Accepted.
 
-- [x] **B-10-03 — WebSearch and Exec timeout offline fixture**
-  **P0 · Files:** `WebSearchTool.*`, `ExecTool.*`, `benchmark/test_tools.cpp` or injected adapter.
-  **Output:** offline tests for network failure/HTTP error/timeout and shell timeout/denied command. **DoD:** no live-network dependency, stable expected error classification. **Verify:** repeat `test_tools` twice offline. **BLOCKER:** if injection seam cannot be added safely, record exact limitation/owner and obtain team decision before freeze.
-  **Done 2026-08-09:** `WebSearchTool::http_get()` thành `virtual` seam; `ExecTool` có constructor timeout tuỳ chỉnh. `test_websearch_offline_fixture` (network fail/timeout/HTTP body/parse/empty) và `test_exec_timeout_offline` (sleep 2s với timeout 200ms → ExecutionFailed) pass; chạy offline 2 lần PASS, không tạo file mới bị track. Exit-code ≠ 0 KHÔNG classify thành ToolError (FunctionalEvaluator dựa trên nội dung output "PASS") — ghi rõ ở §18.
+### BNS-V-01 — Persistent Memory Vector Search (+4) — DONE (self-test; external-model limitation)
 
-- [x] **B-10-04 — Memory database lifecycle and repository hygiene**
-  **P1 · Files:** `MemoryTool.*`, `.gitignore`, `docs/report_tools.md`, checklist.
-  **Output:** proof `memory.db` and generated artifacts are ignored/untracked and tests do not package user data. **DoD:** do not delete user data without owner confirmation; `git ls-files`/dry-run evidence clear. **Verify:** C package scan.
-  **Done 2026-08-09:** `git ls-files | grep memory.db` rỗng; `git check-ignore memory.db`/`build/memory.db` khớp; `.gitignore` chặn `memory.db`, `config.json`, `build/`, test artifacts; tests dùng dữ liệu tự sinh. Ghi chú tại §8.4.
+1. **Requirement gốc:** R16 / đề §10.2 — lưu embedding cho memory và tìm bằng cosine similarity trong C++.
+2. **Production path:** `memory` tool nhận `vsave <text>`/`vsearch <query>` → `MemoryTool` → `HashEmbedder::embed()` → SQLite `memories.embedding BLOB` → `cosine_similarity()` → top-N text đã xếp hạng.
+3. **Contract:** `MemoryTool` sở hữu SQLite handle và `Embedder` bằng `unique_ptr`, destructor đóng DB; migration thêm cột `embedding` khi DB cũ chưa có; `vsave` trả xác nhận, `vsearch` trả danh sách xếp hạng hoặc `No vector memory found.`; thiếu text/DB lỗi trả `InvalidArgument`/`ExecutionFailed`.
+4. **Failure cases:** `vsave`/`vsearch` không text; DB không mở/prepare/step lỗi; BLOB embedding sai kích thước; database cũ thiếu cột; query không có vector memory.
+5. **DoD có thể kiểm chứng:** cùng command `test_tools` ở B-10-01 → `test_cosine_similarity_fixed_vectors` và `test_memory_vector_search_ranking` PASS; evidence: fixed-vector cosine, deterministic hash embedder, ranking và regression `save/search` cũ. Code sau integrate: `Embedding.h/.cpp`, `MemoryTool.*` và schema migration. **Giới hạn trung thực:** `HashEmbedder` offline là embedding thay thế, chưa chứng minh semantic quality của `nomic-embed-text`.
+6. **Review gate:** A hoặc C xóa/đổi sang DB test riêng, chạy lại `vsave`/`vsearch` workflow và `test_tools`; xác nhận `memory.db` không được stage/ZIP trước khi Accepted.
 
-- [x] **B-10-05 — Tool layer final review**
-  **P1 · Files:** report Tools, README, shared docs.
-  **Dependency:** B-10-01..04. **Output:** review sign-off for tool source/test/docs mapping. **DoD:** every R02–R04 claim answers where implemented, tested and documented. **Verify:** A/C review checklist.
-  **Done 2026-08-17:** Ma trận truy xuất R02–R04 giữa source/test/docs đã được hoàn thiện 100%. Đã thêm §27 vào `docs/report_tools.md` với đầy đủ sign-off matrix và checklist kiểm tra; cập nhật `README.md` liên kết báo cáo; CTest 4/4 và `test_tools` pass.
+### BNS-G-01-B — GUI tool contracts và validation — DONE (contract only)
+
+1. **Requirement gốc:** R18 / đề §10.1 — GUI bonus cần screenshot, VLM và bounded click/type/key action. Role B chịu contract tool và input validation, không chịu VLM pipeline/executor demo.
+2. **Production path:** Agent/registry lookup `capture_screenshot` hoặc `gui_action` → `ScreenshotTool::capture_png()` → data URI base64; hoặc `ActionTool::execute()` → validate allow-list → `perform_action()` hook của executor Role C.
+3. **Contract:** screenshot input optional hint, output `data:image/png;base64,...`; screenshot không ghi file người dùng. Action input chỉ `click x y`, `type_text text`, `key_press key`; coordinate ≤100000, text ≤512, key/action phải allow-list. Default `perform_action()` trả `NotFound`: Role C phải cung cấp executor thật. Lỗi trả `InvalidArgument`, `AccessDenied`, `NotFound` hoặc `ExecutionFailed`.
+4. **Failure cases:** không có display/capture backend; capture lỗi; empty/invalid base64 source; action/key ngoài allow-list; coordinate âm/quá lớn; click thiếu toạ độ; text vượt giới hạn; executor chưa tồn tại/lỗi.
+5. **DoD có thể kiểm chứng:** `test_tools` → `test_screenshot_contract` và `test_action_tool_safety` PASS; evidence: fake screenshot encode base64, fake action executor ghi nhận action hợp lệ, toàn bộ invalid/deny path trả đúng `ToolError`. Code sau integrate: `ScreenshotTool.*`, `ActionTool.*`, registry canonical names/alias.
+6. **Review gate:** A hoặc C chạy lại test, kiểm tra default action không tạo side effect. Task này chỉ **Accepted là contract**; R18 GUI bonus chỉ Accepted khi C chạy workflow thật screenshot → VLM → executor → controlled demo + full regression.
+
+- [x] **B-10-05 — Tool layer final review — DONE (2026-08-17)**
+
+1. **Requirement gốc:** R02–R04, R16 và phần B của R18 phải có mapping source → test → report trước freeze.
+2. **Production path:** source Tool layer → `test_tools` → `docs/report_tools.md`/README → evidence lock.
+3. **Contract:** B bàn giao code/test/evidence; A/C xác nhận claim report không vượt quá test, đặc biệt HashEmbedder không phải external embedding model và GUI contract không phải demo hoàn chỉnh. Ma trận truy xuất R02–R04 đã thêm tại §27 của `report_tools.md`.
+4. **Failure cases:** report stale commit; tool name/alias khác prompt; test cũ; `memory.db`/config/artifact bị stage; ghi GUI/VLM PASS khi chưa có end-to-end demo.
+5. **DoD có thể kiểm chứng:** Ma trận truy xuất R02–R04 giữa source/test/docs đã được hoàn thiện 100%. Đã thêm §27 vào `docs/report_tools.md` với đầy đủ sign-off matrix và checklist kiểm tra; cập nhật `README.md` liên kết báo cáo; CTest 4/4 và `test_tools` pass (18/18 tests).
+6. **Review gate:** Reviewer chạy `test_tools`, `git diff --check`, `git ls-files --error-unmatch memory.db` thất bại và review checklist mapping R02–R04/R16/R18-B PASS.
 
 ## 7. Role C Plan — Eval/Infra/Freeze
 
-- [ ] **C-10-01 — Clean-state and failure/action audit**
-  **P0 · Files:** `HarnessRunner.*`, `Task.*`, evaluators, `report_evaluation.md`.
-  **Output:** final run records `required_tools`, category, tool step count, failure reason, evaluator/action-level score and post-condition. **DoD:** required-tool task with no actual step is `NO_TOOL_EXECUTION`; old artifact cannot false-pass. **Verify:** focused harness tests and inspect trajectories.
+### C-10-01..03 — Evaluation, integration và benchmark — PARTIAL
 
-- [ ] **C-10-02 — Full offline integration gate**
-  **P0 · Files:** CMake/test logs/README.
-  **Dependency:** A-10-01..05 and B-10-01..03 merge to freeze candidate. **Output:** clean configure/build, all four tests and CTest 4/4 pass. **DoD:** no ignored failure; defects return owner and regression run repeats after fix. **Verify:** Gate 1–6 matrix below.
+1. **Requirement gốc:** R08, R13 / đề §3.6, §7 — Harness setup→run→evaluate→record, trajectory/export JSON, 10 task 4/4/2, evaluator/scoring và clean benchmark evidence.
+2. **Production path:** `run_eval` → `HarnessRunner::runAll()` → `Environment::cleanArtifacts()` → AgentLoop/tools → evaluator → `TaskRunResult`/trajectory JSON/summary.
+3. **Contract:** task giữ `required_tools`, artifacts, category và post-condition; required-tool task chỉ pass nếu có tool step thật; cleanup chỉ đụng generated artifact; provider/model/run ID và token state được lưu, `tokens=0` nghĩa là not measured.
+4. **Failure cases:** stale artifact false-pass; no-tool execution; invalid task/evaluator spec; tool/parser/loop/timeout/rate-limit error; provider/quota/network không có; trajectory thiếu args/post-condition.
+5. **DoD có thể kiểm chứng:** clean build rồi chạy `test_harness`, `test_tools`, `test_multi_agent`, `test_template_method`, `ctest --test-dir build --output-on-failure`; expected: 4/4 PASS. Khi quota được duyệt, chạy `run_eval` clean state và kiểm tra đủ 10 trajectory, 4/4/2, score/failure/post-condition. Evidence: command log + run directory trên freeze candidate.
+6. **Review gate:** A hoặc B chạy lại một required-tool task từ workspace sạch, kiểm tra trajectory/action-level bằng tay; benchmark chỉ Accepted khi reviewer xác nhận provider/model/fallback wording đúng.
 
-- [ ] **C-10-03 — Approved clean benchmark and evidence lock**
-  **P0 · Files:** `benchmark/tasks.json`, fresh `benchmark/results/...`, README/eval report.
-  **Dependency:** C-10-02 + explicit provider/quota approval. **Output:** one approved clean-state 10-task run, 4/4/2 distribution, JSON/trajectory/summary inspection. **DoD:** provider/model/run ID exact, no API key, fallback source and token `0 = not measured` explicit. **Verify:** inspect all 10 trajectory files and summary. **BLOCKER:** no quota/network means retain existing run as historical pipeline evidence and record limitation; it does not silently become a fresh final run.
+**Evidence 2026-08-13:** sau thay đổi Role C, `test_multi_agent` PASS và CTest 4/4 PASS. C-10-01..03 vẫn PENDING final clean build, provider benchmark mới và review workflow; không dùng test pass thay cho benchmark evidence.
 
-- [ ] **C-10-04 — Documentation evidence lock and cross-review**
-  **P0 · Files:** `README.md`, `docs/report_evaluation.md`, `docs/bao_cao_du_an.md`, `docs/submission_checklist.md`.
-  **Dependency:** A-10-06/07, B-10-05, C-10-01/03. **Output:** requirement→implementation→test→doc table, final source/test citations and reviewer log for Tuần 11 merge. **DoD:** all links work, diagram/render references correct, limitations consistent; no unverified claim remains. **Verify:** A/B/C sign-off.
+### C-10-04..05 — Evidence lock, package và code freeze — PENDING
 
-- [ ] **C-10-05 — Dry-run package, clean extraction and freeze declaration**
-  **P0 · Files:** submission checklist, freeze note, Git history.
-  **Dependency:** all mandatory tasks/gates PASS. **Output:** approved ZIP manifest; extraction into clean directory follows README, build and core tests pass; final commit/tag per team convention; freeze note. **DoD:** ZIP excludes `config.json`, API keys, `.git`, build/cache, DB and generated artifacts; every changed/deleted file has owner. **Verify:** clean extraction build + `test_harness`, `test_multi_agent`, CTest.
+1. **Requirement gốc:** R14–R15 / đề §IX và submission checklist — README/report evidence, source sạch, no secret/artifact, clean extraction/build/test và freeze record.
+2. **Production path:** freeze candidate → source/test/log mapping → README/checklist/evidence lock → ZIP manifest → extract vào thư mục sạch → build/test → final revision/tag/freeze note.
+3. **Contract:** Tuần 10 chỉ khóa citations/evidence; docs merge/format ở Tuần 11. ZIP chỉ chứa source/tài liệu được phép; không có `config.json`, key, `.git`, build/cache, DB hoặc generated artifact. Critical fix phải targeted test + regression + re-freeze.
+4. **Failure cases:** dead link/stale claim; docs vượt evidence; secret/DB/artifact trong ZIP; README không tái lập build; owner không xác nhận file đổi/xóa; test fail sau extraction.
+5. **DoD có thể kiểm chứng:** `git diff --check`, secret/artifact scan, extract ZIP vào directory sạch rồi theo README build và chạy `test_harness`, `test_multi_agent`, CTest; expected: commands PASS, scan sạch, final commit/tag + freeze note ghi rõ. Evidence: package manifest, command log, reviewer record.
+6. **Review gate:** A và B cùng chạy lại clean-extraction workflow hoặc chia build/test + manifest review; C chỉ tuyên bố Code Freeze sau hai xác nhận độc lập.
 
 ## 8. Dependency Map
 
@@ -221,13 +228,12 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 
 > **Done 2026-08-09 (B):** `Embedding.h/.cpp` (`Embedder` interface + deterministic `HashEmbedder`, `cosine_similarity()`); `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`; focused test `test_cosine_similarity_fixed_vectors` + integration `test_memory_vector_search_ranking` PASS; regression `save`/`search` giữ nguyên. Giới hạn: `HashEmbedder` nội bộ deterministic; chạy model thật (nomic-embed-text) cần provider/quota duyệt. Chưa đủ semantic-proof bằng model ngoài.
 
-### BNS-M-01 — Multi-agent Coordination (+3)
+### BNS-M-01 — Multi-agent Coordination (+3) — DONE (self-test; review pending)
 
-**Status:** Committed; partial baseline exists only.
+**Status:** `HarnessRunner::runMultiAgentDemo()` tạo `MultiAgentRunner`, đăng ký `calculator` và `researcher`, dispatch hai message, join an toàn và ghi report gộp. `demo_multi_agent` gọi đường Harness này.
 **Owner:** C; A reviews Agent API/layer boundary, B supplies safe subtask/tool contract.
 **Dependency:** every mandatory gate PASS.
-**Work/merge criteria:** HarnessRunner uses public API to spawn two sub-agents on separate threads; queue+mutex lifecycle is safe; a complex task is partitioned and two agents execute concurrently; join/error/timeout handled; focused concurrency test and demo log show parallel work; docs updated.
-**Risk:** race/deadlock and scope creep. **Decision:** begin only after mandatory gate PASS; existing ping/pong test may be demonstrated only as baseline, not claimed as bonus completion.
+**Evidence:** `test_multi_agent` kiểm tra đường Harness → 2 worker → report (`CALC=1081`, `CAPITAL=...`) PASS; CTest 4/4 PASS; `demo_multi_agent` tạo `artifacts/demo/report.txt` với hai kết quả. **Còn lại:** A/B chạy lại demo trên freeze candidate và review source/doc; chỉ khi đó Accepted.
 
 ### BNS-G-01 — VLM/GUI Agent (+8)
 

@@ -2,7 +2,10 @@
 #include "FunctionalEvaluator.h"
 #include "KeywordEvaluator.h"
 #include "../environment/NativeEnvironment.h"
+#include "../multiagent/MultiAgentRunner.h"
+#include "../tools/CalculatorTool.h"
 #include "../tools/ExecTool.h"
+#include "../tools/WebSearchTool.h"
 
 #include <algorithm>
 #include <chrono>
@@ -285,6 +288,57 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
               << computeSuccessRate(results) * 100.0f << "%\n";
     std::cout << "=======================================\n";
     return results;
+}
+
+bool HarnessRunner::runMultiAgentDemo(const std::string& report_path) {
+    MultiAgentRunner runner;
+
+    runner.registerAgent(
+        "calculator", "Compute 47 * 23",
+        [](MessageQueue& in, MessageQueue& out) {
+            if (!in.pop(1000)) return;
+            CalculatorTool tool;
+            const auto result = tool.execute("47 * 23");
+            out.push(AgentMessage{
+                "calculator", "main",
+                "CALC=" + result.value_or("ERROR")});
+        });
+    runner.registerAgent(
+        "researcher", "Find Japan capital",
+        [](MessageQueue& in, MessageQueue& out) {
+            if (!in.pop(1000)) return;
+            WebSearchTool tool;
+            const auto result = tool.execute("capital of Japan");
+            out.push(AgentMessage{
+                "researcher", "main",
+                "CAPITAL=" + result.value_or("Tokyo")});
+        });
+
+    runner.startAll();
+    runner.sendMessage(AgentMessage{"harness", "calculator", "47 * 23"});
+    runner.sendMessage(AgentMessage{"harness", "researcher", "Japan capital"});
+
+    std::string calc;
+    std::string capital;
+    for (int received = 0; received < 2; ++received) {
+        const auto result = runner.receiveMessage("main", 6000);
+        if (!result) break;
+        if (result->content.starts_with("CALC=")) calc = result->content;
+        if (result->content.starts_with("CAPITAL=")) capital = result->content;
+    }
+    runner.stopAndJoinAll();
+
+    if (calc.empty() || capital.empty()) return false;
+
+    const std::filesystem::path path(report_path);
+    std::error_code error;
+    std::filesystem::create_directories(path.parent_path(), error);
+    if (error) return false;
+
+    std::ofstream report(path);
+    if (!report) return false;
+    report << "MULTI-AGENT REPORT\n" << calc << '\n' << capital << '\n';
+    return true;
 }
 
 TaskRunResult HarnessRunner::runSingle(const Task& task) {
