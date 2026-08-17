@@ -1,6 +1,6 @@
 
 #include "WebSearchTool.h"
-
+#include <iostream>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
@@ -53,6 +53,7 @@ WebSearchTool::http_get(const std::string& url)
     std::string response;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) OOP_AI_Agent/1.0");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                      write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA,
@@ -65,6 +66,13 @@ WebSearchTool::http_get(const std::string& url)
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5'000L);
 
     CURLcode result = curl_easy_perform(curl);
+
+    if (result != CURLE_OK)
+    {
+        std::cerr << "[ERROR] libcurl: "
+                << curl_easy_strerror(result)
+                << " (code: " << result << ")\n";
+    }
 
     curl_easy_cleanup(curl);
 
@@ -124,6 +132,40 @@ WebSearchTool::parse_response(
             }
         }
 
+        if (j.contains("query") && j["query"].contains("search") &&
+            !j["query"]["search"].empty())
+        {
+            std::string result_text;
+            for (const auto& item : j["query"]["search"])
+            {
+                if (item.contains("snippet"))
+                {
+                    std::string snippet = item["snippet"].get<std::string>();
+                    std::string clean_snippet;
+                    bool in_tag = false;
+                    for (char c : snippet)
+                    {
+                        if (c == '<') in_tag = true;
+                        else if (c == '>') in_tag = false;
+                        else if (!in_tag) clean_snippet += c;
+                    }
+                    if (!clean_snippet.empty())
+                    {
+                        if (!result_text.empty()) result_text += "\n---\n";
+                        if (item.contains("title"))
+                        {
+                            result_text += item["title"].get<std::string>() + ": ";
+                        }
+                        result_text += clean_snippet;
+                    }
+                }
+            }
+            if (!result_text.empty())
+            {
+                return result_text;
+            }
+        }
+
         return std::unexpected(
             ToolError::NotFound);
     }
@@ -167,27 +209,65 @@ WebSearchTool::execute(const std::string& arguments)
                 ToolError::ExecutionFailed);
         }
 
-        std::ostringstream url;
+        std::string encoded_str(encoded);
+        curl_free(encoded);
+        curl_easy_cleanup(curl);
 
-        url
-            << "https://api.duckduckgo.com/?q="
-            << encoded
+        std::ostringstream url;
+        url << "https://api.duckduckgo.com/?q="
+            << encoded_str
             << "&format=json"
             << "&no_html=1";
 
-        curl_free(encoded);
-
-        curl_easy_cleanup(curl);
-
+        std::cerr << "[DEBUG] URL = " << url.str() << '\n';
         auto response = http_get(url.str());
 
-        if (!response.has_value())
+        if (response.has_value())
         {
-            return std::unexpected(
-                response.error());
+            auto parsed = parse_response(response.value());
+            if (parsed.has_value())
+            {
+                return parsed;
+            }
+        }
+        else if (response.error() != ToolError::NotFound)
+        {
+            return std::unexpected(response.error());
         }
 
-        return parse_response(response.value());
+        // Fallback 1: Wikipedia API tiếng Việt
+        std::ostringstream wiki_url;
+        wiki_url << "https://vi.wikipedia.org/w/api.php?action=query&list=search&srsearch="
+                 << encoded_str
+                 << "&format=json";
+        std::cerr << "[DEBUG] Fallback Wiki URL = " << wiki_url.str() << '\n';
+        auto wiki_resp = http_get(wiki_url.str());
+        if (wiki_resp.has_value())
+        {
+            auto parsed_wiki = parse_response(wiki_resp.value());
+            if (parsed_wiki.has_value())
+            {
+                return parsed_wiki;
+            }
+        }
+
+        // Fallback 2: Wikipedia API tiếng Anh
+        std::ostringstream wiki_en_url;
+        wiki_en_url << "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch="
+                    << encoded_str
+                    << "&format=json";
+        std::cerr << "[DEBUG] Fallback Wiki EN URL = " << wiki_en_url.str() << '\n';
+        auto wiki_en_resp = http_get(wiki_en_url.str());
+        if (wiki_en_resp.has_value())
+        {
+            auto parsed_wiki_en = parse_response(wiki_en_resp.value());
+            if (parsed_wiki_en.has_value())
+            {
+                return parsed_wiki_en;
+            }
+        }
+
+        return std::unexpected(ToolError::NotFound);
     }
     catch (...)
     {
