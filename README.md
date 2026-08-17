@@ -233,6 +233,8 @@ Known benchmark instructions may match the deterministic fallback before `AgentL
 
 ## Documentation
 
+- [Tools architecture report](docs/report_tools.md)
+- [OOP design report](docs/report_oop_design.md)
 - [Evaluation report](docs/report_evaluation.md)
 - [Batch evaluation sequence diagram](docs/sequence_harness.md)
 - [Week 12 submission checklist](docs/submission_checklist.md)
