@@ -14,7 +14,11 @@ class MemoryTool final : public Tool
 {
 public:
     MemoryTool();
+    explicit MemoryTool(std::unique_ptr<Embedder> embedder);
+    explicit MemoryTool(std::string db_path, std::unique_ptr<Embedder> embedder = nullptr);
     ~MemoryTool() override;
+
+    [[nodiscard]] const std::string& get_db_path() const noexcept { return db_path_; }
 
     [[nodiscard]]
     std::string_view
@@ -28,6 +32,7 @@ public:
     execute(const std::string& arguments) override;
 
 private:
+    std::string db_path_;
     sqlite3* db_;
     std::unique_ptr<Embedder> embedder_;
 
