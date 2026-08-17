@@ -1,18 +1,18 @@
 # OOP AI Agent
 
 A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, Markdown skills, loop detection, a benchmark harness, and a multi-agent coordination demo.
- ê tui thêm cái này vào cho mn check có sửa k á hihi
+
 ## Architecture Overview
 
-| Component | Responsibility | Location |
-|---|---|---|
-| LLM client | Sends conversation history to Gemini or Ollama | `src/client/` |
-| Agent loop | Coordinates prompts, LLM responses, tool calls, and stopping conditions | `src/agent/` |
-| Tool registry | Registers, resolves, and executes tools | `src/tools/` |
-| Skill system | Loads Markdown instructions into the system prompt | `skills/` |
-| Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories | `src/harness/`, `benchmark/` |
-| Environment | Provides real-filesystem and in-memory artifact operations for the harness | `src/environment/` |
-| Multi-agent | Provides worker threads, a dispatcher, and message queues | `src/multiagent/` |
+| Component          | Responsibility                                                             | Location                         |
+| ------------------ | -------------------------------------------------------------------------- | -------------------------------- |
+| LLM client         | Sends conversation history to Gemini or Ollama                             | `src/client/`                  |
+| Agent loop         | Coordinates prompts, LLM responses, tool calls, and stopping conditions    | `src/agent/`                   |
+| Tool registry      | Registers, resolves, and executes tools                                    | `src/tools/`                   |
+| Skill system       | Loads Markdown instructions into the system prompt                         | `skills/`                      |
+| Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories   | `src/harness/`, `benchmark/` |
+| Environment        | Provides real-filesystem and in-memory artifact operations for the harness | `src/environment/`             |
+| Multi-agent        | Provides worker threads, a dispatcher, and message queues                  | `src/multiagent/`              |
 
 The main layers communicate through the `LLMClient`, `Tool`, `Evaluator`, and `Environment` abstractions. `AgentLoop` does not depend on `HarnessRunner`; the harness records trajectories through `StepHook`. `HarnessRunner` uses `NativeEnvironment` by default for real files, while focused tests can inject `SandboxEnvironment` for in-memory files.
 
@@ -38,15 +38,15 @@ Use this order when joining the project or returning after a break:
 
 The repository uses these top-level areas:
 
-| Area | Purpose |
-|---|---|
-| `src/` | Product code, grouped by responsibility. |
-| `skills/` | Markdown instructions loaded by the agent. |
-| `benchmark/` | Evaluation tasks, runners, focused tests, and local result output. |
-| `docs/` | User-facing technical reports, diagrams, and submission material. |
-| `planning/` | Team status, weekly plans, ownership notes, and historical decision/error records. |
-| `include/` | Vendored and shared headers. |
-| `artifacts/` | Local demo output and other generated files that must stay out of Git. |
+| Area           | Purpose                                                                            |
+| -------------- | ---------------------------------------------------------------------------------- |
+| `src/`       | Product code, grouped by responsibility.                                           |
+| `skills/`    | Markdown instructions loaded by the agent.                                         |
+| `benchmark/` | Evaluation tasks, runners, focused tests, and local result output.                 |
+| `docs/`      | User-facing technical reports, diagrams, and submission material.                  |
+| `planning/`  | Team status, weekly plans, ownership notes, and historical decision/error records. |
+| `include/`   | Vendored and shared headers.                                                       |
+| `artifacts/` | Local demo output and other generated files that must stay out of Git.             |
 
 ## Repository Hygiene
 

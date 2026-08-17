@@ -18,17 +18,12 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 
 LLMConfig GeminiClient::resolve_config(const LLMConfig& config) const {
     LLMConfig effective = config;
-
-    if (effective.api_key.empty() || effective.api_key == "YOUR_GEMINI_API_KEY") {
+    if (effective.api_key.empty()) {
         effective.api_key = api_key_;
     }
-
-    if (effective.gemini_model.empty() || effective.gemini_model == "gemma-4-31b-it") {
-        if (!model_name_.empty()) {
-            effective.gemini_model = model_name_;
-        }
+    if (effective.gemini_model.empty()) {
+        effective.gemini_model = model_name_;
     }
-
     return effective;
 }
 
@@ -50,6 +45,7 @@ nlohmann::json GeminiClient::build_request_body(
     const std::vector<Message>& history,
     const LLMConfig& config
 ) const {
+    const LLMConfig effective = resolve_config(config);
     nlohmann::json request = nlohmann::json::object();
     nlohmann::json contents = nlohmann::json::array();
     nlohmann::json system_parts = nlohmann::json::array();
@@ -57,8 +53,7 @@ nlohmann::json GeminiClient::build_request_body(
     for (const auto& msg : history) {
         // FIX (Bug 2): Gemini's REST API has no "system" role inside `contents`.
         // System prompts must go into `systemInstruction`, otherwise the API
-        // either drops them or the model behaves unpredictably (native
-        // function-calling attempts with no declared tools -> MALFORMED_FUNCTION_CALL).
+        // either drops them or the model behaves unpredictably.
         if (msg.role == "system") {
             nlohmann::json part = nlohmann::json::object();
             part["text"] = msg.content;
@@ -73,12 +68,49 @@ nlohmann::json GeminiClient::build_request_body(
         else if (gemini_role == "tool") gemini_role = "user";
         else gemini_role = "user";
 
-        nlohmann::json part = nlohmann::json::object();
-        part["text"] = msg.content;
+        nlohmann::json parts = nlohmann::json::array();
+        if (!msg.content.empty()) {
+            nlohmann::json text_part = nlohmann::json::object();
+            text_part["text"] = msg.content;
+            parts.push_back(text_part);
+        }
+
+        // Multimodal: serialize images as inlineData parts
+        if (msg.images.has_value() && !msg.images->empty()) {
+            for (const auto& img_str : *msg.images) {
+                if (img_str.empty()) continue;
+                std::string mime_type = "image/png";
+                std::string base64_data = img_str;
+
+                if (img_str.rfind("data:", 0) == 0) {
+                    auto semi = img_str.find(";base64,");
+                    if (semi != std::string::npos) {
+                        mime_type = img_str.substr(5, semi - 5);
+                        base64_data = img_str.substr(semi + 8);
+                    }
+                }
+
+                if (!base64_data.empty()) {
+                    nlohmann::json inline_data = nlohmann::json::object();
+                    inline_data["mimeType"] = mime_type;
+                    inline_data["data"] = base64_data;
+
+                    nlohmann::json img_part = nlohmann::json::object();
+                    img_part["inlineData"] = inline_data;
+                    parts.push_back(img_part);
+                }
+            }
+        }
+
+        if (parts.empty()) {
+            nlohmann::json empty_text = nlohmann::json::object();
+            empty_text["text"] = "";
+            parts.push_back(empty_text);
+        }
 
         nlohmann::json content_entry = nlohmann::json::object();
         content_entry["role"] = gemini_role;
-        content_entry["parts"] = nlohmann::json::array({part});
+        content_entry["parts"] = parts;
         contents.push_back(content_entry);
     }
 
@@ -91,7 +123,10 @@ nlohmann::json GeminiClient::build_request_body(
     }
 
     nlohmann::json generation_config = nlohmann::json::object();
-    generation_config["temperature"] = config.temperature;
+    generation_config["temperature"] = effective.temperature;
+    if (effective.max_tokens > 0) {
+        generation_config["maxOutputTokens"] = effective.max_tokens;
+    }
     request["generationConfig"] = generation_config;
 
     return request;
@@ -169,6 +204,9 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
     const LLMConfig& config
 ) {
     const LLMConfig effective = resolve_config(config);
+    if (effective.api_key.empty() || effective.gemini_model.empty()) {
+        return std::unexpected(LLMError::ConnectionRefused);
+    }
     nlohmann::json payload = build_request_body(conversation_history, effective);
     HttpResponse res = send_request(payload, effective);
 

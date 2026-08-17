@@ -29,15 +29,16 @@ struct FinalAnswerAction {
 // ── TrajectoryStep (forward-declared for StepHook) ────────────────────────────
 
 struct TrajectoryStep {
-    int         step       = 0;
+    int         step        = 0;
+    std::string source      = "llm"; // "llm", "tool", "fixture"
     std::string thought;
     std::string action;
     std::string tool_name;
     std::string args;
     std::string result;
-    bool        success    = false;
-    double      latency_ms = 0.0;
-    int         tokens     = 0;   // NOTE: currently 0 — measurement gap
+    bool        success     = false;
+    double      latency_ms  = 0.0;
+    int         tokens      = 0;   // NOTE: currently 0 — measurement gap
     int         tokens_used = 0;
 };
 
@@ -80,6 +81,12 @@ public:
         registry_.set_tool(std::move(tool));
     }
 
+    void set_fallback_enabled(bool enabled) { fallback_enabled_ = enabled; }
+    [[nodiscard]] bool is_fallback_enabled() const noexcept { return fallback_enabled_; }
+
+    void set_config(LLMConfig config) { config_ = std::move(config); }
+    [[nodiscard]] const LLMConfig& get_config() const noexcept { return config_; }
+
     // ── Template Method skeleton (non-virtual) ─────────────────────────────
     /// Fixed ReAct loop. Calls primitive operations in order.
     /// NOT virtual — subclasses override the primitives, not the skeleton.
@@ -119,6 +126,7 @@ protected:
     LoopDetector                 detector_;
     StepHook                     step_hook_;
     std::vector<Message>         history_;
+    LLMConfig                    config_;
 
     // Runtime state set during run() for primitives to read
     int         current_step_   = 0;
@@ -128,6 +136,7 @@ protected:
     std::vector<ToolCallAction> fallback_plan_;
     std::size_t fallback_index_ = 0;
     bool        used_fallback_action_ = false;
+    bool        fallback_enabled_     = false;
     bool        abort_          = false;
 };
 
