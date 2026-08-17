@@ -1082,3 +1082,37 @@ Tool Layer là tầng trung gian giữa AgentLoop và môi trường thực thi,
 Kiến trúc hiện tại bảo đảm tính module hóa, khả năng mở rộng và tuân thủ các nguyên lý thiết kế hướng đối tượng. Các Tool được tổ chức thành nhiều nhóm chức năng như tính toán, thao tác file, truy xuất dữ liệu, tìm kiếm web và quản lý bộ nhớ, đáp ứng yêu cầu của AI Agent Framework trong đồ án OOP 2026.
 
 Tài liệu này được xây dựng dựa trên mã nguồn hiện có của project và phản ánh đúng cấu trúc triển khai tại thời điểm hoàn thành báo cáo.
+
+---
+
+# 27. Tool Layer Final Review Sign-off (B-10-05)
+
+**Chủ trì rà soát:** Role B (Tools/Data)  
+**Ngày hoàn thành:** 2026-08-17  
+**Phạm vi rà soát:** Đối chiếu toàn bộ yêu cầu R02–R04 giữa mã nguồn (`src/tools/*`), kiểm thử (`benchmark/test_tools.cpp`) và tài liệu hướng dẫn (`README.md`, `report_tools.md`, `bao_cao_du_an.md`).
+
+## 27.1 Bảng Đối Chiếu Ma Trận Truy Xuất Yêu Cầu (R02–R04 Traceability Matrix)
+
+| Mã YC | Tóm tắt Yêu cầu | File Mã Nguồn (Implementation) | Fixture Kiểm Thử (Focused Test) | Mục Báo Cáo & Docs | Trạng thái Sign-off |
+|-------|-----------------|--------------------------------|----------------------------------|---------------------|---------------------|
+| **R02** | **Runtime ToolRegistry, Name/Description/Execute contract, Allow/Deny Policy & Alias Normalization** | [Tool.h](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/Tool.h), [ToolRegistry.h](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/ToolRegistry.h), [ToolRegistry.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/ToolRegistry.cpp), [Registry.h](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/Registry.h) | `test_registry_instance_registration`, `test_factory_creation`, `test_aliases_and_normalization`, `test_allow_deny_policies`, `test_duplicate_creator_overwrite`, `test_register_all_tools`, `test_canonical_names_and_descriptions` | §3, §4, §5, §8.10, §18, §21, §22; README | ✅ SIGNED-OFF |
+| **R03** | **5 Core Tools: Exec, Read/Write/Append File, WebSearch, SQLite Memory, Calculator** | [ExecTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/ExecTool.cpp), [FileTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/FileTool.cpp), [WebSearchTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/WebSearchTool.cpp), [MemoryTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/MemoryTool.cpp), [CalculatorTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/CalculatorTool.cpp) | `test_file_args_formats`, `test_calculator_args_trim`, `test_memory_modes`, `test_exec_policy`, `test_exec_timeout_offline`, `test_websearch_offline_fixture`, `test_tool_error_paths` | §8.1–§8.5, §13, §14, §15, §18, §21; README | ✅ SIGNED-OFF |
+| **R04** | **3 Additional Tool Categories (Time, Json, Git) & Reference Sources** | [TimeTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/TimeTool.cpp) (System/Time), [JsonTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/JsonTool.cpp) (Data/Format), [GitTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/GitTool.cpp) (DevTools/VCS), [ScreenshotTool.cpp](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/src/tools/ScreenshotTool.cpp) | `test_register_all_tools`, `test_canonical_names_and_descriptions`, `test_tool_error_paths`, `test_screenshot_contract` | §8.6–§8.9, §14, §15, §18, §21; README | ✅ SIGNED-OFF |
+
+## 27.2 Checklist Kiểm Tra Kỹ Thuật & DoD (Sign-off Criteria)
+
+1. **Khả năng biên dịch & Test suite:**  
+   - `cmake --build build` thành công không lỗi/cảnh báo.
+   - Executable `./build/test_tools` chạy độc lập PASS 100% (18/18 test cases).
+   - `CTest` chạy 4/4 test targets pass hoàn toàn.
+
+2. **Tính khớp giữa Code - Test - Báo cáo:**  
+   - Mọi tuyên bố triển khai về Tool (13 canonical tools, 5 aliases, policy control) đều có mã nguồn cụ thể và test case tương ứng.
+   - Nguồn tham chiếu cho 3 nhóm tool bổ sung (Time: `<chrono>`, Json: `nlohmann/json`, Git: `git CLI`) được dẫn link và mô tả rõ ràng tại §8.9.
+
+3. **Vệ sinh Repository & Dữ liệu:**  
+   - `memory.db`, `config.json`, thư mục `build/` và các artifacts tạo ra khi chạy test đều được nằm trong `.gitignore` và verified qua `git check-ignore`.
+   - Không có file dữ liệu người dùng hay secret nào bị theo dõi bởi Git.
+
+4. **Kết luận Sign-off:**  
+   Tool Layer đạt đầy đủ các tiêu chuẩn DoD của task **B-10-05**, sẵn sàng cho việc đóng băng mã nguồn (code-freeze) và hợp nhất tài liệu dự án Tuần 11-12.
