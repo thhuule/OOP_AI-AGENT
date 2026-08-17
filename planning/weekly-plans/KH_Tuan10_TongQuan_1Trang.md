@@ -28,6 +28,12 @@
    5. **DoD:** `testCppFeatureMatrix` + 3 OOP-pattern cases PASS; 2 sequence diagrams validated via `mermaid.parse`; `class_diagram.md` updated to final source. mmdc render blocked (broken `commander` pkg + no Chromium) → documented limitation.
    6. **Review:** B/C independently verify diagram/report sections.
 
+- [ ] **A-10-10 — Production benchmark không dùng đáp án hardcode (BLOCKER).**
+  1. **Requirement:** R06, R08, R13.
+  2. **Path:** `run_eval` → AgentLoop/LLM → parser/tool → Harness trajectory; fallback chỉ cho fixture test.
+  3. **DoD:** production disables fallback, test fixture enables it explicitly; `test_role_a`, `test_harness`, CTest 5/5 PASS; fresh provider trajectory records action source.
+  4. **Runtime impact:** `run_eval` thực sự dùng provider, nên có quota/network latency và có thể fail thật; đây là evidence đúng thay vì 10 đáp án hardcode.
+
 ## Role B — Tools/Data
 
 - [x] **B-10-01 — Tool core/negative paths (self-test PASS).**
@@ -63,7 +69,7 @@
   2. **Path:** `run_eval` → Harness cleanup/run/evaluate → trajectories/summary.
   3. **Contract:** required-tool needs a real step; cleanup only generated files; token 0 = not measured.
   4. **Failures:** stale artifact, no-tool pass, invalid task, provider/timeout/failure reason.
-  5. **DoD:** fresh rebuild 8 targets + CTest 5/5 PASS on `3db1afb`; an approved real-provider run must still have 10 trajectories 4/4/2.
+  5. **DoD:** after A-10-10, fresh rebuild 8 targets + CTest 5/5 PASS; an approved real-provider run must still have 10 trajectories 4/4/2 and no task-specific fallback action.
   6. **Review:** A/B rerun required-tool workflow from clean state.
 
 - [ ] **BNS-M-01 — Multi-agent (PARTIAL; strict demo evidence pending).**
@@ -100,3 +106,9 @@ Mandatory code + focused tests
 - [ ] Ghi final commit/tag và freeze note: **No feature changes unless Critical Fix.**
 
 Chi tiết task, dependency và DoD: [`KH_Tuan10_ChiTiet.md`](KH_Tuan10_ChiTiet.md).
+
+## Hậu kiểm Tuần 10 → đầu vào Tuần 10.5
+
+Checkbox Tuần 10 phía trên **giữ nguyên lịch sử**. Review source sau đó phát hiện bốn gate chưa thể Accepted: benchmark fallback hard-code (`HC-W10-001`), multi-agent demo có `Tokyo` fallback (`GAP-W10-002`), vector mới là `HashEmbedder` chứ chưa phải Ollama `nomic-embed-text` (`GAP-W10-003`), và config/multimodal provider chưa có production evidence (`REQMISS-W10-004/005`).
+
+Tuần 10.5 chỉ harden/fix/test/docs: A xử lý production LLM/benchmark path; B xử lý embedding, memory và web-error contract; C xử lý composite multi-agent, E2E/docs/evidence. Không sửa checkbox Tuần 10; trạng thái chính thức được quyết định bởi Gate 1–6 trong [`KH_Tuan10_5_TongQuan.md`](KH_Tuan10_5_TongQuan.md).
