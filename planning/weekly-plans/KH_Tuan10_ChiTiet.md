@@ -107,6 +107,16 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 
 > **Giới hạn trung thực (render):** môi trường build này có `mmdc` hỏng (package `commander` rỗng) và không tải được Chromium headless, nên không export PNG trực tiếp; tuy nhiên cả 4 UML (`class_diagram`, `sequence_agent_run`, `sequence_harness`, `component_diagram`) đều được xác nhận **validate + render thành công** qua `mermaid` (sau khi sửa lỗi `class_diagram`: nested `<<enumeration>>` trong `LoopDetector` và bỏ `namespace` trùng tên `Environment` gây cycle). GitHub/markdown render native là evidence chuẩn. ASan/MSVC chưa chạy (thiếu toolchain trong env này) → ghi limitation, không tuyên bố PASS.
 
+### A-10-10 — Tách deterministic benchmark fallback khỏi production eval — BLOCKER
+
+1. **Requirement gốc:** R06, R08, R13 — benchmark phải ghi nhận AgentLoop/tool/evaluator thật; fallback-assisted result không được dùng làm bằng chứng model reasoning.
+2. **Production path:** `run_eval` → `AgentLoop::run()` → LLM response → parser/tool → Harness trajectory. Deterministic fallback chỉ tồn tại khi fixture test chủ động bật.
+3. **Contract:** production `run_eval` mặc định tắt task-specific fallback; test/offline fixture bật rõ ràng qua dependency/config test-only. Không đổi parser/tool contract hay làm hỏng focused fallback test.
+4. **Failure cases:** benchmark PASS mà trajectory không có LLM-driven action; fallback bật nhầm trong production; test fixture mất deterministic path; config mơ hồ khiến không biết run nào dùng fallback.
+5. **DoD có thể kiểm chứng:** test mới chứng minh fallback tắt cho production runner và chỉ bật cho fixture; chạy `test_role_a`, `test_harness`, CTest 5/5; provider run mới có 10 trajectories, mỗi action ghi nguồn LLM/fallback và report không claim model reasoning nếu còn fallback.
+6. **Ảnh hưởng khi chạy:** `./build/run_eval` sẽ gọi provider cho 10 task thay vì tự điền đáp án/filename; có thể chậm, tốn quota hoặc fail do model/network — đó là kết quả trung thực cần ghi log. Các unit test offline giữ được deterministic fixture.
+7. **Review gate:** C kiểm tra trajectory của một task previously hardcoded (`47*23` hoặc `Japan capital`) không có answer hardcode; B xác nhận tool action vẫn hợp lệ.
+
 ## 6. Role B Plan — Tools/Data
 
 ### B-10-01 — Tool contract, args và offline failure matrix — DONE (self-test)
@@ -178,7 +188,7 @@ Không có mandatory requirement nào được phép chuyển sang tuần presen
 ## 8. Dependency Map
 
 ```text
-A-10-01/02/03/04/05 ─┐
+A-10-01/02/03/04/05/10 ─┐
 B-10-01/02/03/04    ├→ C-10-01 → C-10-02 → C-10-03 (approved quota)
 A-10-06/07 + B-10-05┘                         ↓
                                       C-10-04 docs review
@@ -323,3 +333,26 @@ Verification date: <YYYY-MM-DD>
 - Record/edit the YouTube Unlisted video; never show API key and never call fallback-assisted output proof of model reasoning.
 - Prepare oral explanations of each member’s owned code, tests, limitations and design decisions.
 - No implementation feature work. A critical demo/mandatory-requirement fix follows targeted test, full regression and a new re-freeze note.
+
+## 18. Bugs / Gaps discovered after Week 10
+
+> **Lịch sử checklist phía trên được giữ nguyên.** Các mục dưới đây là kết quả review sau Tuần 10, không được diễn giải lại thành việc Role A/B/C chưa từng làm. Mỗi gap là đầu vào bắt buộc của Tuần 10.5 và chỉ được đóng ở file kế hoạch 10.5 sau review độc lập.
+
+| ID | Source / file | Symptom và root cause | Requirement ảnh hưởng | Severity | Owner đề xuất | Chuyển sang |
+|---|---|---|---|---|---|---|
+| HC-W10-001 | `src/agent/agent_loop.cpp`, `benchmark/run_eval.cpp` | `build_fallback_plan()` nhận diện câu benchmark và trả đáp án/path định sẵn trước LLM; `run_eval` có thể PASS mà không có reasoning thật. | R06, R08, R13 | Blocker | A | W10.5-A-01 |
+| GAP-W10-002 | `src/harness/HarnessRunner.cpp` | Multi-agent demo dùng subtask cố định `47*23`/`capital of Japan`; `value_or("Tokyo")` biến lỗi web thành kết quả thành công. | R17 / §10.3 | High | C | W10.5-C-01 |
+| GAP-W10-003 | `src/tools/Embedding.*`, `MemoryTool.*` | Vector hiện dùng `HashEmbedder`; đề §10.2 yêu cầu `nomic-embed-text` qua Ollama. Có cosine/SQLite nhưng chưa có semantic provider trên production path. | R16 / §10.2 | High | B | W10.5-B-01, A-02, C-02 |
+| REQMISS-W10-004 | `benchmark/run_eval.cpp`, `LLMClient` path | Đọc config nhưng temperature/max_tokens và endpoint/provider contract chưa được chứng minh là đi vào request production. | R01 / §3.1 | High | A | W10.5-A-02 |
+| REQMISS-W10-005 | `src/client/gemini_client.cpp` | Shared `Message.images` tồn tại, nhưng Gemini request cần serialize image parts để chứng minh multimodal thật. | R01 / §3.1 | High | A | W10.5-A-03 |
+| HC-W10-006 | `src/tools/MemoryTool.cpp` | DB path `memory.db` cố định và lỗi mở database không được đưa thành contract rõ. | R03, R16 | Medium | B | W10.5-B-02 |
+| TEST-W10-007 | `WebSearchTool`, harness/demo tests | Test hiện chủ yếu fixture/happy path; cần chứng minh timeout, malformed body và propagation đến multi-agent report. | R03, R17 | Medium | B/C | W10.5-B-03, C-01 |
+| DOC-W10-008 | `README.md`, reports | README/config hướng Gemini và số executable/claim có nguy cơ không khớp CMake/Ollama requirement. | R01, R14, R15 | Medium | C | W10.5-C-03 |
+
+### Hard-code được giữ lại (không tự refactor)
+
+- `src/main.cpp` là Gemini smoke test; không phải entry point benchmark. **KEEP — smoke-test-only**, nhưng README phải gọi đúng vai trò.
+- Hằng số artifact cleanup có giới hạn trong Harness là compatibility list; giữ đến khi có regression test chứng minh cleanup theo task-spec.
+- Timeout/rate-limit là operational constants; chỉ chuyển thành config nếu cần thay đổi theo provider. Không tạo config giả chỉ để loại magic number.
+
+Chi tiết trace, DoR/DoD, reviewer, test và evidence: [`KH_Tuan10_5_ChiTiet.md`](KH_Tuan10_5_ChiTiet.md).
