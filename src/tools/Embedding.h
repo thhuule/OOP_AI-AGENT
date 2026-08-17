@@ -58,4 +58,36 @@ private:
     std::size_t dim_;
 };
 
+/**
+ * @brief Embedder provider gọi Ollama API (nomic-embed-text) qua HTTP.
+ *
+ * Gửi HTTP POST tới Ollama /api/embed (hoặc /api/embeddings) để lấy vector embedding.
+ * Khi service không phản hồi, timeout hoặc trả lỗi HTTP/JSON, throw std::runtime_error
+ * để MemoryTool trả ToolError::ExecutionFailed (không âm thầm fallback sang HashEmbedder).
+ */
+class OllamaEmbedder final : public Embedder
+{
+public:
+    explicit OllamaEmbedder(
+        std::string host = "http://localhost:11434",
+        std::string model = "nomic-embed-text",
+        int timeout_seconds = 10);
+
+    ~OllamaEmbedder() override = default;
+
+    [[nodiscard]]
+    EmbeddingVector embed(const std::string& text) const override;
+
+    [[nodiscard]] const std::string& host() const noexcept { return host_; }
+    [[nodiscard]] const std::string& model() const noexcept { return model_; }
+    [[nodiscard]] int timeout_seconds() const noexcept { return timeout_seconds_; }
+
+private:
+    std::string host_;
+    std::string model_;
+    int timeout_seconds_;
+
+    static std::size_t write_callback(void* contents, std::size_t size, std::size_t nmemb, void* userp);
+};
+
 } // namespace oop_agent
