@@ -1,7 +1,7 @@
 # OOP AI Agent
 
 A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, Markdown skills, loop detection, a benchmark harness, and a multi-agent coordination demo.
-
+ ê tui thêm cái này vào cho mn check có sửa k á hihi
 ## Architecture Overview
 
 | Component | Responsibility | Location |
