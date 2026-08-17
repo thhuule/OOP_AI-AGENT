@@ -38,13 +38,13 @@
   5. **DoD:** `wsl bash -lc "cmake --build build --target test_tools -j2 && ./build/test_tools"` → `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY` (PASS lại 2026-08-13).
   6. **Review gate:** A/C chạy lại command trên freeze candidate và audit report Tools.
 
-- [x] **BNS-V-01 — Vector Search (self-test PASS; external-model limitation).**
+- [ ] **BNS-V-01 — Vector Search (PARTIAL; strict Ollama requirement pending).**
   1. **Requirement:** R16, đề §10.2.
-  2. **Production path:** `memory vsave/vsearch` → `HashEmbedder` → SQLite embedding BLOB → cosine ranking.
+  2. **Production path hiện tại:** `memory vsave/vsearch` → `HashEmbedder` → SQLite embedding BLOB → cosine ranking; phải đổi sang `OllamaEmbedder(nomic-embed-text)` ở production.
   3. **Contract:** `MemoryTool` sở hữu DB/embedder, migration schema; missing text/DB error trả `ToolError`.
   4. **Failure cases:** empty command, DB/BLOB lỗi, DB cũ thiếu cột, không có vector memory.
-  5. **DoD:** `test_cosine_similarity_fixed_vectors` + `test_memory_vector_search_ranking` trong `test_tools` PASS; legacy `save/search` regression PASS.
-  6. **Review gate:** A/C chạy `vsave/vsearch`, xác nhận `memory.db` không stage/ZIP. HashEmbedder offline chưa chứng minh model embedding ngoài.
+  5. **DoD:** B-10-06 Ollama embedder + A-10-08 runtime wiring + C-10-06 Ollama acceptance; then `test_tools` and CTest 5/5 PASS.
+  6. **Runtime impact:** `vsave/vsearch` cần Ollama/model; service lỗi phải trả lỗi rõ, không fallback hash. `save/search` cũ giữ offline regression.
 
 - [x] **BNS-G-01-B — Screenshot/action contracts (contract PASS, GUI bonus chưa xong).**
   1. **Requirement:** phần Role B của R18, đề §10.1.
@@ -66,13 +66,13 @@
   5. **DoD:** fresh rebuild 8 targets + CTest 5/5 PASS on `3db1afb`; an approved real-provider run must still have 10 trajectories 4/4/2.
   6. **Review:** A/B rerun required-tool workflow from clean state.
 
-- [x] **BNS-M-01 — Multi-agent Harness integration (self-test PASS; review pending).**
+- [ ] **BNS-M-01 — Multi-agent (PARTIAL; strict demo evidence pending).**
   1. **Requirement:** R17.
   2. **Path:** `HarnessRunner::runMultiAgentDemo()` → `MultiAgentRunner` → 2 worker threads → report.
-  3. **Contract:** timeout/join, two results required, report only written after both arrive.
-  4. **Failures:** missing result/timeout, worker/tool error, report write failure.
-  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 5/5 PASS; report contains `CALC=1081` and `CAPITAL=`.
-  6. **Review:** A/B rerun demo on freeze candidate before Accepted.
+  3. **Contract:** timeout/join, two valid worker results required; no report/fake success if WebSearch fails.
+  4. **Failures:** missing result/timeout, worker/tool error, report write failure must make demo non-zero.
+  5. **DoD:** C-10-07 composite parallel demo + B-10-07 error contract + A-10-09 review; focused negative tests, `demo_multi_agent`, CTest 5/5 PASS.
+  6. **Runtime impact:** demo now exposes worker/network failure instead of outputting fallback `Tokyo`; it needs network only if the selected research subtask uses web search.
 
 - [ ] **C bonus/freeze — VLM/GUI end-to-end, package (blocked).**
   1. **Requirement:** R17, R18, R14–R15.
