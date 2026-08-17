@@ -1,6 +1,6 @@
 # Project Status — AI-AGENT OOP 2026
 
-**Cập nhật lần cuối:** 2026-08-09
+**Cập nhật lần cuối:** 2026-08-17
 **Nguồn điều phối hiện hành:** [`KH_Tuan10_TongQuan_1Trang.md`](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) để theo dõi hằng ngày và [`KH_Tuan10_ChiTiet.md`](../weekly-plans/KH_Tuan10_ChiTiet.md) cho task/DoD chi tiết. Đề chính thức, source/test/CMake và artifact mới là nguồn xác minh; file này chỉ là trạng thái tóm tắt.
 
 ## Giai đoạn hiện tại
@@ -11,11 +11,11 @@
 
 ## Trạng thái theo Role
 
-### Role A — Systems/Core: PARTIALLY DONE, verification/bug-fix remaining
+### Role A — Systems/Core: CODE/FOCUSED TEST DONE, benchmark-integrity blocker remaining
 
-- Client, AgentLoop, LoopDetector, SkillLoader, Environment, Template Method và guarded C++26 `inplace_vector` fallback đã có source.
-- Còn phải đóng evidence/test cho multimodal và lỗi client; parser formats/malformed intent; skill selection + injection trước mỗi run; failure signals; C++ feature matrix, sanitizer/MSVC limitation; 4 Mermaid render và report/layer audit.
-- Owner tasks: A-10-01 đến A-10-07 trong kế hoạch tuần hiện hành.
+- `test_role_a` đã được bổ sung; focused tests và CTest 5/5 PASS trên `3db1afb`.
+- Tracked binary dependency `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` phải được owner bỏ khỏi Git trước package/freeze.
+- `AgentLoop` đang có task-specific fallback tự điền benchmark answers; A-10-10 phải tắt nó cho `run_eval` và chỉ giữ ở test fixture trước khi benchmark được dùng làm evidence.
 
 ### Role B — Tools/Data: PARTIALLY DONE, error matrix/package remaining
 
@@ -24,7 +24,7 @@
 - Còn phải đóng args/error matrix, Web/Exec timeout offline fixture, memory database lifecycle và tool report review.
 - Owner tasks: B-10-01 đến B-10-05.
 
-### Role C — Eval/Infra: PARTIALLY DONE, final verification/freeze remaining
+### Role C — Eval/Infra: OFFLINE REGRESSION DONE, provider/package gates remaining
 
 - Harness, evaluator, trajectory, multi-agent queue/thread baseline, CMake targets và 5 CTest tests đã có.
 - Có clean provider artifact `run_20260807_085427_143` với 10/10 pipeline PASS; nó không chứng minh model reasoning và phải được re-verify/ghi limitation ở freeze candidate.
@@ -33,6 +33,7 @@
 
 ## Mandatory requirements not yet closed
 
+- Benchmark integrity: production `run_eval` không được dùng task-specific hardcode/fallback; trajectory phải cho thấy action source và provider run thật.
 - LLM multimodal + timeout/connection/malformed-JSON verification.
 - Skill injection-before-every-run proof; parser/invalid tool-intent and loop/failure coverage.
 - Tool args and Web/timeout offline error coverage.
@@ -42,8 +43,8 @@
 
 ## Bonus status — committed for Tuần 10
 
-- **Vector search (+4): SELF-TEST PASS (BNS-V-01, external-model limitation).** `Embedding.h/.cpp` (`HashEmbedder` deterministic + `cosine_similarity`), `MemoryTool` migration `embedding BLOB` + `vsave`/`vsearch`, focused test fixed vectors + integration ranking test in `test_tools` PASS. Remaining: A review interface, C regression, optional real-model semantic proof (provider/quota).
-- **Multi-agent (+3): SELF-TEST PASS, review pending.** `HarnessRunner::runMultiAgentDemo()` now spawns calculator/researcher workers through `MultiAgentRunner`, joins them and writes a combined report; `test_multi_agent` and CTest 5/5 passed. A/B must still rerun the demo on the freeze candidate before Accepted.
+- **Vector search (+4): PARTIAL.** SQLite BLOB + C++ cosine + `HashEmbedder` tests PASS, but đề §10.2 bắt buộc `nomic-embed-text` qua Ollama. B-10-06 implements it, A-10-08 wires it into production, C-10-06 runs acceptance/regression; no silent hash fallback.
+- **Multi-agent (+3): PARTIAL.** Harness/thread/queue/join tests PASS, but current calculator/researcher demo can return fallback `Tokyo` on a web failure and is not strong evidence of a complex parallel task. C-10-07 replaces it with a strict composite demo; B-10-07 verifies worker error contract; A-10-09 accepts layer boundary.
 - **VLM/GUI Agent (+8): CONTRACT PASS (BNS-G-01-B, full GUI bonus in progress).** B đã đóng contract `capture_screenshot` (ScreenshotTool → base64) + action-tool an toàn (ActionTool `gui_action`, allow-list click/type_text/key_press + validate) + focused tests in `test_tools` PASS. Remaining: C triển khai action executor + controlled end-to-end demo + regression; cần môi trường desktop + VLM duyệt. Không tự nhận demo thật đã chạy.
 - The team has committed all three for Tuần 10. Each starts/merges only after mandatory gates PASS and requires focused tests plus full regression.
 
