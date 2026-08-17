@@ -23,3 +23,6 @@ benchmark/results/*
 artifacts/*
 !artifacts/.gitkeep
 !artifacts/README.md
+
+# Debian packages / binary downloads
+*.deb
