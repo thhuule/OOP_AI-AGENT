@@ -28,6 +28,12 @@
    5. **DoD:** `testCppFeatureMatrix` + 3 OOP-pattern cases PASS; 2 sequence diagrams validated via `mermaid.parse`; `class_diagram.md` updated to final source. mmdc render blocked (broken `commander` pkg + no Chromium) → documented limitation.
    6. **Review:** B/C independently verify diagram/report sections.
 
+- [ ] **A-10-10 — Production benchmark không dùng đáp án hardcode (BLOCKER).**
+  1. **Requirement:** R06, R08, R13.
+  2. **Path:** `run_eval` → AgentLoop/LLM → parser/tool → Harness trajectory; fallback chỉ cho fixture test.
+  3. **DoD:** production disables fallback, test fixture enables it explicitly; `test_role_a`, `test_harness`, CTest 5/5 PASS; fresh provider trajectory records action source.
+  4. **Runtime impact:** `run_eval` thực sự dùng provider, nên có quota/network latency và có thể fail thật; đây là evidence đúng thay vì 10 đáp án hardcode.
+
 ## Role B — Tools/Data
 
 - [x] **B-10-01 — Tool core/negative paths (self-test PASS).**
@@ -38,13 +44,13 @@
   5. **DoD:** `wsl bash -lc "cmake --build build --target test_tools -j2 && ./build/test_tools"` → `ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY` (PASS lại 2026-08-13).
   6. **Review gate:** A/C chạy lại command trên freeze candidate và audit report Tools.
 
-- [x] **BNS-V-01 — Vector Search (self-test PASS; external-model limitation).**
+- [ ] **BNS-V-01 — Vector Search (PARTIAL; strict Ollama requirement pending).**
   1. **Requirement:** R16, đề §10.2.
-  2. **Production path:** `memory vsave/vsearch` → `HashEmbedder` → SQLite embedding BLOB → cosine ranking.
+  2. **Production path hiện tại:** `memory vsave/vsearch` → `HashEmbedder` → SQLite embedding BLOB → cosine ranking; phải đổi sang `OllamaEmbedder(nomic-embed-text)` ở production.
   3. **Contract:** `MemoryTool` sở hữu DB/embedder, migration schema; missing text/DB error trả `ToolError`.
   4. **Failure cases:** empty command, DB/BLOB lỗi, DB cũ thiếu cột, không có vector memory.
-  5. **DoD:** `test_cosine_similarity_fixed_vectors` + `test_memory_vector_search_ranking` trong `test_tools` PASS; legacy `save/search` regression PASS.
-  6. **Review gate:** A/C chạy `vsave/vsearch`, xác nhận `memory.db` không stage/ZIP. HashEmbedder offline chưa chứng minh model embedding ngoài.
+  5. **DoD:** B-10-06 Ollama embedder + A-10-08 runtime wiring + C-10-06 Ollama acceptance; then `test_tools` and CTest 5/5 PASS.
+  6. **Runtime impact:** `vsave/vsearch` cần Ollama/model; service lỗi phải trả lỗi rõ, không fallback hash. `save/search` cũ giữ offline regression.
 
 - [x] **BNS-G-01-B — Screenshot/action contracts (contract PASS, GUI bonus chưa xong).**
   1. **Requirement:** phần Role B của R18, đề §10.1.
@@ -58,28 +64,28 @@
 
 ## Role C — Eval/Infra
 
-- [ ] **C-10-01..03 — Eval/integration/benchmark.**
+- [ ] **C-10-01..03 — Eval/integration/benchmark (offline regression PASS; provider benchmark pending approval).**
   1. **Requirement:** R08, R13.
   2. **Path:** `run_eval` → Harness cleanup/run/evaluate → trajectories/summary.
   3. **Contract:** required-tool needs a real step; cleanup only generated files; token 0 = not measured.
   4. **Failures:** stale artifact, no-tool pass, invalid task, provider/timeout/failure reason.
-  5. **DoD:** clean build + 4 executables + CTest; approved run has 10 trajectories 4/4/2.
+  5. **DoD:** after A-10-10, fresh rebuild 8 targets + CTest 5/5 PASS; an approved real-provider run must still have 10 trajectories 4/4/2 and no task-specific fallback action.
   6. **Review:** A/B rerun required-tool workflow from clean state.
 
-- [x] **BNS-M-01 — Multi-agent Harness integration (self-test PASS; review pending).**
+- [ ] **BNS-M-01 — Multi-agent (PARTIAL; strict demo evidence pending).**
   1. **Requirement:** R17.
   2. **Path:** `HarnessRunner::runMultiAgentDemo()` → `MultiAgentRunner` → 2 worker threads → report.
-  3. **Contract:** timeout/join, two results required, report only written after both arrive.
-  4. **Failures:** missing result/timeout, worker/tool error, report write failure.
-  5. **DoD:** `test_multi_agent`, `demo_multi_agent`, CTest 5/5 PASS; report contains `CALC=1081` and `CAPITAL=`.
-  6. **Review:** A/B rerun demo on freeze candidate before Accepted.
+  3. **Contract:** timeout/join, two valid worker results required; no report/fake success if WebSearch fails.
+  4. **Failures:** missing result/timeout, worker/tool error, report write failure must make demo non-zero.
+  5. **DoD:** C-10-07 composite parallel demo + B-10-07 error contract + A-10-09 review; focused negative tests, `demo_multi_agent`, CTest 5/5 PASS.
+  6. **Runtime impact:** demo now exposes worker/network failure instead of outputting fallback `Tokyo`; it needs network only if the selected research subtask uses web search.
 
-- [ ] **C bonus/freeze — VLM/GUI end-to-end, package.**
+- [ ] **C bonus/freeze — VLM/GUI end-to-end, package (blocked).**
   1. **Requirement:** R17, R18, R14–R15.
   2. **Path:** Harness → 2 workers; screenshot → VLM → C executor; evidence → ZIP → clean extract → freeze note.
   3. **Contract:** bounded executor, timeout/join; ZIP excludes secrets/DB/artifacts; critical fix re-freezes.
   4. **Failures:** race/deadlock, invalid VLM action, unavailable display/model, secret/package leak, clean-build failure.
-  5. **DoD:** focused demo + full regression; clean extraction follows README and tests PASS.
+  5. **DoD:** focused demo + full regression; clean extraction follows README and tests PASS. Current blocker: tracked `libcurl4-openssl-dev_8.18.0-1ubuntu2.3_amd64.deb` must be removed by its owner before a package is created.
   6. **Review:** A/B run demo/package workflow before C declares Accepted/freeze.
 
 ## Thứ tự và điều kiện freeze
@@ -100,3 +106,9 @@ Mandatory code + focused tests
 - [ ] Ghi final commit/tag và freeze note: **No feature changes unless Critical Fix.**
 
 Chi tiết task, dependency và DoD: [`KH_Tuan10_ChiTiet.md`](KH_Tuan10_ChiTiet.md).
+
+## Hậu kiểm Tuần 10 → đầu vào Tuần 10.5
+
+Checkbox Tuần 10 phía trên **giữ nguyên lịch sử**. Review source sau đó phát hiện bốn gate chưa thể Accepted: benchmark fallback hard-code (`HC-W10-001`), multi-agent demo có `Tokyo` fallback (`GAP-W10-002`), vector mới là `HashEmbedder` chứ chưa phải Ollama `nomic-embed-text` (`GAP-W10-003`), và config/multimodal provider chưa có production evidence (`REQMISS-W10-004/005`).
+
+Tuần 10.5 chỉ harden/fix/test/docs: A xử lý production LLM/benchmark path; B xử lý embedding, memory và web-error contract; C xử lý composite multi-agent, E2E/docs/evidence. Không sửa checkbox Tuần 10; trạng thái chính thức được quyết định bởi Gate 1–6 trong [`KH_Tuan10_5_TongQuan.md`](KH_Tuan10_5_TongQuan.md).
