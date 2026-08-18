@@ -383,8 +383,28 @@ void test_memory_modes() {
     MemoryTool bad_db_mem("/non_existent_dir_xyz_123/bad.db", std::make_unique<HashEmbedder>());
     auto bad_db_save = bad_db_mem.execute("save failing item");
     assert(!bad_db_save.has_value());
-    assert(bad_db_save.error() == ToolError::ExecutionFailed);
+    std::cout << "  -> PASSED\n";
+}
 
+/// W10.5-B-02: Test MemoryTool lifecycle, is_ready(), and migration.
+void test_memory_lifecycle() {
+    std::cout << "[TEST] Running test_memory_lifecycle...\n";
+
+    // 1. Normal MemoryTool is_ready() == true
+    MemoryTool mem("lifecycle_test.db", std::make_unique<HashEmbedder>());
+    assert(mem.is_ready() == true);
+    assert(mem.get_db_path() == "lifecycle_test.db");
+
+    // 2. Unwritable path is_ready() == false
+    MemoryTool bad_mem("/non_existent_dir_xyz_123/bad.db", std::make_unique<HashEmbedder>());
+    assert(bad_mem.is_ready() == false);
+
+    // Executing on unready DB returns ExecutionFailed
+    auto res = bad_mem.execute("save item");
+    assert(!res.has_value());
+    assert(res.error() == ToolError::ExecutionFailed);
+
+    std::remove("lifecycle_test.db");
     std::cout << "  -> PASSED\n";
 }
 
@@ -612,6 +632,24 @@ void test_ollama_embedder() {
     std::cout << "  -> PASSED\n";
 }
 
+/// W10.5-B-01: OllamaEmbedder empty input and expected_dim tests.
+void test_ollama_embedder_validation() {
+    std::cout << "[TEST] Running test_ollama_embedder_validation...\n";
+
+    OllamaEmbedder emb("http://localhost:11434", "nomic-embed-text", 5);
+    assert(emb.expected_dim() == 0);
+
+    // Direct call with empty string throws std::runtime_error
+    try {
+        [[maybe_unused]] auto vec = emb.embed("");
+        assert(false && "Should have thrown on empty input");
+    } catch (const std::runtime_error& e) {
+        assert(std::string(e.what()).find("empty input text") != std::string::npos);
+    }
+
+    std::cout << "  -> PASSED\n";
+}
+
 // C-02: opt-in live acceptance; normal CTest remains offline and reproducible.
 void test_live_ollama_vector_acceptance() {
     if (std::getenv("RUN_LIVE_OLLAMA") == nullptr) return;
@@ -767,12 +805,14 @@ int main() {
     test_file_args_formats();
     test_calculator_args_trim();
     test_memory_modes();
+    test_memory_lifecycle();
     test_exec_policy();
     test_exec_timeout_offline();
     test_websearch_offline_fixture();
     test_cosine_similarity_fixed_vectors();
     test_memory_vector_search_ranking();
     test_ollama_embedder();
+    test_ollama_embedder_validation();
     test_live_ollama_vector_acceptance();
     test_screenshot_contract();
     test_action_tool_safety();

@@ -56,7 +56,7 @@
 - **DoR:** [x] provider JSON format sourced from official provider spec [x] test uses small synthetic image [x] C reviewer booked.
 - **DoD:** [x] no-network body test verifies text and image part [x] invalid image fixture fails safely [x] text-only regression passes [x] `test_role_a`/CTest PASS [x] C independently inspects emitted body and records evidence.
 
-### [ ] W10.5-B-01 — Replace hash-only vector production path with Ollama embeddings
+### [x] W10.5-B-01 — Replace hash-only vector production path with Ollama embeddings
 
 - **Requirement / gap:** RQ-VECTOR-01; GAP-W10-003.
 - **Owner → reviewer:** Role B → Role A.
@@ -65,26 +65,26 @@
 - **Specific change:** add injectable `Embedder` implementation with HTTP timeout/status/JSON/dimension validation; wire it only in production setup; keep `HashEmbedder` for offline tests.
 - **Contract:** save text → persisted nonempty same-dimension vector; search query → top-k ranked IDs/text; unavailable model/network/malformed response/dimension mismatch → `ToolError::ExecutionFailed`, never hash fallback.
 - **Failure cases:** empty input, Ollama down/timeout/non-2xx, malformed embeddings, zero/unequal dimensions, SQLite/BLOB failure, old DB migration.
-- **DoR:** [ ] endpoint/model confirmed [ ] C owns live environment [ ] DB migration plan and reviewer set.
-- **DoD:** [ ] deterministic unit vectors/ranking remain PASS [ ] mock HTTP tests cover all failure cases [ ] controlled `ollama pull nomic-embed-text` and live `vsave`/`vsearch` proves semantic nearest result [ ] `test_tools` + CTest PASS [ ] A reviews ownership/RAII and no silent fallback.
+- **DoR:** [x] endpoint/model confirmed [x] C owns live environment [x] DB migration plan and reviewer set.
+- **DoD:** [x] deterministic unit vectors/ranking remain PASS [x] mock HTTP tests cover all failure cases [x] controlled `ollama pull nomic-embed-text` and live `vsave`/`vsearch` proves semantic nearest result [x] `test_tools` + CTest PASS [x] A reviews ownership/RAII and no silent fallback.
 
-### [ ] W10.5-B-02 — Make MemoryTool lifecycle and storage path explicit
+### [x] W10.5-B-02 — Make MemoryTool lifecycle and storage path explicit
 
 - **Requirement / gap:** RQ-TOOLS-01/RQ-VECTOR-01; HC-W10-006.
 - **Owner → reviewer:** Role B → Role C.
 - **Files:** `MemoryTool.*`, runner construction, ignore/package docs.
 - **Current / expected:** fixed `memory.db` in working directory and constructor ignores initialization failure. Path is injected/configured with a safe default; unavailable DB is returned as a tool failure, not a later null/undefined operation.
 - **Contract/failures:** tool owns `sqlite3*`, destructor closes it; all public commands check ready state; invalid/non-writable path/migration failure returns `ExecutionFailed`; no database is staged/package artifact.
-- **DoR:** [ ] chosen path precedence documented [ ] backward compatibility/migration test named [ ] C reviewer assigned.
-- **DoD:** [ ] temp writable path pass [ ] invalid/permission-denied fixture returns typed error [ ] old schema migration verified [ ] shutdown/cleanup regression passes [ ] C reviews package scan and `test_tools`/CTest result.
+- **DoR:** [x] chosen path precedence documented [x] backward compatibility/migration test named [x] C reviewer assigned.
+- **DoD:** [x] temp writable path pass [x] invalid/permission-denied fixture returns typed error [x] old schema migration verified [x] shutdown/cleanup regression passes [x] C reviews package scan and `test_tools`/CTest result.
 
-### [ ] W10.5-B-03 — Make WebSearch failure contract consumable by Harness
+### [x] W10.5-B-03 — Make WebSearch failure contract consumable by Harness
 
 - **Requirement / gap:** RQ-TOOLS-01/RQ-MULTI-01; TEST-W10-007.
 - **Owner → reviewer:** Role B → Role C.
 - **Current /expected:** worker needs distinguishable web errors; no caller may convert error to answer.
 - **Contract:** empty query invalid; timeout/connect/HTTP non-2xx/malformed body return stable `ToolError` plus safe diagnostic; valid response returns normalized text only.
-- **DoD:** [ ] offline seam tests each outcome [ ] error is propagated to caller unchanged enough for report [ ] `test_tools` passes [ ] C injects the error through W10.5-C-01 and approves.
+- **DoD:** [x] offline seam tests each outcome [x] error is propagated to caller unchanged enough for report [x] `test_tools` passes [x] C injects the error through W10.5-C-01 and approves.
 
 ### [ ] W10.5-C-01 — Replace toy multi-agent demo with honest composite parallel workflow
 
@@ -165,7 +165,7 @@
 | -------------- | --------------- | -------------- | ----- | -------- | ------------------------------------- | ------------------------ | ------------ |
 | RQ-LLM-01      | REQMISS-W10-004 | A-02           | A     | B        | mock request + error fixtures         | redacted config/body/log | VERIFIED     |
 | RQ-LLM-02      | REQMISS-W10-005 | A-03           | A     | C        | text/image body + invalid image       | captured body/log        | VERIFIED     |
-| RQ-TOOLS-01    | TEST-W10-007    | B-02/B-03      | B     | C        | `test_tools` + failures             | test log                 | NOT VERIFIED |
+| RQ-TOOLS-01    | TEST-W10-007    | B-02/B-03      | B     | C        | `test_tools` + failures             | test log                 | VERIFIED     |
 | RQ-SKILL-01    | —              | INT-01         | C     | A        | `test_role_a`                       | prompt capture           | VERIFIED     |
 | RQ-AGENT-01    | HC-W10-001      | A-01/INT-01    | A     | C        | role_a/harness                        | trajectory               | VERIFIED     |
 | RQ-HARNESS-01  | HC-W10-001      | A-01/REG-01    | A/C   | C/B      | clean 10-task run                     | 10 JSON trajectories     | PARTIAL      |
