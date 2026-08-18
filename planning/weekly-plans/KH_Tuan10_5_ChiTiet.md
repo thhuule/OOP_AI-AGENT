@@ -190,3 +190,26 @@ Critical bugs remaining: N
 Code freeze: YES / NO
 Evidence revision: <commit>
 ```
+
+## 6. Gaps found by real-provider run after Week 10.5
+
+**Run:** `benchmark/results/run_20260819_002033_735/` — production action provenance is `llm`, so the result is valid evidence against fallback-assisted claims.
+
+- **GAP-10.75-01:** active skills use legacy `file_read`/`file_write`, while the registry canonical names are `read_file`/`write_file`; real trajectories therefore record `TOOL_NOT_FOUND`.
+- **GAP-10.75-02:** escaped JSON arguments are truncated to `"{\\"` by `AgentLoop`'s manual parser.
+- **GAP-10.75-03:** the resulting file workflow fails on task 002, 003, 005–010; final score is `2/10`, not the historical fallback-assisted `10/10`.
+- **GAP-10.75-04:** Gemini timeout/503/malformed-response paths are visible and must remain truthful failures.
+
+These gaps move to [`KH_Tuan10_75_ChiTiet.md`](KH_Tuan10_75_ChiTiet.md). Week 10.5 is not Accepted and code freeze remains **NO**.
+
+### Unfinished Week 10.5 gates transferred to Week 10.75
+
+The following checkboxes remain historical `[ ]` in this file; their completion work is now owned by the corresponding Week 10.75 task.
+
+| Week 10.5 open item | Transfer task | Reason |
+|---|---|---|
+| C-01 full WebSearch timeout/HTTP/malformed-body matrix | W10.75-B-02 | Required cross-role error contract was not independently accepted. |
+| C-02 final Vector acceptance record | W10.75-C-03 | Live test passed, but final regression/evidence lock remains open. |
+| C-03 clean extraction, package scan, B claim review | W10.75-C-04 | Documentation/package gate remains open. |
+| INT-01 cross-role walkthrough | W10.75-C-05 | Must run after parser/alias fix and a new real benchmark. |
+| REG-01 final regression/acceptance | W10.75-C-06 | Freeze is blocked by the 2/10 production baseline. |

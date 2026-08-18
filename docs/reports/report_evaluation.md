@@ -6,12 +6,12 @@ This document describes the current Evaluation/Infrastructure implementation: ta
 
 Sources of truth:
 
-- Tasks: [`../benchmark/tasks.json`](../benchmark/tasks.json)
-- Harness: [`../src/harness/HarnessRunner.h`](../src/harness/HarnessRunner.h), [`../src/harness/HarnessRunner.cpp`](../src/harness/HarnessRunner.cpp)
-- Evaluator interface: [`../src/harness/evaluator.h`](../src/harness/evaluator.h)
-- Entrypoint: [`../benchmark/run_eval.cpp`](../benchmark/run_eval.cpp)
-- Historical failed/passing comparison: `../benchmark/results/run_20260801_212302_253/` and `../benchmark/results/run_20260801_220549_361/`
-- Latest stored pipeline runs: `../benchmark/results/run_20260805_032212_365/` and `../benchmark/results/run_20260805_034207_664/`
+- Tasks: [`../../benchmark/tasks.json`](../../benchmark/tasks.json)
+- Harness: [`../../src/harness/HarnessRunner.h`](../../src/harness/HarnessRunner.h), [`../../src/harness/HarnessRunner.cpp`](../../src/harness/HarnessRunner.cpp)
+- Evaluator interface: [`../../src/harness/evaluator.h`](../../src/harness/evaluator.h)
+- Entrypoint: [`../../benchmark/run_eval.cpp`](../../benchmark/run_eval.cpp)
+- Historical failed/passing comparison: `../../benchmark/results/run_20260801_212302_253/` and `../../benchmark/results/run_20260801_220549_361/`
+- Latest stored pipeline runs: `../../benchmark/results/run_20260805_032212_365/` and `../../benchmark/results/run_20260805_034207_664/`
 
 The figures below are historical evidence stored in the repository. They do not replace a final verification run from a clean state of the current revision.
 
@@ -24,6 +24,8 @@ The figures below are historical evidence stored in the repository. They do not 
 | Simple | 4 | `task_001`–`task_004` |
 | Medium | 4 | `task_005`–`task_008` |
 | Hard | 2 | `task_009`–`task_010` |
+
+The four simple tasks explicitly cover the required baseline behaviours: calculator (`task_001`), file write (`task_002`), file read (`task_003`), and current local time (`task_004`). The suite revision following `run_20260819_002033_735` made this coverage explicit; that run remains the archived pre-revision production baseline.
 
 Each task declares an `id`, instruction, evaluator type, category, `requires_tool`, accepted tools, artifacts, and `max_steps`. `HarnessRunner::loadTasks()` rejects tasks with missing required fields, invalid evaluator specifications, empty required-tool specifications, unsafe artifact paths, or duplicate IDs.
 
@@ -47,7 +49,7 @@ The implemented flow is:
 7. The harness selects an evaluator using `eval_type`, then calculates evaluator, action-level, and final results.
 8. `exportResults()` creates a timestamped run directory containing summary JSON, summary text, and one trajectory per task.
 
-See [`sequence_harness.md`](sequence_harness.md) for the detailed sequence.
+See [`sequence_harness.md`](../diagrams/sequence_harness.md) for the detailed sequence.
 
 ### 3.1 Artifact Cleanup and Isolation
 
@@ -166,9 +168,18 @@ Both `run_20260805_032212_365` and `run_20260805_034207_664` record:
 - final success rate: `1.0`;
 - all 10 tasks marked `PASS`.
 
-These runs are historical evidence that the benchmark pipeline at those recorded revisions could execute, record, evaluate, and export all ten tasks. They do **not** by themselves prove that the current worktree produces the same benchmark score. The offline integration gate on HEAD `08202f5` was verified on 2026-08-06: all seven targets built; the Tool, Harness, multi-agent, and Template Method executables passed; and CTest passed 4/4. The Tool fixture now includes duplicate-creator overwrite and offline error paths for Exec, Git, Json, and Memory. Web/timeout error paths remain documented Week 10 backlog. No new real-provider `run_eval` was executed. The stored runs are also **not sufficient evidence that the configured model independently planned every task**. The current `AgentLoop` checks a deterministic fallback plan before calling the LLM for known benchmark instructions, and the stored trajectories contain fallback-specific values such as `1081`, `Tokyo`, and `56088`. Token fields are also zero because usage is not measured.
+These runs are historical evidence only. They do **not** prove that the current worktree produces the same score. Their deterministic fallback actions and values such as `1081`, `Tokyo`, and `56088` describe the old revision, not the current production path. Token fields are also zero because usage is not measured.
 
-The final report must therefore use the wording “pipeline run 10/10” unless a future run records whether each action came from the LLM or fallback. It must not use these artifacts alone to advertise model reasoning quality.
+### 7.4 Current Real-Provider Run — 2026-08-19
+
+`run_20260819_002033_735` is the first recorded Gemini run after production fallback was disabled. Every recorded action has `"source": "llm"`; therefore its **2/10 final success** is honest evidence of the current contract, not a model-quality claim.
+
+The run exposed two blocking integration defects:
+
+- active skills instruct `file_read`/`file_write`, while the registry canonical names are `read_file`/`write_file`;
+- the manual AgentLoop parser truncates escaped JSON arguments to `"{\\"`.
+
+As a result, file artifacts are missing for tasks 002, 003, and 005–010. Gemini timeout/503 responses were also recorded as failures. The recovery work is tracked in `planning/weekly-plans/KH_Tuan10_75_ChiTiet.md`; until it passes, the project must not claim a current 10/10 benchmark result or code freeze.
 
 ## 8. Multi-Agent Support
 
@@ -195,12 +206,12 @@ Post-run checklist:
 
 1. The new run contains exactly 10 tasks with the 4/4/2 distribution.
 2. The log confirms successful cleanup before the batch.
-3. Every tool-required task has a relevant successful tool step; the report also records whether the action came from the LLM or deterministic fallback when that metadata becomes available.
+3. Every tool-required task has a relevant successful tool step; the report records action provenance (`llm` or explicit test `fixture`).
 4. File tasks create the exact required filename and content during the current run.
 5. Task 005 and 010 trajectories preserve real arguments.
 6. The report identifies the correct provider and model without exposing an API key.
 7. Token value `0` is never described as actual usage.
-8. A 10/10 fallback-assisted run is reported as pipeline evidence, not as proof of model planning quality.
+8. Historical fallback-assisted runs are reported only as old pipeline evidence, never as current model-planning quality.
 
 ## 10. Current Focused Tests
 
@@ -226,7 +237,7 @@ Run it with:
 
 A passing run ends with `ALL HARNESS TESTS PASSED`. On HEAD `08202f5`, the complete fixture set printed this result. The sandbox cleanup and intentional cleanup-failure fixtures therefore provide current runtime evidence that `HarnessRunner` uses the `Environment` abstraction for artifact cleanup and artifact-existence checks.
 
-CMake registers `harness`, `multi_agent`, `tools`, and `template_method` with CTest. The current offline gate passes 4/4:
+CMake registers `harness`, `multi_agent`, `tools`, `template_method`, and `role_a` with CTest. The current offline gate passes 5/5:
 
 ```bash
 ctest --test-dir build --output-on-failure
@@ -238,5 +249,5 @@ ctest --test-dir build --output-on-failure
 - Extend failure-taxonomy tests for rate limits, timeouts, and loop detection.
 - Separate `tool_steps_count` from total LLM steps when trajectories begin recording final answers.
 - Consider isolated workspaces or explicit fixtures to reduce task-order dependencies.
-- Record the source of each action (`llm` or `fallback`) in trajectories before comparing model planning quality.
+- Re-run the real-provider benchmark after the Week 10.75 parser, skill, and file-alias fixes; compare it with the 2/10 baseline without restoring fallback.
 - Implement `HarnessRunner → MultiAgentRunner → MessageQueue` integration only if the team commits to the bonus objective.

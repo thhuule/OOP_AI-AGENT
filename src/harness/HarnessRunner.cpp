@@ -145,7 +145,7 @@ HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
 bool HarnessRunner::loadTasks() {
     std::ifstream file(tasks_json_path_);
     if (!file.is_open()) {
-        std::cerr << "[HarnessRunner] Khong the mo file: "
+        std::cerr << "[HarnessRunner] Cannot open file: "
                   << tasks_json_path_ << "\n";
         return false;
     }
@@ -160,7 +160,7 @@ bool HarnessRunner::loadTasks() {
     }
 
     if (!json.is_array()) {
-        std::cerr << "[HarnessRunner] tasks.json phai la mot JSON array\n";
+        std::cerr << "[HarnessRunner] tasks.json must be a JSON array\n";
         return false;
     }
 
@@ -170,7 +170,7 @@ bool HarnessRunner::loadTasks() {
         const auto& item = json[index];
         if (!item.is_object()) {
             std::cerr << "[HarnessRunner] Task #" << index
-                      << " khong phai JSON object\n";
+                       << " is not a JSON object\n";
             return false;
         }
 
@@ -208,7 +208,7 @@ bool HarnessRunner::loadTasks() {
         if (!required_fields_valid || !evaluator_spec_valid ||
             !tool_spec_valid || !artifacts_safe ||
             !task_ids.insert(task.id).second) {
-            std::cerr << "[HarnessRunner] Task spec khong hop le tai index "
+            std::cerr << "[HarnessRunner] Invalid task specification at index "
                       << index << " (id='" << task.id << "')\n";
             tasks_.clear();
             return false;
@@ -220,7 +220,7 @@ bool HarnessRunner::loadTasks() {
         tasks_.push_back(std::move(task));
     }
 
-    std::cout << "[HarnessRunner] Tong cong " << tasks_.size() << " task\n";
+    std::cout << "[HarnessRunner] Loaded " << tasks_.size() << " tasks\n";
     return !tasks_.empty();
 }
 
@@ -228,7 +228,7 @@ void HarnessRunner::registerEvaluator(const std::string& name,
                                       std::unique_ptr<Evaluator> evaluator) {
     if (!evaluator)
         return;
-    std::cout << "[HarnessRunner] Dang ky evaluator: " << name
+    std::cout << "[HarnessRunner] Registered evaluator: " << name
               << " (" << evaluator->get_name() << ")\n";
     evaluators_[name] = std::move(evaluator);
 }
@@ -238,8 +238,8 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
     results.reserve(tasks_.size());
 
     if (!cleanBenchmarkArtifacts()) {
-        std::cerr << "[HarnessRunner] Khong clean duoc benchmark artifacts; "
-                     "dung run de tranh false positive.\n";
+        std::cerr << "[HarnessRunner] Cannot clean benchmark artifacts; "
+                     "stopping to prevent a false positive.\n";
         for (const auto& task : tasks_) {
             TaskRunResult result;
             result.task_id = task.id;
@@ -443,7 +443,7 @@ bool HarnessRunner::exportResults(
     std::error_code error;
     std::filesystem::create_directories(run_dir, error);
     if (error) {
-        std::cerr << "[HarnessRunner] Khong tao duoc output directory: "
+        std::cerr << "[HarnessRunner] Cannot create output directory: "
                   << run_dir.string() << "\n";
         return false;
     }
