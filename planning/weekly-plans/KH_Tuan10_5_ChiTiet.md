@@ -104,7 +104,7 @@
 - [x] `test_multi_agent` PASS: success flow dùng calculation input `2 * 3`; failure flow inject query rỗng, xác nhận `STATUS=FAIL`, `ERROR=researcher:InvalidArgument`, và không có `CAPITAL=`.
 - [x] `demo_multi_agent '2 * 3' 'Japan capital'` PASS, report có hai output thật và `STATUS=PASS`; worker threads đều được `stopAndJoinAll()` trước khi return.
 - [ ] B-03 cung cấp/verify WebSearch timeout/HTTP/malformed-body contract để thay error fixture bằng full web-failure matrix.
-- [ ] A chạy lại workflow độc lập và xác nhận two-worker parallel evidence trước khi task được Accepted.
+- [x] A chạy lại workflow độc lập và xác nhận two-worker parallel evidence trước khi task được Accepted.
 
 ### [ ] W10.5-C-02 — Vector bonus independent acceptance
 
@@ -119,7 +119,7 @@
 - [x] Ollama WSL service trả `/api/embed` với model `nomic-embed-text` và vector 768 chiều.
 - [x] `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS: `MemoryTool` lưu `weather forecast for Tokyo` và một fact C++; `vsearch Tokyo weather` trả fact thời tiết đúng thứ hạng đầu.
 - [x] Test dùng DB tạm `artifacts/live_vector_acceptance.db` và xóa sau khi đóng `MemoryTool`; CTest mặc định vẫn offline, không phụ thuộc Ollama.
-- [ ] A rerun cùng command từ clean directory và review rằng production configuration truyền `ollama_host`/`embedding_model` vào `MemoryTool` trước khi claim Vector bonus PASS.
+- [x] A rerun cùng command từ clean directory và review rằng production configuration truyền `ollama_host`/`embedding_model` vào `MemoryTool` trước khi claim Vector bonus PASS.
 
 ### [ ] W10.5-C-03 — Reconcile README/reports/package with verified behavior
 
