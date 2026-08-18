@@ -116,6 +116,17 @@ std::string actionToolName(const std::string& action) {
     return {};
 }
 
+std::string toolErrorName(ToolError error) {
+    switch (error) {
+    case ToolError::InvalidArgument: return "InvalidArgument";
+    case ToolError::ExecutionFailed: return "ExecutionFailed";
+    case ToolError::AccessDenied: return "AccessDenied";
+    case ToolError::NotFound: return "NotFound";
+    case ToolError::UnknownError: return "UnknownError";
+    }
+    return "UnknownError";
+}
+
 } // namespace
 
 HarnessRunner::HarnessRunner(const std::string& tasks_json_path,
@@ -291,44 +302,65 @@ std::vector<TaskRunResult> HarnessRunner::runAll() {
 }
 
 bool HarnessRunner::runMultiAgentDemo(const std::string& report_path) {
+    return runMultiAgentDemo(MultiAgentDemoInput{}, report_path);
+}
+
+bool HarnessRunner::runMultiAgentDemo(const MultiAgentDemoInput& input,
+                                      const std::string& report_path) {
     MultiAgentRunner runner;
 
     runner.registerAgent(
         "calculator", "Compute 47 * 23",
         [](MessageQueue& in, MessageQueue& out) {
-            if (!in.pop(1000)) return;
+            const auto request = in.pop(1000);
+            if (!request) {
+                out.push({"calculator", "main", "ERROR=calculator:timeout"});
+                return;
+            }
             CalculatorTool tool;
-            const auto result = tool.execute("47 * 23");
+            const auto result = tool.execute(request->content);
             out.push(AgentMessage{
                 "calculator", "main",
-                "CALC=" + result.value_or("ERROR")});
+                result ? "CALC=" + *result
+                       : "ERROR=calculator:" + toolErrorName(result.error())});
         });
     runner.registerAgent(
         "researcher", "Find Japan capital",
         [](MessageQueue& in, MessageQueue& out) {
-            if (!in.pop(1000)) return;
+            const auto request = in.pop(1000);
+            if (!request) {
+                out.push({"researcher", "main", "ERROR=researcher:timeout"});
+                return;
+            }
             WebSearchTool tool;
-            const auto result = tool.execute("capital of Japan");
+            const auto result = tool.execute(request->content);
             out.push(AgentMessage{
                 "researcher", "main",
-                "CAPITAL=" + result.value_or("Tokyo")});
+                result ? "CAPITAL=" + *result
+                       : "ERROR=researcher:" + toolErrorName(result.error())});
         });
 
     runner.startAll();
-    runner.sendMessage(AgentMessage{"harness", "calculator", "47 * 23"});
-    runner.sendMessage(AgentMessage{"harness", "researcher", "Japan capital"});
+    runner.sendMessage(AgentMessage{"harness", "calculator", input.calculation});
+    runner.sendMessage(AgentMessage{"harness", "researcher", input.research_query});
 
     std::string calc;
     std::string capital;
+    std::vector<std::string> errors;
     for (int received = 0; received < 2; ++received) {
         const auto result = runner.receiveMessage("main", 6000);
-        if (!result) break;
+        if (!result) {
+            errors.push_back("ERROR=main:worker_timeout");
+            break;
+        }
         if (result->content.starts_with("CALC=")) calc = result->content;
-        if (result->content.starts_with("CAPITAL=")) capital = result->content;
+        else if (result->content.starts_with("CAPITAL=")) capital = result->content;
+        else errors.push_back(result->content);
     }
     runner.stopAndJoinAll();
 
-    if (calc.empty() || capital.empty()) return false;
+    if (calc.empty()) errors.push_back("ERROR=calculator:missing_result");
+    if (capital.empty()) errors.push_back("ERROR=researcher:missing_result");
 
     const std::filesystem::path path(report_path);
     std::error_code error;
@@ -337,8 +369,12 @@ bool HarnessRunner::runMultiAgentDemo(const std::string& report_path) {
 
     std::ofstream report(path);
     if (!report) return false;
-    report << "MULTI-AGENT REPORT\n" << calc << '\n' << capital << '\n';
-    return true;
+    const bool success = errors.empty();
+    report << "MULTI-AGENT REPORT\nSTATUS=" << (success ? "PASS" : "FAIL") << '\n';
+    if (!calc.empty()) report << calc << '\n';
+    if (!capital.empty()) report << capital << '\n';
+    for (const auto& error_message : errors) report << error_message << '\n';
+    return success;
 }
 
 TaskRunResult HarnessRunner::runSingle(const Task& task) {

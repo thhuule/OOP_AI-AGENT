@@ -65,13 +65,15 @@ cmake -S . -B build
 cmake --build build -j2
 ```
 
-The build produces five executables in `build/`:
+The build produces nine executables in `build/`:
 
 - `OopAgent`: performs one Gemini smoke-test request. It is not an interactive chat mode and does not support `--chat`.
 - `run_eval`: runs the 10-task batch from `benchmark/tasks.json` and exports results.
 - `test_harness`: runs local focused tests for task validation, evaluator Strategy selection, StepHook recording, cleanup, failure taxonomy, and score aggregation; it does not require an LLM API.
 - `test_multi_agent`: runs local tests for the dispatcher, message queue, and clean shutdown; it does not require an LLM API.
-- `demo_multi_agent`: runs calculator and search workers, then creates `artifacts/demo/report.txt`. Its web-search path may use the network.
+- `test_tools`, `test_template_method`, and `test_role_a`: focused tool, OOP-pattern, and client/AgentLoop tests.
+- `demo_multi_agent`: runs two supplied calculator/research subtasks and writes `STATUS=PASS` only when both succeed; worker failure returns `STATUS=FAIL`.
+- `test_websearch_cli`: manual WebSearch diagnostic executable.
 
 ## Configuration
 
@@ -125,7 +127,7 @@ Run the local tests first:
 ./build/test_template_method
 ```
 
-Alternatively, run all four through CTest:
+Alternatively, run all five through CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
@@ -146,7 +148,7 @@ Run the multi-agent demo only when network access to DuckDuckGo is acceptable:
 ./build/demo_multi_agent
 ```
 
-The demo creates `artifacts/demo/report.txt`. It is an independent extension and is not evidence that the benchmark harness coordinates sub-agents.
+The demo accepts optional inputs: `./build/demo_multi_agent '2 * 3' 'Japan capital'`. A worker error is reported as `STATUS=FAIL`, never replaced by a fabricated answer.
 
 ## Running the Benchmark
 
@@ -189,9 +191,9 @@ The timestamped directory is local output. To preserve an approved baseline, rev
 
 A task that requires tools reaches final success only when its evaluator passes and the harness finds at least one relevant successful tool step. File-producing tasks are also checked by `FunctionalEvaluator` scripts for the required filename and content.
 
-The current `AgentLoop` contains a deterministic fallback plan for known benchmark instructions. It checks this plan before asking the LLM and includes task-specific filenames and values. A fallback action still calls the real registered tool and can prove that the tool/harness/evaluator pipeline works, but it does **not** prove that the configured model selected the tool or calculated the answer independently.
+Production `run_eval` explicitly disables the deterministic fallback. The fallback remains available only when an offline fixture opts in; trajectories label actions `llm` or `fixture`.
 
-Files under `benchmark/results/latest/` are the selected baseline evidence. Timestamped run directories are local history. A claim about the current revision must come from a new, clean run using the stated provider. Until trajectories record the source of each action, report a passing run as **pipeline evidence** and state that it may be fallback-assisted; do not describe it as proof of model reasoning quality.
+Files under `benchmark/results/latest/` are the selected baseline evidence. Timestamped run directories are local history. A claim about the current revision must come from a new, clean run using the stated provider and its action-source trajectory.
 
 ## Security
 
@@ -227,9 +229,9 @@ Verify that Ollama is running, `api_url` is correct, and the selected model is a
 
 Do not use files in the repository root as evidence. Check the cleanup log and the timestamped run directory. If cleanup fails, the harness stops the batch to prevent a false positive.
 
-### The Benchmark Passes Without an LLM Request
+### Vector Embedding Cannot Connect
 
-Known benchmark instructions may match the deterministic fallback before `AgentLoop` calls the provider. This is expected in the current implementation. Check the source and trajectory, disclose that limitation in the report, and do not infer model quality from the score alone.
+Start local Ollama and install `nomic-embed-text`. This affects Vector Search only; Gemini may remain the chat provider.
 
 ## Documentation
 

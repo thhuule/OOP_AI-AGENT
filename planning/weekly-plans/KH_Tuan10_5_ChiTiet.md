@@ -97,6 +97,15 @@
 - **DoR:** [ ] A/B frozen error/action contract [ ] test inputs deterministic or live condition documented [ ] reviewer assigned.
 - **DoD:** [ ] success test asserts two worker IDs, two independent outputs, measured overlap/parallel start and combined report [ ] injected web failure asserts no `Tokyo`/success output and nonzero exit [ ] cleanup/no hang test [ ] `test_multi_agent`, `demo_multi_agent`, CTest PASS [ ] A independently runs actual workflow.
 
+**Checkpoint 2026-08-17 — implementation/test evidence (chưa Accepted):**
+
+- [x] `runMultiAgentDemo(MultiAgentDemoInput, report_path)` nhận hai subtask độc lập thay vì worker tự bỏ qua input; `demo_multi_agent` nhận calculator expression và research query từ CLI.
+- [x] Worker trả lỗi có định danh (`ERROR=<worker>:<ToolError>`); aggregate ghi `STATUS=FAIL`, không ghi capital giả, và `demo_multi_agent` trả non-zero khi một worker fail.
+- [x] `test_multi_agent` PASS: success flow dùng calculation input `2 * 3`; failure flow inject query rỗng, xác nhận `STATUS=FAIL`, `ERROR=researcher:InvalidArgument`, và không có `CAPITAL=`.
+- [x] `demo_multi_agent '2 * 3' 'Japan capital'` PASS, report có hai output thật và `STATUS=PASS`; worker threads đều được `stopAndJoinAll()` trước khi return.
+- [ ] B-03 cung cấp/verify WebSearch timeout/HTTP/malformed-body contract để thay error fixture bằng full web-failure matrix.
+- [ ] A chạy lại workflow độc lập và xác nhận two-worker parallel evidence trước khi task được Accepted.
+
 ### [ ] W10.5-C-02 — Vector bonus independent acceptance
 
 - **Requirement / gap:** RQ-VECTOR-01; depends on B-01/B-02.
@@ -105,6 +114,13 @@
 - **Pass/fail:** PASS only if configured `nomic-embed-text` request succeeds and expected semantic item is ranked first; Ollama unavailable is FAIL/BLOCKED, not hash fallback PASS. Capture model/version, redacted config, commands, result IDs and cleanup.
 - **DoD:** [ ] run carried out by C [ ] A repeats from clean directory [ ] regression artifacts attached to final status.
 
+**Checkpoint 2026-08-18 — live acceptance PASS (chưa Accepted):**
+
+- [x] Ollama WSL service trả `/api/embed` với model `nomic-embed-text` và vector 768 chiều.
+- [x] `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS: `MemoryTool` lưu `weather forecast for Tokyo` và một fact C++; `vsearch Tokyo weather` trả fact thời tiết đúng thứ hạng đầu.
+- [x] Test dùng DB tạm `artifacts/live_vector_acceptance.db` và xóa sau khi đóng `MemoryTool`; CTest mặc định vẫn offline, không phụ thuộc Ollama.
+- [ ] A rerun cùng command từ clean directory và review rằng production configuration truyền `ollama_host`/`embedding_model` vào `MemoryTool` trước khi claim Vector bonus PASS.
+
 ### [ ] W10.5-C-03 — Reconcile README/reports/package with verified behavior
 
 - **Requirement / gap:** RQ-DOC-01; DOC-W10-008.
@@ -112,6 +128,12 @@
 - **Scope:** `README.md`, relevant `docs/` report sections, submission checklist; do not alter source.
 - **Specific corrections:** documented build targets equal CMake; config distinguishes supported providers and redacts keys; run command states actual entry point; benchmark says whether actions were LLM/tool/fixture; bonus claims are PASS only with evidence; GUI/VLM is SKIPPED.
 - **DoD:** [ ] links/render checked [ ] clean directory follows README to configure/build/test [ ] package/secret/artifact scan recorded [ ] B checks every claim against source/evidence and approves.
+
+**Checkpoint 2026-08-18 — documentation reconciliation (chưa Accepted):**
+
+- [x] README đã đồng bộ fallback production, action provenance, executable targets và strict multi-agent failure behavior.
+- [x] CTest 5/5 PASS; live Vector evidence được ghi ở C-02, không claim Accepted trước independent review.
+- [ ] Clean extraction/package scan và B claim review vẫn là freeze gate.
 
 ### [ ] W10.5-INT-01 — Cross-role integration and requirement walk-through
 
