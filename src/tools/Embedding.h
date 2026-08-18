@@ -81,6 +81,7 @@ public:
     [[nodiscard]] const std::string& host() const noexcept { return host_; }
     [[nodiscard]] const std::string& model() const noexcept { return model_; }
     [[nodiscard]] int timeout_seconds() const noexcept { return timeout_seconds_; }
+    [[nodiscard]] std::size_t expected_dim() const noexcept { return 0; }
 
 private:
     std::string host_;
