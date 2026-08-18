@@ -517,6 +517,7 @@ bool HarnessRunner::exportResults(
             total_tokens += step.tokens_used;
             nlohmann::json step_json = {
                 {"step_id", index + 1},
+                {"source", step.source.empty() ? "llm" : step.source},
                 {"thought", step.thought},
                 {"action", parseAction(step.action)},
                 {"tool_result", step.result},

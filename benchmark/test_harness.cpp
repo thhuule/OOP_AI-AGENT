@@ -313,6 +313,7 @@ void testInstructionFallbackUsesToolWhenLLMOmitsToolCall() {
     auto client = std::make_shared<ScriptedLLMClient>(
         std::vector<std::string>{"I cannot decide yet"});
     AgentLoop agent(client);
+    agent.set_fallback_enabled(true);
     agent.register_tool(std::make_shared<FileWriteTool>());
 
     HarnessRunner harness((temp.path() / "unused.json").string());
@@ -347,6 +348,7 @@ void testCountFallbackReturnsNumericResult() {
     auto client = std::make_shared<ScriptedLLMClient>(
         std::vector<std::string>{"I cannot decide yet"});
     AgentLoop agent(client);
+    agent.set_fallback_enabled(true);
 
     HarnessRunner harness((temp.path() / "unused.json").string());
     agent.set_step_hook(harness.createStepHook());
