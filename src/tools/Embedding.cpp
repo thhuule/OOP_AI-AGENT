@@ -154,6 +154,11 @@ std::size_t OllamaEmbedder::write_callback(
 
 EmbeddingVector OllamaEmbedder::embed(const std::string& text) const
 {
+    if (text.empty())
+    {
+        throw std::runtime_error("OllamaEmbedder: empty input text");
+    }
+
     CURL* curl = curl_easy_init();
     if (!curl)
     {
@@ -198,6 +203,7 @@ EmbeddingVector OllamaEmbedder::embed(const std::string& text) const
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OllamaEmbedder::write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, static_cast<long>(timeout_seconds_));
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, static_cast<long>(std::max(1, timeout_seconds_ / 2)));
 
     CURLcode res = curl_easy_perform(curl);
     long http_code = 0;
@@ -221,11 +227,21 @@ EmbeddingVector OllamaEmbedder::embed(const std::string& text) const
         auto res_json = nlohmann::json::parse(read_buffer);
         if (res_json.contains("embeddings") && res_json["embeddings"].is_array() && !res_json["embeddings"].empty())
         {
-            return res_json["embeddings"][0].get<EmbeddingVector>();
+            auto vec = res_json["embeddings"][0].get<EmbeddingVector>();
+            if (vec.empty())
+            {
+                throw std::runtime_error("OllamaEmbedder: received zero-dimension embedding");
+            }
+            return vec;
         }
         if (res_json.contains("embedding") && res_json["embedding"].is_array())
         {
-            return res_json["embedding"].get<EmbeddingVector>();
+            auto vec = res_json["embedding"].get<EmbeddingVector>();
+            if (vec.empty())
+            {
+                throw std::runtime_error("OllamaEmbedder: received zero-dimension embedding");
+            }
+            return vec;
         }
         throw std::runtime_error("OllamaEmbedder: JSON missing embedding data");
     }

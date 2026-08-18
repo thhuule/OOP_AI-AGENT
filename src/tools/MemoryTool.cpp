@@ -24,7 +24,11 @@ MemoryTool::MemoryTool(std::string db_path, std::unique_ptr<Embedder> embedder)
     , db_(nullptr)
     , embedder_(embedder ? std::move(embedder) : std::make_unique<OllamaEmbedder>())
 {
-    init_database();
+    if (!init_database())
+    {
+        std::cerr << "[MemoryTool] WARNING: Failed to initialize database at: "
+                  << db_path_ << '\n';
+    }
 }
 
 MemoryTool::~MemoryTool()
@@ -81,6 +85,8 @@ bool MemoryTool::init_database()
     if (rc != SQLITE_OK)
     {
         sqlite3_free(err);
+        sqlite3_close(db_);
+        db_ = nullptr;
         return false;
     }
 

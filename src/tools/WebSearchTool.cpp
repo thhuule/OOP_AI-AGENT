@@ -67,6 +67,12 @@ WebSearchTool::http_get(const std::string& url)
 
     CURLcode result = curl_easy_perform(curl);
 
+    long http_code = 0;
+    if (result == CURLE_OK)
+    {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    }
+
     if (result != CURLE_OK)
     {
         std::cerr << "[ERROR] libcurl: "
@@ -86,6 +92,14 @@ WebSearchTool::http_get(const std::string& url)
 
     if (result != CURLE_OK)
     {
+        return std::unexpected(
+            ToolError::ExecutionFailed);
+    }
+
+    // W10.5-B-03: HTTP non-2xx → stable ToolError::ExecutionFailed
+    if (http_code >= 400)
+    {
+        std::cerr << "[ERROR] WebSearch HTTP " << http_code << '\n';
         return std::unexpected(
             ToolError::ExecutionFailed);
     }
@@ -168,6 +182,12 @@ WebSearchTool::parse_response(
 
         return std::unexpected(
             ToolError::NotFound);
+    }
+    catch (const nlohmann::json::parse_error&)
+    {
+        std::cerr << "[ERROR] WebSearch: malformed JSON response body\n";
+        return std::unexpected(
+            ToolError::ExecutionFailed);
     }
     catch (...)
     {
