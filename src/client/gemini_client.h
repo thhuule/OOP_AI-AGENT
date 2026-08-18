@@ -20,17 +20,17 @@ public:
         const LLMConfig& config = LLMConfig{}
     ) override;
 
-private:
-    std::string api_key_;
-    std::string model_name_;
-
     LLMConfig resolve_config(const LLMConfig& config) const;
     std::string build_url() const;
     std::string build_url(const LLMConfig& config) const;
     nlohmann::json build_request_body(
         const std::vector<Message>& history,
-        const LLMConfig& config
+        const LLMConfig& config = LLMConfig{}
     ) const;
+
+private:
+    std::string api_key_;
+    std::string model_name_;
 
     HttpResponse send_request_raw(const nlohmann::json& payload, const LLMConfig& config);
     HttpResponse send_request(const nlohmann::json& payload, const LLMConfig& config);

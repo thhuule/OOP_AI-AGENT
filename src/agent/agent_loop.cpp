@@ -347,6 +347,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
 
         TrajectoryStep ts;
         ts.step        = step;
+        ts.source      = used_fallback_action_ ? "fixture" : "llm";
         ts.thought     = last_thought_;
         ts.action      = serializeAction(tc.tool_name, tc.args);
         ts.tool_name   = tc.tool_name;
@@ -413,21 +414,21 @@ std::string AgentLoop::build_system_prompt(const std::string& /*instruction*/) {
 std::variant<ToolCallAction, FinalAnswerAction>
 AgentLoop::think_and_act(int /*step*/) {
 
-    // ── 1. Deterministic fallback — always tried first ───────────────────
-    const auto fp = build_fallback_plan(current_instruction_);
-    if (!fp.empty()) {
-        // FallbackPlan may be std::inplace_vector while the persistent member
-        // remains std::vector. Iterator assignment works for both code paths.
-        fallback_plan_.assign(fp.begin(), fp.end());
-        used_fallback_action_ = true;
-        if (fallback_index_ < fallback_plan_.size())
-            return fallback_plan_[fallback_index_];
-        return FinalAnswerAction{build_fallback_completion_message(
-            current_instruction_, last_fallback_result_)};
+    // ── 1. Deterministic fallback — only if explicitly opted in by test fixture ─
+    if (fallback_enabled_) {
+        const auto fp = build_fallback_plan(current_instruction_);
+        if (!fp.empty()) {
+            fallback_plan_.assign(fp.begin(), fp.end());
+            used_fallback_action_ = true;
+            if (fallback_index_ < fallback_plan_.size())
+                return fallback_plan_[fallback_index_];
+            return FinalAnswerAction{build_fallback_completion_message(
+                current_instruction_, last_fallback_result_)};
+        }
     }
 
-    // ── 2. LLM for unknown tasks ─────────────────────────────────────────
-    auto response = llm_->generate_chat(history_);
+    // ── 2. LLM for production path / standard execution ─────────────────────────
+    auto response = llm_->generate_chat(history_, config_);
     if (!response) {
         last_thought_ = "";
         const std::string reason = "LLM error: " + llmErrorToString(response.error());

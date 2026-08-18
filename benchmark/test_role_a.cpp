@@ -24,6 +24,8 @@
 #include "agent/LoopDetector.h"
 #include "agent/SkillLoader.h"
 #include "client/llm_client.h"
+#include "client/gemini_client.h"
+#include "client/ollama_client.h"
 #include "tools/ToolRegistry.h"
 #include "tools/CalculatorTool.h"
 #include "environment/Environment.h"
@@ -40,6 +42,12 @@
 #include <string>
 #include <vector>
 #include <variant>
+
+#if defined(__has_include)
+#  if __has_include(<inplace_vector>)
+#    include <inplace_vector>
+#  endif
+#endif
 
 using namespace oop_agent;
 namespace fs = std::filesystem;
@@ -457,20 +465,56 @@ void testCppFeatureMatrix() {
 #endif
 }
 
-// ── 13. test_agent_loop_fallback_real_tools (deterministic pipeline evidence) ──
+// ── 13. testProductionPathDoesNotInvokeFallback (W10.5-A-01 honest production path) ──
+void testProductionPathDoesNotInvokeFallback() {
+    std::cout << "[TEST] testProductionPathDoesNotInvokeFallback\n";
+
+    // 1. When fallback is disabled (default), benchmark wording must NOT bypass LLM
+    auto failing_client = std::make_shared<MockLLMClient>("");
+    failing_client->set_failure(LLMError::ConnectionRefused);
+    AgentLoop agent(failing_client);
+
+    check(!agent.is_fallback_enabled(), "AgentLoop has fallback disabled by default in production");
+
+    // Task phrase that previously triggered hardcoded fallback
+    std::string result = agent.run("Tạo file notes.txt với nội dung 'Agent test run'", 3);
+
+    check(result.find("LLM error: Connection refused") != std::string::npos,
+          "production path reports LLM error, never synthesizes success for benchmark task");
+    check(!fs::exists("notes.txt"),
+          "production path does not execute hardcoded side-effect when LLM fails");
+
+    // 2. When LLM succeeds, step source provenance is "llm"
+    auto success_client = std::make_shared<MockLLMClient>(R"({"tool":"calculator","args":"10+20"})");
+    AgentLoop llm_agent(success_client);
+    std::string seen_source;
+    llm_agent.set_step_hook([&](const TrajectoryStep& ts) {
+        seen_source = ts.source;
+    });
+    llm_agent.run("Compute 10+20", 1);
+    check(seen_source == "llm", "trajectory step has source 'llm' for LLM-driven actions");
+}
+
+// ── 14. test_agent_loop_fallback_real_tools (deterministic fixture evidence) ──
 void test_agent_loop_fallback_real_tools() {
     std::cout << "[TEST] test_agent_loop_fallback_real_tools\n";
 
     auto client = std::make_shared<MockLLMClient>("Final Answer: from_llm");
     AgentLoop agent(client); // default registry with real calculator/write_file
+    agent.set_fallback_enabled(true); // Explicit opt-in for test fixture
+
+    std::string step_source;
+    agent.set_step_hook([&](const TrajectoryStep& ts) {
+        step_source = ts.source;
+    });
 
     // Matches the task_005 fallback: 47*23 -> result.txt
     std::string result = agent.run("Compute 47*23 and save it to result.txt", 5);
 
-    // The fallback completion message echoes the LAST tool result (the write
-    // confirmation); the computed value is asserted via result.txt below.
     check(!result.empty() && result.find("wrote result.txt") != std::string::npos,
-          "fallback plan completed via real tools");
+          "fixture fallback plan completed via real tools");
+    check(step_source == "fixture",
+          "trajectory step has source 'fixture' when deterministic fallback is opted in");
 
     const std::string path = "result.txt";
     bool file_ok = fs::exists(path);
@@ -486,7 +530,117 @@ void test_agent_loop_fallback_real_tools() {
     fs::remove(path, ec);
 }
 
-// ── 14. test_native_environment ───────────────────────────────────────────────
+// ── 15. testProviderConfigWiring (W10.5-A-02) ─────────────────────────────────
+void testProviderConfigWiring() {
+    std::cout << "[TEST] testProviderConfigWiring\n";
+
+    // 1. GeminiClient config wiring
+    GeminiClient gemini;
+    LLMConfig gemini_cfg;
+    gemini_cfg.api_key = "AIzaSySecretTestKey123";
+    gemini_cfg.gemini_model = "gemini-2.5-flash";
+    gemini_cfg.gemini_api_url = "https://custom.gemini.endpoint/v1";
+    gemini_cfg.temperature = 0.35f;
+    gemini_cfg.max_tokens = 1024;
+    gemini_cfg.timeout_seconds = 45;
+
+    std::string gemini_url = gemini.build_url(gemini_cfg);
+    check(gemini_url.find("gemini-2.5-flash") != std::string::npos,
+          "GeminiClient URL contains configured model");
+    check(gemini_url.find("AIzaSySecretTestKey123") != std::string::npos,
+          "GeminiClient URL contains configured api_key");
+    check(gemini_url.find("https://custom.gemini.endpoint/v1") != std::string::npos,
+          "GeminiClient URL contains configured base URL");
+
+    std::vector<Message> history = {{"user", "Hello configured Gemini"}};
+    auto gemini_body = gemini.build_request_body(history, gemini_cfg);
+    check(gemini_body["generationConfig"]["temperature"] == 0.35f,
+          "GeminiClient request body contains configured temperature");
+    check(gemini_body["generationConfig"]["maxOutputTokens"] == 1024,
+          "GeminiClient request body contains configured maxOutputTokens (max_tokens)");
+
+    // 2. OllamaClient config wiring
+    OllamaClient ollama;
+    LLMConfig ollama_cfg;
+    ollama_cfg.ollama_host = "http://127.0.0.1:11434";
+    ollama_cfg.ollama_model = "qwen2.5-coder:7b";
+    ollama_cfg.temperature = 0.2f;
+    ollama_cfg.max_tokens = 512;
+    ollama_cfg.timeout_seconds = 30;
+
+    std::string ollama_url = ollama.build_endpoint_url(ollama_cfg);
+    check(ollama_url == "http://127.0.0.1:11434/api/chat",
+          "OllamaClient endpoint URL correctly formatted to /api/chat");
+
+    auto ollama_body = ollama.build_request_body(history, ollama_cfg);
+    check(ollama_body["model"] == "qwen2.5-coder:7b",
+          "OllamaClient request body contains configured model");
+    check(ollama_body["options"]["temperature"] == 0.2f,
+          "OllamaClient request body contains configured temperature");
+    check(ollama_body["options"]["num_predict"] == 512,
+          "OllamaClient request body contains configured num_predict (max_tokens)");
+
+    // 3. Pre-flight error handling without network
+    LLMConfig empty_ollama_cfg;
+    empty_ollama_cfg.ollama_host = "";
+    empty_ollama_cfg.ollama_model = "";
+    auto empty_res = ollama.generate_chat(history, empty_ollama_cfg);
+    check(!empty_res.has_value() && empty_res.error() == LLMError::ConnectionRefused,
+          "OllamaClient with missing config returns typed LLMError before network");
+}
+
+// ── 16. testMultimodalSerialization (W10.5-A-03) ──────────────────────────────
+void testMultimodalSerialization() {
+    std::cout << "[TEST] testMultimodalSerialization\n";
+
+    const std::string sample_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    const std::string data_uri = "data:image/png;base64," + sample_b64;
+
+    Message mm_msg{"user", "Analyze this image", std::vector<std::string>{data_uri}};
+
+    // 1. Gemini serialization
+    GeminiClient gemini;
+    auto gemini_body = gemini.build_request_body({mm_msg});
+    check(gemini_body.contains("contents") && !gemini_body["contents"].empty(),
+          "Gemini request contains contents");
+
+    const auto& gemini_parts = gemini_body["contents"][0]["parts"];
+    check(gemini_parts.size() == 2, "Gemini message has text part and image part");
+    check(gemini_parts[0]["text"] == "Analyze this image", "Gemini text part preserved");
+    check(gemini_parts[1].contains("inlineData"), "Gemini image part serialized as inlineData");
+    check(gemini_parts[1]["inlineData"]["mimeType"] == "image/png", "Gemini inlineData has correct mimeType");
+    check(gemini_parts[1]["inlineData"]["data"] == sample_b64, "Gemini inlineData has raw base64 data");
+
+    // 2. Ollama serialization
+    OllamaClient ollama;
+    auto ollama_body = ollama.build_request_body({mm_msg});
+    check(ollama_body.contains("messages") && !ollama_body["messages"].empty(),
+          "Ollama request contains messages");
+
+    const auto& ollama_msg = ollama_body["messages"][0];
+    check(ollama_msg["content"] == "Analyze this image", "Ollama content text preserved");
+    check(ollama_msg.contains("images") && ollama_msg["images"].is_array(),
+          "Ollama message contains images array");
+    check(ollama_msg["images"].size() == 1, "Ollama images array has 1 image");
+    check(ollama_msg["images"][0] == sample_b64, "Ollama image has data: URI prefix stripped");
+
+    // 3. Text-only regression
+    Message text_msg{"user", "Text only message"};
+    auto g_text_body = gemini.build_request_body({text_msg});
+    check(g_text_body["contents"][0]["parts"].size() == 1,
+          "Text-only message in Gemini has only 1 text part (no inlineData)");
+    auto o_text_body = ollama.build_request_body({text_msg});
+    check(!o_text_body["messages"][0].contains("images"),
+          "Text-only message in Ollama contains no images array");
+
+    // 4. Safe failure / invalid image handling
+    Message empty_img_msg{"user", "Message with empty img", std::vector<std::string>{""}};
+    auto safe_body = gemini.build_request_body({empty_img_msg});
+    check(safe_body["contents"][0]["parts"].size() == 1,
+          "Empty image strings are safely skipped without crash");
+}
+
+// ── 17. test_native_environment ───────────────────────────────────────────────
 void test_native_environment() {
     std::cout << "[TEST] test_native_environment\n";
 
@@ -502,15 +656,15 @@ void test_native_environment() {
 
     const std::string a = (fs::temp_directory_path() / "role_a_a.txt").string();
     const std::string b = (fs::temp_directory_path() / "role_a_b.txt").string();
-    env.writeFile(a, "A");
-    env.writeFile(b, "B");
+    (void)env.writeFile(a, "A");
+    (void)env.writeFile(b, "B");
     check(env.cleanArtifacts({a, b}).has_value() && !env.exists(a) && !env.exists(b),
           "cleanArtifacts removes all listed paths");
 }
 
 // ── main ────────────────────────────────────────────────────────────────────────
 int main() {
-    std::cout << "=== RUNNING ROLE A (Systems/Core) FOCUSED TESTS — Tuần 10 ===\n\n";
+    std::cout << "=== RUNNING ROLE A (Systems/Core) FOCUSED TESTS — Tuần 10.5 ===\n\n";
 
     testClientErrorContract();          std::cout << "\n";
     testMultimodalInterface();          std::cout << "\n";
@@ -524,7 +678,10 @@ int main() {
     testObserverHook();                 std::cout << "\n";
     testRegistryFactoryStrategy();      std::cout << "\n";
     testCppFeatureMatrix();             std::cout << "\n";
+    testProductionPathDoesNotInvokeFallback(); std::cout << "\n";
     test_agent_loop_fallback_real_tools(); std::cout << "\n";
+    testProviderConfigWiring();         std::cout << "\n";
+    testMultimodalSerialization();      std::cout << "\n";
     test_native_environment();          std::cout << "\n";
 
     if (g_failures == 0) {

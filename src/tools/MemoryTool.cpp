@@ -10,8 +10,19 @@ namespace oop_agent
 {
 
 MemoryTool::MemoryTool()
-    : db_(nullptr)
-    , embedder_(std::make_unique<HashEmbedder>())
+    : MemoryTool("memory.db", std::make_unique<OllamaEmbedder>())
+{
+}
+
+MemoryTool::MemoryTool(std::unique_ptr<Embedder> embedder)
+    : MemoryTool("memory.db", std::move(embedder))
+{
+}
+
+MemoryTool::MemoryTool(std::string db_path, std::unique_ptr<Embedder> embedder)
+    : db_path_(db_path.empty() ? "memory.db" : std::move(db_path))
+    , db_(nullptr)
+    , embedder_(embedder ? std::move(embedder) : std::make_unique<OllamaEmbedder>())
 {
     init_database();
 }
@@ -42,8 +53,13 @@ MemoryTool::get_description() const noexcept
 
 bool MemoryTool::init_database()
 {
-    if (sqlite3_open("memory.db", &db_) != SQLITE_OK)
+    if (sqlite3_open(db_path_.c_str(), &db_) != SQLITE_OK)
     {
+        if (db_)
+        {
+            sqlite3_close(db_);
+            db_ = nullptr;
+        }
         return false;
     }
 
@@ -108,6 +124,11 @@ bool MemoryTool::init_database()
 std::expected<std::string, ToolError>
 MemoryTool::save_memory(const std::string& text)
 {
+    if (!db_)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
     sqlite3_stmt* stmt = nullptr;
 
     const char* sql =
@@ -149,6 +170,11 @@ std::expected<std::string, ToolError>
 MemoryTool::search_memory(
     const std::string& keyword)
 {
+    if (!db_)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
     sqlite3_stmt* stmt = nullptr;
 
     const char* sql =
@@ -208,8 +234,25 @@ MemoryTool::search_memory(
 std::expected<std::string, ToolError>
 MemoryTool::vsave_memory(const std::string& text)
 {
-    const EmbeddingVector vec =
-        embedder_->embed(text);
+    if (!db_)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
+    EmbeddingVector vec;
+    try
+    {
+        vec = embedder_->embed(text);
+    }
+    catch (...)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
+    if (vec.empty())
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -265,8 +308,25 @@ MemoryTool::vsearch_memory(
     const std::string& query,
     int top_k)
 {
-    const EmbeddingVector query_vec =
-        embedder_->embed(query);
+    if (!db_)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
+    EmbeddingVector query_vec;
+    try
+    {
+        query_vec = embedder_->embed(query);
+    }
+    catch (...)
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
+
+    if (query_vec.empty())
+    {
+        return std::unexpected(ToolError::ExecutionFailed);
+    }
 
     sqlite3_stmt* stmt = nullptr;
 

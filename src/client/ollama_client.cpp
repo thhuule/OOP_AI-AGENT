@@ -12,10 +12,76 @@ size_t OllamaClient::write_callback(void* contents, size_t size, size_t nmemb, v
     return size * nmemb;
 }
 
+LLMConfig OllamaClient::resolve_config(const LLMConfig& config) const {
+    LLMConfig effective = config;
+    if (effective.ollama_host.empty()) {
+        effective.ollama_host = base_url_;
+    }
+    if (effective.ollama_model.empty()) {
+        effective.ollama_model = model_name_;
+    }
+    return effective;
+}
+
+std::string OllamaClient::build_endpoint_url(const LLMConfig& config) const {
+    const LLMConfig effective = resolve_config(config);
+    std::string host = effective.ollama_host;
+    if (!host.empty() && host.back() == '/') host.pop_back();
+    if (host.rfind("/api/chat") != host.size() - 9) {
+        host += "/api/chat";
+    }
+    return host;
+}
+
+nlohmann::json OllamaClient::build_request_body(
+    const std::vector<Message>& conversation_history,
+    const LLMConfig& config
+) const {
+    const LLMConfig effective = resolve_config(config);
+    json request_json = json::object();
+    request_json["model"] = effective.ollama_model;
+    request_json["stream"] = false;
+
+    json options = json::object();
+    options["temperature"] = effective.temperature;
+    if (effective.max_tokens > 0) {
+        options["num_predict"] = effective.max_tokens;
+    }
+    request_json["options"] = options;
+
+    json messages_arr = json::array();
+    for (const auto& msg : conversation_history) {
+        json m = { {"role", msg.role}, {"content", msg.content} };
+        if (msg.images.has_value() && !msg.images->empty()) {
+            std::vector<std::string> clean_images;
+            for (const auto& img : *msg.images) {
+                if (img.empty()) continue;
+                auto pos = img.find(";base64,");
+                if (pos != std::string::npos) {
+                    clean_images.push_back(img.substr(pos + 8));
+                } else {
+                    clean_images.push_back(img);
+                }
+            }
+            if (!clean_images.empty()) {
+                m["images"] = clean_images;
+            }
+        }
+        messages_arr.push_back(m);
+    }
+    request_json["messages"] = messages_arr;
+    return request_json;
+}
+
 std::expected<std::string, LLMError> OllamaClient::generate_chat(
     const std::vector<Message>& conversation_history,
     const LLMConfig& config
 ) {
+    const LLMConfig effective = resolve_config(config);
+    if (effective.ollama_host.empty() || effective.ollama_model.empty()) {
+        return std::unexpected(LLMError::ConnectionRefused);
+    }
+
     CURL* curl = curl_easy_init();
     if (!curl) return std::unexpected(LLMError::UnknownError);
 
@@ -23,48 +89,38 @@ std::expected<std::string, LLMError> OllamaClient::generate_chat(
     struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
-    // 1. Khởi tạo cấu trúc JSON Request theo chuẩn Ollama API
-    json request_json;
-    request_json["model"] = config.ollama_model; // Mặc định tuân theo config là ollama_model
-    request_json["stream"] = false;
-    request_json["options"] = { {"temperature", config.temperature} };
-
-    json messages_arr = json::array();
-    for (const auto& msg : conversation_history) {
-        json m = { {"role", msg.role}, {"content", msg.content} };
-        // Nếu có ảnh (Multimodal hỗ trợ base64) thì đính kèm vào luôn
-        if (msg.images.has_value() && !msg.images->empty()) {
-            m["images"] = msg.images.value();
-        }
-        messages_arr.push_back(m);
-    }
-    request_json["messages"] = messages_arr;
-
+    json request_json = build_request_body(conversation_history, effective);
     std::string request_data = request_json.dump();
+    std::string endpoint_url = build_endpoint_url(effective);
 
-    // 2. Cấu hình cURL
-    curl_easy_setopt(curl, CURLOPT_URL, config.ollama_host.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, endpoint_url.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request_data.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OllamaClient::write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, config.timeout_seconds);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, static_cast<long>(effective.timeout_seconds));
 
-    // 3. Thực thi Request & Xử lý lỗi hệ thống mạng
     CURLcode res = curl_easy_perform(curl);
+    long http_code = 0;
+    if (res == CURLE_OK) {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    }
+
     curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
 
     if (res != CURLE_OK) {
-        curl_easy_cleanup(curl);
         if (res == CURLE_OPERATION_TIMEDOUT) {
             return std::unexpected(LLMError::Timeout);
         }
         return std::unexpected(LLMError::ConnectionRefused);
     }
 
-    curl_easy_cleanup(curl);
+    if (http_code != 200) {
+        if (http_code == 429) return std::unexpected(LLMError::RateLimit);
+        return std::unexpected(LLMError::ConnectionRefused);
+    }
 
-    // 4. Parse phản hồi từ Ollama
     try {
         auto res_json = json::parse(read_buffer);
         if (res_json.contains("message") && res_json["message"].contains("content")) {

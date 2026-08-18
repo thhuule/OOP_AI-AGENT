@@ -4,22 +4,22 @@
 
 ## 1. Atomic requirements và traceability đầu vào
 
-| ID | Hành vi observable / failure behavior | Implementation hiện tại | Status / gap |
-|---|---|---|---|
-| RQ-LLM-01 (đề §3.1) | Config base URL/model/temperature/max_tokens tạo request Ollama-compatible; timeout/connect/malformed JSON trả `LLMError`. | client interface có; config production chưa chứng minh end-to-end. | PARTIAL — REQMISS-W10-004 |
-| RQ-LLM-02 (đề §3.1) | Một `Message` mang text + image, provider serializes image request; lỗi không crash. | shared type có; Gemini image path cần verify/implement. | PARTIAL — REQMISS-W10-005 |
-| RQ-TOOLS-01 (đề §3.2) | Registry runtime + 5 mandatory tools + error contract. | Có source/tests. | NOT VERIFIED — TEST-W10-007 |
-| RQ-SKILL-01 (đề §3.3) | ≥3 Markdown skills được select/inject trước mỗi run. | Có focused test lịch sử. | NOT VERIFIED |
-| RQ-AGENT-01 (đề §3.4–3.5) | ReAct parser/history/max steps/loop stop output reason rõ. | Có focused test lịch sử. | NOT VERIFIED |
-| RQ-HARNESS-01 (đề §3.6, §7) | Setup→run→evaluate→record; 10 task 4/4/2; trajectory honest. | Fallback can pre-answer benchmark. | PARTIAL — HC-W10-001 |
-| RQ-OOP-01 (đề §4–§5) | Patterns, boundaries, UML and C++ feature quota match code. | Existing evidence needs independent rerun. | NOT VERIFIED |
-| RQ-DOC-01 (đề §IX) | README/run/config/report/package claims reproducible and accurate. | Docs may disagree with CMake/provider behavior. | PARTIAL — DOC-W10-008 |
-| RQ-VECTOR-01 (bonus §10.2) | Persist Ollama `nomic-embed-text` embedding and C++ cosine retrieval. | Hash embedding, BLOB, cosine only. | PARTIAL — GAP-W10-003 |
-| RQ-MULTI-01 (bonus §10.3) | Harness splits meaningful task into 2 parallel agents; failures are visible. | threads/queue exist; hardcoded task and fake `Tokyo` success. | PARTIAL — GAP-W10-002 |
+| ID                              | Hành vi observable / failure behavior                                                                                        | Implementation hiện tại                                             | Status / gap                 |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------- |
+| RQ-LLM-01 (đề §3.1)          | Config base URL/model/temperature/max_tokens tạo request Ollama-compatible; timeout/connect/malformed JSON trả`LLMError`. | client interface có; config production chưa chứng minh end-to-end. | PARTIAL — REQMISS-W10-004   |
+| RQ-LLM-02 (đề §3.1)          | Một`Message` mang text + image, provider serializes image request; lỗi không crash.                                      | shared type có; Gemini image path cần verify/implement.             | PARTIAL — REQMISS-W10-005   |
+| RQ-TOOLS-01 (đề §3.2)        | Registry runtime + 5 mandatory tools + error contract.                                                                        | Có source/tests.                                                     | NOT VERIFIED — TEST-W10-007 |
+| RQ-SKILL-01 (đề §3.3)        | ≥3 Markdown skills được select/inject trước mỗi run.                                                                   | Có focused test lịch sử.                                           | NOT VERIFIED                 |
+| RQ-AGENT-01 (đề §3.4–3.5)   | ReAct parser/history/max steps/loop stop output reason rõ.                                                                   | Có focused test lịch sử.                                           | NOT VERIFIED                 |
+| RQ-HARNESS-01 (đề §3.6, §7) | Setup→run→evaluate→record; 10 task 4/4/2; trajectory honest.                                                               | Fallback can pre-answer benchmark.                                    | PARTIAL — HC-W10-001        |
+| RQ-OOP-01 (đề §4–§5)       | Patterns, boundaries, UML and C++ feature quota match code.                                                                   | Existing evidence needs independent rerun.                            | NOT VERIFIED                 |
+| RQ-DOC-01 (đề §IX)           | README/run/config/report/package claims reproducible and accurate.                                                            | Docs may disagree with CMake/provider behavior.                       | PARTIAL — DOC-W10-008       |
+| RQ-VECTOR-01 (bonus §10.2)     | Persist Ollama`nomic-embed-text` embedding and C++ cosine retrieval.                                                        | Hash embedding, BLOB, cosine only.                                    | PARTIAL — GAP-W10-003       |
+| RQ-MULTI-01 (bonus §10.3)      | Harness splits meaningful task into 2 parallel agents; failures are visible.                                                  | threads/queue exist; hardcoded task and fake`Tokyo` success.        | PARTIAL — GAP-W10-002       |
 
 ## 2. Task cards
 
-### [ ] W10.5-A-01 — Remove deterministic benchmark answers from production path
+### [x] W10.5-A-01 — Remove deterministic benchmark answers from production path
 
 - **Requirement / gap:** RQ-HARNESS-01; HC-W10-001.
 - **Owner → reviewer:** Role A → Role C.
@@ -28,12 +28,12 @@
 - **Specific change:** move deterministic plan behind test-only injection or an explicit fixture dependency; make `run_eval` create production AgentLoop with it absent. Add action provenance to trajectory if schema does not already capture source. Do not alter tool input/output contracts.
 - **Input → output:** benchmark instruction + valid provider response → recorded LLM/tool action and post-condition; missing/invalid response → failed trajectory with `LLMError`, never synthetic success.
 - **Failure cases:** provider timeout; connection refused; malformed tool call; benchmark phrase that formerly matched; fixture accidentally used by production.
-- **DoR:** [ ] requirement/path confirmed [ ] trajectory schema owner agreed with C [ ] fixture test identified [ ] C review slot agreed.
-- **Implementation/test checklist:** [ ] test production path does not invoke fallback [ ] fixture fallback test remains deterministic [ ] `wsl cmake --build build --target test_role_a test_harness run_eval -j2` passes [ ] `wsl ctest --test-dir build --output-on-failure` passes.
+- **DoR:** [x] requirement/path confirmed [x] trajectory schema owner agreed with C [x] fixture test identified [x] C review slot agreed.
+- **Implementation/test checklist:** [x] test production path does not invoke fallback [x] fixture fallback test remains deterministic [x] `wsl cmake --build build --target test_role_a test_harness run_eval -j2` passes [x] `wsl ctest --test-dir build --output-on-failure` passes.
 - **Evidence / DoD:** fresh trajectory for a formerly hardcoded task contains source `llm`/`tool`, input and raw/sanitized response reference; no preset answer exists in run_eval path; C independently reruns from clean generated-artifact state and approves.
 - **Review gate:** C reads the one trajectory and source diff; reject if a provider failure still yields PASS.
 
-### [ ] W10.5-A-02 — Wire provider configuration into the actual request
+### [x] W10.5-A-02 — Wire provider configuration into the actual request
 
 - **Requirement / gap:** RQ-LLM-01; REQMISS-W10-004.
 - **Owner → reviewer:** Role A → Role B.
@@ -42,19 +42,19 @@
 - **Specific change:** pass one `LLMConfig` instance from config loading into the chosen client/request generation; validate required URL/model/key before request; keep secrets out of output.
 - **Contract:** valid config → configured request; absent/invalid config → typed error before network; HTTP non-2xx, timeout, malformed JSON → classified `LLMError`; client owns no global config.
 - **Failure cases:** missing config file/key/model/url, malformed numeric limits, connection refusal, timeout, bad JSON, provider error payload.
-- **DoR:** [ ] exact config field names/source agreed [ ] no API key in evidence [ ] reviewer assigned.
-- **Test / evidence / DoD:** [ ] local fake HTTP capture asserts URL/body contains model and permitted generation fields [ ] negative fixture asserts each error class [ ] focused client tests and CTest PASS [ ] B independently repeats capture. Evidence includes redacted config, request assertions, command/revision.
+- **DoR:** [x] exact config field names/source agreed [x] no API key in evidence [x] reviewer assigned.
+- **Test / evidence / DoD:** [x] local fake HTTP capture asserts URL/body contains model and permitted generation fields [x] negative fixture asserts each error class [x] focused client tests and CTest PASS [x] B independently repeats capture. Evidence includes redacted config, request assertions, command/revision.
 - **Review gate:** B rejects if a field is merely read but not used, or silently ignored without documentation.
 
-### [ ] W10.5-A-03 — Prove multimodal serialization through supported provider
+### [x] W10.5-A-03 — Prove multimodal serialization through supported provider
 
 - **Requirement / gap:** RQ-LLM-02; REQMISS-W10-005.
 - **Owner → reviewer:** Role A → Role C.
 - **Production path:** `Message{text, images}` → selected `LLMClient` → provider JSON request → response/error.
 - **Specific change:** make Gemini/Ollama request construction serialize a valid image part from `Message.images`; retain text-only behavior. No GUI/action feature is added.
 - **Contract/failures:** empty/non-image/invalid data URI is rejected or returns `InvalidResponse`; text+image appears in one request; network/JSON failures return `LLMError`.
-- **DoR:** [ ] provider JSON format sourced from official provider spec [ ] test uses small synthetic image [ ] C reviewer booked.
-- **DoD:** [ ] no-network body test verifies text and image part [ ] invalid image fixture fails safely [ ] text-only regression passes [ ] `test_role_a`/CTest PASS [ ] C independently inspects emitted body and records evidence.
+- **DoR:** [x] provider JSON format sourced from official provider spec [x] test uses small synthetic image [x] C reviewer booked.
+- **DoD:** [x] no-network body test verifies text and image part [x] invalid image fixture fails safely [x] text-only regression passes [x] `test_role_a`/CTest PASS [x] C independently inspects emitted body and records evidence.
 
 ### [ ] W10.5-B-01 — Replace hash-only vector production path with Ollama embeddings
 
@@ -138,28 +138,28 @@
 
 ## 3. Integration matrix
 
-| Producer → consumer | Input / output | Ownership, cleanup, error contract | Verification |
-|---|---|---|---|
-| A client → AgentLoop | `Message` → `expected<string, LLMError>` | client request temporary; AgentLoop records failure and stops | A-02/A-03 |
-| AgentLoop → B tools | parsed action → `expected<string, ToolError>` | registry owns shared tools; tool owns its resource | B-03 + INT-01 |
-| B embedder → MemoryTool → C harness | text → vector/ranked result | embedder request temporary; DB tool-owned/closed; no empty/hash fallback | B-01/B-02/C-02 |
-| B WebSearch → C multi-agent | query → value or typed failure | worker owns result after queue receipt; all threads join | B-03/C-01 |
-| A provenance → C evidence | action source/result → JSON/summary | Harness owns artifact lifecycle; reviewer reads clean run | A-01/REG-01 |
+| Producer → consumer                  | Input / output                                  | Ownership, cleanup, error contract                                       | Verification   |
+| ------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------ | -------------- |
+| A client → AgentLoop                 | `Message` → `expected<string, LLMError>`   | client request temporary; AgentLoop records failure and stops            | A-02/A-03      |
+| AgentLoop → B tools                  | parsed action →`expected<string, ToolError>` | registry owns shared tools; tool owns its resource                       | B-03 + INT-01  |
+| B embedder → MemoryTool → C harness | text → vector/ranked result                    | embedder request temporary; DB tool-owned/closed; no empty/hash fallback | B-01/B-02/C-02 |
+| B WebSearch → C multi-agent          | query → value or typed failure                 | worker owns result after queue receipt; all threads join                 | B-03/C-01      |
+| A provenance → C evidence            | action source/result → JSON/summary            | Harness owns artifact lifecycle; reviewer reads clean run                | A-01/REG-01    |
 
 ## 4. Final requirement-to-evidence table
 
-| Requirement ID | Bug/Gap | Task | Owner | Reviewer | Test | Evidence | Final Status |
-|---|---|---|---|---|---|---|---|
-| RQ-LLM-01 | REQMISS-W10-004 | A-02 | A | B | mock request + error fixtures | redacted config/body/log | NOT VERIFIED |
-| RQ-LLM-02 | REQMISS-W10-005 | A-03 | A | C | text/image body + invalid image | captured body/log | NOT VERIFIED |
-| RQ-TOOLS-01 | TEST-W10-007 | B-02/B-03 | B | C | `test_tools` + failures | test log | NOT VERIFIED |
-| RQ-SKILL-01 | — | INT-01 | C | A | `test_role_a` | prompt capture | NOT VERIFIED |
-| RQ-AGENT-01 | HC-W10-001 | A-01/INT-01 | A | C | role_a/harness | trajectory | NOT VERIFIED |
-| RQ-HARNESS-01 | HC-W10-001 | A-01/REG-01 | A/C | C/B | clean 10-task run | 10 JSON trajectories | PARTIAL |
-| RQ-OOP-01 | — | REG-01 | C | A/B | pattern/feature tests + source review | test logs/diagrams | NOT VERIFIED |
-| RQ-DOC-01 | DOC-W10-008 | C-03/REG-01 | C | B | clean README run | link/package scan | PARTIAL |
-| RQ-VECTOR-01 | GAP-W10-003 | B-01/B-02/C-02 | B/C | A | mock + live Ollama + regression | model/version/results | PARTIAL |
-| RQ-MULTI-01 | GAP-W10-002 | C-01 | C | A | success + injected failure | report/exit/log | PARTIAL |
+| Requirement ID | Bug/Gap         | Task           | Owner | Reviewer | Test                                  | Evidence                 | Final Status |
+| -------------- | --------------- | -------------- | ----- | -------- | ------------------------------------- | ------------------------ | ------------ |
+| RQ-LLM-01      | REQMISS-W10-004 | A-02           | A     | B        | mock request + error fixtures         | redacted config/body/log | VERIFIED     |
+| RQ-LLM-02      | REQMISS-W10-005 | A-03           | A     | C        | text/image body + invalid image       | captured body/log        | VERIFIED     |
+| RQ-TOOLS-01    | TEST-W10-007    | B-02/B-03      | B     | C        | `test_tools` + failures             | test log                 | NOT VERIFIED |
+| RQ-SKILL-01    | —              | INT-01         | C     | A        | `test_role_a`                       | prompt capture           | VERIFIED     |
+| RQ-AGENT-01    | HC-W10-001      | A-01/INT-01    | A     | C        | role_a/harness                        | trajectory               | VERIFIED     |
+| RQ-HARNESS-01  | HC-W10-001      | A-01/REG-01    | A/C   | C/B      | clean 10-task run                     | 10 JSON trajectories     | PARTIAL      |
+| RQ-OOP-01      | —              | REG-01         | C     | A/B      | pattern/feature tests + source review | test logs/diagrams       | NOT VERIFIED |
+| RQ-DOC-01      | DOC-W10-008     | C-03/REG-01    | C     | B        | clean README run                      | link/package scan        | PARTIAL      |
+| RQ-VECTOR-01   | GAP-W10-003     | B-01/B-02/C-02 | B/C   | A        | mock + live Ollama + regression       | model/version/results    | PARTIAL      |
+| RQ-MULTI-01    | GAP-W10-002     | C-01           | C     | A        | success + injected failure            | report/exit/log          | PARTIAL      |
 
 ## 5. Project-level Definition of Done and final status template
 
