@@ -97,6 +97,15 @@
 - **DoR:** [ ] A/B frozen error/action contract [ ] test inputs deterministic or live condition documented [ ] reviewer assigned.
 - **DoD:** [ ] success test asserts two worker IDs, two independent outputs, measured overlap/parallel start and combined report [ ] injected web failure asserts no `Tokyo`/success output and nonzero exit [ ] cleanup/no hang test [ ] `test_multi_agent`, `demo_multi_agent`, CTest PASS [ ] A independently runs actual workflow.
 
+**Checkpoint 2026-08-17 — implementation/test evidence (chưa Accepted):**
+
+- [x] `runMultiAgentDemo(MultiAgentDemoInput, report_path)` nhận hai subtask độc lập thay vì worker tự bỏ qua input; `demo_multi_agent` nhận calculator expression và research query từ CLI.
+- [x] Worker trả lỗi có định danh (`ERROR=<worker>:<ToolError>`); aggregate ghi `STATUS=FAIL`, không ghi capital giả, và `demo_multi_agent` trả non-zero khi một worker fail.
+- [x] `test_multi_agent` PASS: success flow dùng calculation input `2 * 3`; failure flow inject query rỗng, xác nhận `STATUS=FAIL`, `ERROR=researcher:InvalidArgument`, và không có `CAPITAL=`.
+- [x] `demo_multi_agent '2 * 3' 'Japan capital'` PASS, report có hai output thật và `STATUS=PASS`; worker threads đều được `stopAndJoinAll()` trước khi return.
+- [ ] B-03 cung cấp/verify WebSearch timeout/HTTP/malformed-body contract để thay error fixture bằng full web-failure matrix.
+- [ ] A chạy lại workflow độc lập và xác nhận two-worker parallel evidence trước khi task được Accepted.
+
 ### [ ] W10.5-C-02 — Vector bonus independent acceptance
 
 - **Requirement / gap:** RQ-VECTOR-01; depends on B-01/B-02.

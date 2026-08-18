@@ -47,6 +47,11 @@ struct TaskRunResult {
  */
 using StepHook = std::function<void(const TrajectoryStep &)>;
 
+struct MultiAgentDemoInput {
+  std::string calculation = "47 * 23";
+  std::string research_query = "Japan capital";
+};
+
 /**
  * @brief Bộ điều phối chạy benchmark: load task → chạy Agent → evaluate → ghi
  * kết quả.
@@ -113,6 +118,10 @@ public:
    */
   bool runMultiAgentDemo(
       const std::string &report_path = "artifacts/demo/report.txt");
+
+  /// Same workflow with caller-supplied independent subtasks.
+  bool runMultiAgentDemo(const MultiAgentDemoInput &input,
+                         const std::string &report_path);
 
   /**
    * @brief Chạy một Task đơn lẻ.
