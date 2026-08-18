@@ -34,7 +34,7 @@ Use this order when joining the project or returning after a break:
 1. Read [current project status](planning/status/PROJECT_STATUS.md) for the active goal, blockers, and latest verified gate.
 2. Read the current weekly plan in [`planning/weekly-plans/`](planning/weekly-plans/). Older weekly plans and error logs are historical context, not the current source of truth.
 3. Read this README, then build and run the local tests before changing code.
-4. Use [documentation guidance](docs/DOCUMENTATION_GUIDE.md) when updating a report, diagram, benchmark claim, or checklist.
+4. Use [documentation guidance](docs/guides/DOCUMENTATION_GUIDE.md) when updating a report, diagram, benchmark claim, or checklist.
 
 The repository uses these top-level areas:
 
@@ -235,9 +235,9 @@ Start local Ollama and install `nomic-embed-text`. This affects Vector Search on
 
 ## Documentation
 
-- [Tools architecture report](docs/report_tools.md)
-- [OOP design report](docs/report_oop_design.md)
-- [Evaluation report](docs/report_evaluation.md)
-- [Batch evaluation sequence diagram](docs/sequence_harness.md)
-- [Week 12 submission checklist](docs/submission_checklist.md)
-- [Demo video storyboard](docs/video_storyboard.md)
+- [Tools architecture report](docs/reports/report_tools.md)
+- [OOP design report](docs/reports/report_oop_design.md)
+- [Evaluation report](docs/reports/report_evaluation.md)
+- [Batch evaluation sequence diagram](docs/diagrams/sequence_harness.md)
+- [Week 12 submission checklist](docs/guides/submission_checklist.md)
+- [Demo video storyboard](docs/guides/video_storyboard.md)

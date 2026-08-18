@@ -2,13 +2,13 @@
 
 > **Mục đích:** thống nhất cách viết báo cáo đồ án trong `docs/` để ba Role tạo ra một tài liệu kỹ thuật liền mạch, có thể kiểm chứng và không mâu thuẫn với source hiện tại.
 >
-> **Phạm vi áp dụng:** `docs/bao_cao_du_an.md`, các báo cáo Role, UML/sequence/component docs, README, checklist và storyboard có claim kỹ thuật.
+> **Phạm vi áp dụng:** `docs/reports/bao_cao_du_an.md`, các báo cáo Role, UML/sequence/component docs, README, checklist và storyboard có claim kỹ thuật.
 >
 > **Nguồn sự thật:** source/test hiện tại → artifact benchmark hiện tại → báo cáo tiến độ → kế hoạch. Không lấy một câu trong tài liệu cũ làm bằng chứng nếu source hoặc test mới hơn cho kết quả khác.
 
 ## 1. Luồng bắt buộc của báo cáo tổng
 
-`docs/bao_cao_du_an.md` phải đi theo đúng thứ tự sau:
+`docs/reports/bao_cao_du_an.md` phải đi theo đúng thứ tự sau:
 
 ```text
 1. User's Requirement
@@ -217,7 +217,7 @@ Không chuyển một yêu cầu bắt buộc chưa làm thành “future work�
 
 ### 3.5 Link và nguồn
 
-- Dùng link tương đối trong Markdown, ví dụ `[AgentLoop](../src/agent/agent_loop.cpp)`.
+- Dùng link tương đối trong Markdown, ví dụ `[AgentLoop](../../src/agent/agent_loop.cpp)` từ một file trong `docs/guides/` hoặc `docs/reports/`.
 - Benchmark phải ghi run ID và link trực tiếp tới summary/trajectory liên quan.
 - Nguồn ngoài như OpenClaw/Hermes phải có tên trang, link và phần ý tưởng đã tham khảo; không sao chép nội dung dài.
 - Không dùng link tới file đã bị xóa hoặc tên cũ sau rename.
@@ -324,7 +324,7 @@ Nếu source thay đổi sau khi freeze tài liệu, owner của source phải b
 
 Quy chuẩn được coi là áp dụng xong khi:
 
-- `docs/bao_cao_du_an.md` được chuyển sang đúng chín phần;
+- `docs/reports/bao_cao_du_an.md` được chuyển sang đúng chín phần;
 - `report_oop_design.md`, `report_tools.md`, `report_evaluation.md` dùng chung thuật ngữ và format bằng chứng;
 - các claim trạng thái khớp `KH_TUAN9.5.md`/`PROJECT_STATUS.md` mới nhất;
 - link và Mermaid đã được kiểm tra;

@@ -1,6 +1,6 @@
 # Project Status — AI-AGENT OOP 2026
 
-**Cập nhật lần cuối:** 2026-08-17
+**Cập nhật lần cuối:** 2026-08-19
 **Nguồn điều phối hiện hành:** [`KH_Tuan10_TongQuan_1Trang.md`](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) để theo dõi hằng ngày và [`KH_Tuan10_ChiTiet.md`](../weekly-plans/KH_Tuan10_ChiTiet.md) cho task/DoD chi tiết. Đề chính thức, source/test/CMake và artifact mới là nguồn xác minh; file này chỉ là trạng thái tóm tắt.
 
 ## Giai đoạn hiện tại
@@ -8,6 +8,8 @@
 **Tuần 10 — Completion and code-freeze week.** Mục tiêu là hoàn tất requirement bắt buộc, test evidence và toàn bộ gate rồi freeze code **trong tuần này**. Tuần sau merge/format docs, làm slide, video/demo flow và oral preparation.
 
 **Trạng thái freeze hiện tại: NO.** Không được coi code/docs/test đã freeze chỉ dựa vào evidence ở revision cũ; mọi gate phải được chạy lại trên final freeze candidate.
+
+**Latest production evidence:** `run_20260819_002033_735` used Gemini with `source: llm` actions and no fixture fallback, but achieved **2/10 final success**. This is an honest benchmark failure, not a passing freeze gate. The recovery tasks are in [`KH_Tuan10_75_ChiTiet.md`](../weekly-plans/KH_Tuan10_75_ChiTiet.md).
 
 ## Trạng thái theo Role
 

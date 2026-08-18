@@ -14,12 +14,12 @@ int main(int argc, char* argv[]) {
         argc > 1 ? argv[1] : "47 * 23",
         argc > 2 ? argv[2] : "Japan capital"};
     if (!harness.runMultiAgentDemo(input, "artifacts/demo/report.txt")) {
-        std::cerr << "[Main] Không thể hoàn tất multi-agent workflow.\n";
+        std::cerr << "[Main] Cannot complete the multi-agent workflow.\n";
         return 1;
     }
 
     std::cout << "\n=====================================================\n";
-    std::cout << "       DEMO MULTI-AGENT HOÀN THÀNH THÀNH CÔNG        \n";
+    std::cout << "          MULTI-AGENT DEMO COMPLETED SUCCESSFULLY     \n";
     std::cout << "=====================================================\n";
 
     return 0;
