@@ -22,7 +22,7 @@ void MultiAgentRunner::registerAgent(
     agents_[id] = std::move(config);
     in_queues_[id] = std::make_unique<MessageQueue>();
 
-    std::cout << "[MultiAgentRunner] Đã đăng ký Sub-Agent: " << id
+    std::cout << "[MultiAgentRunner] Registered sub-agent: " << id
               << " (" << role_description << ")\n";
 }
 
@@ -36,7 +36,7 @@ void MultiAgentRunner::startAll() {
 
     running_ = true;
 
-    std::cout << "[MultiAgentRunner] Khởi chạy " << agents_.size() << " Sub-Agents...\n";
+    std::cout << "[MultiAgentRunner] Starting " << agents_.size() << " sub-agents...\n";
 
     // Khởi chạy thread điều phối (Dispatcher) trung chuyển tin nhắn từ global_bus_ đến các agent
     dispatcher_thread_ = std::thread([this]() {
@@ -54,14 +54,14 @@ void MultiAgentRunner::startAll() {
 
         // Spawn thread riêng cho từng Sub-Agent
         worker_threads_.emplace_back([this, id, func_copy, in_q]() {
-            std::cout << "[SubAgent:" << id << "] Thread đã khởi động.\n";
+            std::cout << "[SubAgent:" << id << "] Thread started.\n";
             try {
                 // Thực thi hàm công việc của Agent
                 func_copy(*in_q, global_bus_);
             } catch (const std::exception& e) {
-                std::cerr << "[SubAgent:" << id << "] Lỗi ngoại lệ: " << e.what() << "\n";
+                std::cerr << "[SubAgent:" << id << "] Exception: " << e.what() << "\n";
             }
-            std::cout << "[SubAgent:" << id << "] Thread kết thúc.\n";
+            std::cout << "[SubAgent:" << id << "] Thread finished.\n";
         });
     }
 }
@@ -85,7 +85,7 @@ void MultiAgentRunner::sendMessage(const AgentMessage& msg) {
         if (it != in_queues_.end()) {
             it->second->push(msg);
         } else {
-            std::cerr << "[MultiAgentRunner] Không tìm thấy receiver: " << msg.receiver << "\n";
+            std::cerr << "[MultiAgentRunner] Receiver not found: " << msg.receiver << "\n";
         }
     }
 }
@@ -93,7 +93,7 @@ void MultiAgentRunner::sendMessage(const AgentMessage& msg) {
 void MultiAgentRunner::stopAndJoinAll() {
     if (!running_.exchange(false)) return;
 
-    std::cout << "[MultiAgentRunner] Đang dừng tất cả Sub-Agents...\n";
+    std::cout << "[MultiAgentRunner] Stopping all sub-agents...\n";
 
     // 1. Gửi tín hiệu stop cho tất cả các hàng đợi
     for (auto& [id, queue] : in_queues_) {
@@ -115,7 +115,7 @@ void MultiAgentRunner::stopAndJoinAll() {
 
     worker_threads_.clear();
 
-    std::cout << "[MultiAgentRunner] Đã dừng toàn bộ Sub-Agents an toàn.\n";
+    std::cout << "[MultiAgentRunner] All sub-agents stopped safely.\n";
 }
 
 } // namespace oop_agent
