@@ -99,7 +99,17 @@ int main() {
     agent.register_tool(std::make_shared<oop_agent::FileWriteTool>());
     agent.register_tool(std::make_shared<oop_agent::FileAppendTool>());
     agent.register_tool(std::make_shared<oop_agent::WebSearchTool>());
-    agent.register_tool(std::make_shared<oop_agent::MemoryTool>());
+    // ── MemoryTool: wire ollama_host / embedding_model from config ──────────
+    {
+        const std::string ollama_host =
+            config_json.value("ollama_host", "http://localhost:11434");
+        const std::string embedding_model =
+            config_json.value("embedding_model", "nomic-embed-text");
+        std::cout << "[INFO] MemoryTool OllamaEmbedder: host=" << ollama_host
+                  << " model=" << embedding_model << "\n";
+        agent.register_tool(std::make_shared<oop_agent::MemoryTool>(
+            std::make_unique<oop_agent::OllamaEmbedder>(ollama_host, embedding_model)));
+    }
     agent.register_tool(std::make_shared<oop_agent::TimeTool>());
     agent.register_tool(std::make_shared<oop_agent::JsonTool>());
     agent.register_tool(std::make_shared<oop_agent::GitTool>());
