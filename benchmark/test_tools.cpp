@@ -1,6 +1,7 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -611,6 +612,25 @@ void test_ollama_embedder() {
     std::cout << "  -> PASSED\n";
 }
 
+// C-02: opt-in live acceptance; normal CTest remains offline and reproducible.
+void test_live_ollama_vector_acceptance() {
+    if (std::getenv("RUN_LIVE_OLLAMA") == nullptr) return;
+
+    std::cout << "[TEST] Running test_live_ollama_vector_acceptance...\n";
+    const auto db_path = std::filesystem::path("artifacts") / "live_vector_acceptance.db";
+    std::filesystem::create_directories(db_path.parent_path());
+    {
+        MemoryTool memory(db_path.string(), std::make_unique<OllamaEmbedder>());
+        assert(memory.execute("vsave weather forecast for Tokyo").has_value());
+        assert(memory.execute("vsave C++ compiler optimization flags").has_value());
+        const auto result = memory.execute("vsearch Tokyo weather");
+        assert(result.has_value());
+        assert(result->find("weather forecast for Tokyo") != std::string::npos);
+    }
+    std::filesystem::remove(db_path);
+    std::cout << "  -> PASSED\n";
+}
+
 /// BNS-G-01 (B): ScreenshotTool contract — mock capture, base64 encode.
 class FakeScreenshotTool : public ScreenshotTool
 {
@@ -753,9 +773,9 @@ int main() {
     test_cosine_similarity_fixed_vectors();
     test_memory_vector_search_ranking();
     test_ollama_embedder();
+    test_live_ollama_vector_acceptance();
     test_screenshot_contract();
     test_action_tool_safety();
     std::cout << "=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===\n";
     return 0;
 }
-
