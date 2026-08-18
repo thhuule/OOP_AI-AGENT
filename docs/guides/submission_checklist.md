@@ -24,9 +24,10 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [ ] `./build/test_harness` prints `ALL HARNESS TESTS PASSED`.
 - [ ] `./build/test_multi_agent` prints `ALL PASSED`.
 - [ ] `./build/test_template_method` prints `ALL ROLE A TESTS PASSED SUCCESSFULLY`.
-- [ ] CTest passes 4/4 tests on the packaged revision.
+- [ ] CTest passes 5/5 tests on the packaged revision.
 - [ ] The final benchmark evidence comes from a new clean-state run that the team approved for quota use.
 - [ ] The run contains 10 tasks: 4 simple, 4 medium, and 2 hard.
+- [ ] The four simple tasks cover calculator, file write, file read, and current local time.
 - [ ] A task that requires a tool contains a real and relevant tool step.
 - [ ] The report/video states whether the shown actions came from the LLM or may have come from deterministic fallback.
 - [ ] Each artifact has the exact required filename and content in the current run.
