@@ -23,20 +23,21 @@
 3. File artifacts are therefore missing in task 002, 003, 005–010.
 4. Gemini timeout/503 errors are real provider failures and must remain visible; they are not a reason to restore fallback.
 5. The previous simple-task set did not explicitly cover calculator and TimeTool as required by §7.3; C-00 revises the suite while preserving 10 tasks and the 4/4/2 distribution.
+6. Review of A's parser delivery found that malformed apparent tool calls fall through as raw final answers. A-03 must classify them before any new production benchmark is accepted.
 
 ## 3. Role allocation
 
 | Role | Deliverable | Dependency |
 |---|---|---|
-| A | Correct escaped JSON parsing and canonical tool instructions in skills | None |
+| A | Correct escaped JSON parsing, canonical skill instructions, and classified malformed tool-call failure | None |
 | B | Add backwards-compatible file aliases and verify FileTool contract | A parser examples agreed |
 | C | Re-run real benchmark, lock evidence, update status/report claims | A + B merged |
 
 ## 4. Dependency map
 
 ```text
-A: parser + skills ─┐
-                    ├→ B: aliases/file integration → C: real run_eval → review → freeze decision
+A: parser + skills + classified malformed-call failure ─┐
+                                                        ├→ B: aliases/file integration → C: real run_eval → review → freeze decision
                     ┘
 ```
 
@@ -45,6 +46,7 @@ A: parser + skills ─┐
 Before code freeze:
 
 - [ ] `test_role_a`, `test_tools`, and CTest pass after the parser/alias fix.
+- [ ] Malformed apparent tool calls produce a stable classified failure, not a raw final answer.
 - [ ] A fresh `run_eval` has 10 trajectories with `source: llm`, never `fixture`.
 - [ ] File workflow tasks are no longer blocked by truncated args or unknown file aliases.
 - [ ] A and B independently review the production trajectories.
