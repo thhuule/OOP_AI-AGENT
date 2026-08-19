@@ -181,7 +181,13 @@ The run exposed two blocking integration defects:
 
 As a result, file artifacts were missing for tasks 002, 003, and 005–010. Gemini timeout/503 responses were also recorded as failures.
 
-Both defects are now **resolved** (verified 2026-08-19): the skills were realigned to the canonical `read_file`/`write_file`/`append_file` protocol (W10.75-A-02, B's independent review closed), and the AgentLoop parser was replaced with a balanced-object scan + `nlohmann::json` parse that preserves escaped `args` and rejects partial/truncated tool calls (W10.75-A-01). The recovery work is tracked in `planning/weekly-plans/KH_Tuan10_75_ChiTiet.md`; the project must still not claim a current 10/10 benchmark result or code freeze until the re-verified run is recorded.
+Both defects are now **resolved**: the skills were realigned to the canonical `read_file`/`write_file`/`append_file` protocol (W10.75-A-02, B's independent review closed), and the AgentLoop parser was replaced with a balanced-object scan + `nlohmann::json` parse that preserves escaped `args` and rejects partial/truncated tool calls (W10.75-A-01). The recovery work is tracked in `planning/weekly-plans/KH_Tuan10_75_ChiTiet.md`.
+
+### 7.5 Current Real-Provider Re-run — 2026-08-20
+
+`run_20260820_002933_100` is the current recorded Gemini re-run on the revised 4/4/2 suite. It used `gemma-4-31b-it`, recorded every action with `"source": "llm"`, and recorded no fixture action. Its results are **7/10 final success**, **0.7 evaluator score**, and **0.9 action-level score**.
+
+The repaired production workflow passed tasks 002, 003, 006, 007, and 010. The remaining three failures are retained as model-behaviour evidence: task 004 chose `execute_shell(date)` rather than the required `time` tool; tasks 005 and 009 repeated an already successful calculator call until `LoopDetector` stopped them. The run therefore does not justify a current 10/10 claim, but it does satisfy the project requirement to report the selected model's measured success rate. The benchmark is not a deterministic correctness test and must not be made perfect by re-enabling fallback.
 
 ## 8. Multi-Agent Support
 
