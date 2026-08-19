@@ -23,6 +23,7 @@
 | GAP-10.75-02 | args JSON thành `"{\\"` ở task 003/007/009/010 | Parser tự tìm dấu quote, không decode escaped JSON string | R06 | A |
 | GAP-10.75-03 | task 002/005/006/008 thiếu artifact | LLM không thể hoàn thành write path sau parser/alias mismatch; không được che bằng fallback | R03, R08, R13 | A + B, C verify |
 | GAP-10.75-04 | timeout/503 và `LLM error: Malformed JSON` xuất hiện trong trajectories | Provider instability là failure evidence; cần giữ typed failure, không biến thành PASS | R01, R06, R08 | A + C |
+| GAP-10.75-05 | Review revision `7c1edb5`: malformed tool-call JSON is returned verbatim as a final answer | `parse_json_tool_call()` returns `nullopt`; `think_and_act()` then falls through to `FinalAnswerAction{text}` instead of emitting an observable classified parser failure | R06, R08 | A; C review |
 | DOC-10.75-01 | report/status vẫn ghi benchmark lịch sử 10/10/fallback state cũ | Docs không phản ánh run thật mới | R14, R15 | C, B review |
 
 ## 3. Role A — Agent protocol and parser
@@ -56,6 +57,19 @@
 - [x] `skills/task_planner.md`, `skills/step_verifier.md`, `skills/error_recovery.md` now use canonical `read_file`/`write_file`/`append_file` with one exact JSON tool-call example per response.
 - [x] `test_role_a` adds `testEscapedJsonArgsParse`; all 5 CTest targets PASS after the fix.
 - [ ] A/B/C sign-off on trajectory evidence pending review (dependent on B-01 merge).
+
+### [ ] W10.75-A-03 — Classify malformed tool-call responses instead of accepting them as final answers
+
+- **Requirement / gap:** R06, R08; GAP-10.75-05. This is a review finding after A-01; its completed checklist above remains historical evidence.
+- **Owner → reviewer:** A → C.
+- **Production path:** Gemini response → `AgentLoop::think_and_act()` → JSON/function-call parsing → classified parser failure → history/trajectory → Harness failure reason.
+- **Current behavior:** malformed JSON such as `{"tool":"write_file","args":"{\\"}` reaches `return FinalAnswerAction{text}`. It invokes no tool, but the raw invalid protocol is treated as a normal final response and is not traceable as a parser error.
+- **Expected behavior:** an apparent but invalid JSON tool-call protocol produces one stable, observable failure (for example `MALFORMED_TOOL_CALL`), is recorded in the same failure/evidence path used by the Harness, and never executes a partial tool call or claims task success.
+- **Change scope:** `src/agent/agent_loop.cpp` and `benchmark/test_role_a.cpp` only. Do not enable fallback, change `Tool::execute(std::string)`, change the Harness JSON schema, or add a retry policy.
+- **Failure cases to test:** truncated escaped argument; missing `tool`; missing `args`; non-string `args`; invalid fenced JSON; two JSON objects in one response. Each must execute zero tools and yield the classified failure, not the raw JSON as a final answer.
+- **DoR:** [x] Requirement, production path, owner, and reviewer identified [x] existing parser contract inspected [x] expected failure evidence defined.
+- **DoD:** [ ] malformed response is classified rather than returned verbatim [ ] all six failure cases have focused assertions [ ] escaped valid JSON remains executable with complete args [ ] `./build/test_role_a` PASS [ ] `ctest --test-dir build --output-on-failure` PASS [ ] C reviews one emitted failure trajectory/record.
+- **Evidence:** commit hash; focused test output; one captured record containing the stable parser-failure reason; C approval.
 
 ## 4. Role B — Backward-compatible tool contract
 
@@ -143,7 +157,7 @@
 
 ```text
 W10.75-A-01 parser ─┐
-W10.75-A-02 skills ─┼→ W10.75-B-01 aliases/file contract → W10.75-C-01 real benchmark
+W10.75-A-02 skills ─┼→ W10.75-A-03 classified parser failure → W10.75-B-01 aliases/file contract → W10.75-C-01 real benchmark
                     ┘                                      → W10.75-C-02 evidence → Freeze decision
 ```
 
@@ -159,6 +173,7 @@ No deterministic benchmark fallback in production.
 ```text
 Build + CTest: PASS / FAIL
 Parser contract: PASS / FAIL
+Malformed tool-call failure: PASS / FAIL
 Skill/registry names: PASS / FAIL
 File artifact workflow: PASS / FAIL
 Real provider benchmark: <score>/10, LLM source verified YES/NO
