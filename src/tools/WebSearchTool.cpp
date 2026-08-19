@@ -249,6 +249,12 @@ WebSearchTool::execute(const std::string& arguments)
             {
                 return parsed;
             }
+            // A malformed provider body is a real execution failure. Only a
+            // valid response with no result may continue to a fallback search.
+            if (parsed.error() != ToolError::NotFound)
+            {
+                return std::unexpected(parsed.error());
+            }
         }
         else if (response.error() != ToolError::NotFound)
         {

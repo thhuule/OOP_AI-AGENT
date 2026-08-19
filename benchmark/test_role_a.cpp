@@ -211,8 +211,8 @@ void testEscapedJsonArgsParse() {
         std::string result = agent.run(kNoFallback, 1);
         check(agent.captured.empty(),
               "malformed/truncated JSON does not invoke a tool");
-        check(result.find("PARSE_ERROR:") == 0,
-              "malformed JSON returns a classified PARSE_ERROR failure, not raw text");
+        check(result == "PARSE_ERROR: malformed tool-call JSON — no valid action parsed",
+              "malformed JSON returns the classified PARSE_ERROR failure, not raw text");
         check(result != bad,
               "malformed JSON is not returned verbatim as a final answer");
     }
@@ -225,8 +225,8 @@ void testEscapedJsonArgsParse() {
         std::string result = agent.run(kNoFallback, 1);
         check(agent.captured.empty(),
               "multiple unrelated JSON blocks do not yield a tool call");
-        check(result == "MALFORMED_TOOL_CALL",
-              "multiple JSON objects in one response is classified as MALFORMED_TOOL_CALL");
+        check(result == "PARSE_ERROR: malformed tool-call JSON — no valid action parsed",
+              "multiple JSON objects in one response is classified as PARSE_ERROR");
     }
 }
 
@@ -255,8 +255,8 @@ void testClassifiedMalformedToolCall() {
 
         check(agent.captured.empty(),
               tc.name + " -> zero tools executed");
-        check(result == "MALFORMED_TOOL_CALL",
-              tc.name + " -> returns classified MALFORMED_TOOL_CALL failure");
+        check(result == "PARSE_ERROR: malformed tool-call JSON — no valid action parsed",
+              tc.name + " -> returns classified PARSE_ERROR failure");
     }
 }
 

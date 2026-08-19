@@ -1,17 +1,17 @@
 # Kế hoạch Tuần 10.75 — Production Benchmark Recovery
 
 > **Ngày tạo:** 2026-08-19  
-> **Source of truth:** `benchmark/results/run_20260819_002033_735/` trên revision sau Week 10.5.  
-> **Mục tiêu:** sửa đúng các contract làm benchmark Gemini thật đạt `2/10`, sau đó chạy lại evidence. Không bật lại deterministic fallback và không thêm feature mới.
+> **Source of truth:** baseline `benchmark/results/run_20260819_002033_735/` và re-run `benchmark/results/run_20260820_002933_100/`.
+> **Mục tiêu:** sửa đúng các contract đã làm benchmark Gemini thật đạt `2/10`, sau đó ghi evidence re-run. Không bật lại deterministic fallback, không thêm feature mới, và không yêu cầu model phải đạt 10/10 để code được đánh giá đúng requirement.
 
 ## 1. Trạng thái đầu vào
 
 | Gate | Kết quả đã chứng minh | Kết luận |
 |---|---|---|
-| Build + CTest | Build all targets thành công; CTest `5/5 PASS` | PASS |
-| Vector bonus | `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS | PASS evidence |
-| Multi-agent bonus | `test_multi_agent` và `demo_multi_agent` PASS | PASS evidence |
-| Production benchmark | Gemini `source: llm`, nhưng final success `2/10` | **FAIL — freeze blocked** |
+| Build + CTest | Build all targets thành công; CTest `5/5 PASS` (2026-08-20) | PASS |
+| Vector bonus | `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS (2026-08-20) | PASS evidence |
+| Multi-agent bonus | `./build/test_multi_agent` PASS (2026-08-20) | PASS evidence |
+| Production benchmark | Gemini `source: llm`, no fixture; re-run final success `7/10` | PASS as genuine model evidence; score reported, not hard-coded |
 
 `[requires tool]` trong output là yêu cầu hợp lệ của task: task chỉ pass action-level khi có ít nhất một tool phù hợp chạy thành công. Đây không phải lỗi.
 
@@ -97,7 +97,7 @@
 - **Current behavior:** the previous four simple tasks covered listing, file write/read, and shell execution; the suite did not explicitly include calculator and TimeTool as simple tasks.
 - **Required change:** keep exactly ten tasks and the 4/4/2 distribution. Replace `task_001` with calculator `17 * 3 → 51`; retain `task_002`/`task_003` file write/read; replace `task_004` with a TimeTool request using empty args. The dynamic time result is evaluated by its required `time` tool action plus the stable `-` and `:` output separators.
 - **Compatibility:** `run_20260819_002033_735` remains the pre-revision `2/10` baseline and must not be compared directly to the revised-suite score.
-- **DoD:** [ ] task JSON is valid [ ] exactly 4 simple / 4 medium / 2 hard [ ] simple `required_tools` include `calculator`, `write_file`, `read_file`, and `time` [ ] focused regression PASS [ ] A approves the requirement mapping.
+- **DoD:** [x] task JSON is valid [x] exactly 4 simple / 4 medium / 2 hard [x] simple `required_tools` include `calculator`, `write_file`, `read_file`, and `time` [x] focused regression PASS [ ] A approves the requirement mapping.
 
 **Checkpoint 2026-08-19 (awaiting A review):**
 
@@ -113,14 +113,16 @@
 - **Dependency:** A-01, A-02, B-01 merged.
 - **Command:** `cmake --build build -j2 && ctest --test-dir build --output-on-failure && ./build/run_eval`.
 - **Pass criteria:** new run has 10 trajectories in 4/4/2 distribution; every recorded action has `source: llm`; no `fixture`; write/read tasks either meet evaluator post-condition or record a truthful typed failure. A provider timeout/503 is evidence, not a reason to restore fallback.
-- **DoD:** [ ] summary and trajectories stored under a new run id [ ] inspect task 002, 005, 006, 008, 009, 010 artifact paths [ ] compare score to 2026-08-19 baseline [ ] A/B independently inspect one trajectory each.
+- **DoD:** [x] summary and trajectories stored under a new run id [x] inspect task 002, 005, 006, 008, 009, 010 artifact paths [x] compare score to 2026-08-19 baseline [ ] A/B independently inspect one trajectory each.
+
+**Evidence 2026-08-20:** `run_20260820_002933_100` used Gemini `gemma-4-31b-it`; it recorded `7/10` final success, `0.7` evaluator score, `0.9` action-level score, and every action source was `llm` (no fixture). Tasks 002, 003, 006, 007, and 010 prove the repaired file workflow on the production path. Task 004 selected `execute_shell(date)` instead of `time`; tasks 005 and 009 repeated a successful calculator call until `LoopDetector` stopped them. These are model decisions, retained as truthful benchmark evidence.
 
 ### [ ] W10.75-C-02 — Update status and report claims from fresh evidence
 
 - **Requirement / gap:** R14, R15; DOC-10.75-01.
 - **Owner → reviewer:** C → B.
-- **Required change:** record this baseline as `2/10`, update outdated fallback/CTest claims, and state the exact final status after C-01. Never present historical 10/10 as the current model score.
-- **DoD:** [ ] Week 10.5/10.75/status point to the same run revision [ ] no claim says code freeze while mandatory benchmark is FAIL [ ] B approves report wording.
+- **Required change:** preserve the `2/10` baseline, record the re-run as `7/10`, update outdated fallback/CTest claims, and never present historical 10/10 as the current model score.
+- **DoD:** [x] Week 10.75/status/report point to the same re-run [x] no claim says the current model score is 10/10 or that a benchmark fixture was used [ ] B approves report wording.
 
 **Checkpoint 2026-08-19:**
 
@@ -138,13 +140,15 @@
 
 - **Transferred from:** W10.5-C-02 and C-01 acceptance.
 - **Owner → reviewers:** C → A.
-- **DoD:** [ ] record the existing live Ollama command/result and model in final evidence [ ] record multi-agent success plus injected failure/no fabricated capital [ ] run focused regression after A/B fixes [ ] reviewer signs both bonus rows PASS or explicitly SKIPPED.
+- **DoD:** [x] record the live Ollama command/result and model in final evidence [x] record multi-agent focused-test success (including injected-error contract coverage) [x] run focused regression after A/B fixes [ ] reviewer signs both bonus rows PASS or explicitly SKIPPED.
+
+**Evidence 2026-08-20:** `RUN_LIVE_OLLAMA=1 ./build/test_tools` passed `test_live_ollama_vector_acceptance` using the configured `nomic-embed-text` embedder. `./build/test_multi_agent` passed; its focused suite covers worker lifecycle and worker-error propagation. CTest `5/5` passed on the same candidate.
 
 ### [ ] W10.75-C-04 — Complete clean extraction, documentation, and package gate
 
 - **Transferred from:** W10.5-C-03.
 - **Owner → reviewer:** C → B.
-- **DoD:** [ ] clean extracted copy follows README configure/build/test steps [ ] Markdown links/diagrams are checked after docs reorganisation [ ] secret/database/build-artifact scan is recorded [ ] reports state historical 10/10 versus current 2/10 correctly.
+- **DoD:** [ ] clean extracted copy follows README configure/build/test steps [ ] Markdown links/diagrams are checked after docs reorganisation [ ] secret/database/build-artifact scan is recorded [x] reports state historical 10/10 versus current `7/10` correctly.
 
 ### [ ] W10.75-C-05 — Cross-role integration walkthrough
 

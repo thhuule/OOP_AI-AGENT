@@ -238,6 +238,7 @@ Start local Ollama and install `nomic-embed-text`. This affects Vector Search on
 - [Tools architecture report](docs/reports/report_tools.md)
 - [OOP design report](docs/reports/report_oop_design.md)
 - [Evaluation report](docs/reports/report_evaluation.md)
+- [Week 10.75 verification evidence](docs/evidence/week10_75_verification_2026-08-20.md)
 - [Batch evaluation sequence diagram](docs/diagrams/sequence_harness.md)
 - [Week 12 submission checklist](docs/guides/submission_checklist.md)
 - [Demo video storyboard](docs/guides/video_storyboard.md)
