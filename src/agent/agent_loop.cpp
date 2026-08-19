@@ -587,7 +587,17 @@ AgentLoop::think_and_act(int /*step*/) {
                                   std::string(sv.substr(op+1, cp-op-1))};
     }
 
-    // ── 5. Final Answer ───────────────────────────────────────────────────
+    // ── 5. Classify malformed tool-call protocol ───────────────────────────
+    // If the response appears to be a tool-call attempt but all parsers failed,
+    // classify as MALFORMED_TOOL_CALL instead of returning raw JSON as a final answer.
+    if (is_apparent_tool_call(text)) {
+        const std::string reason = "MALFORMED_TOOL_CALL";
+        observe("PARSER_ERROR: " + reason);
+        abort_ = true;
+        return FinalAnswerAction{reason};
+    }
+
+    // ── 6. Final Answer ───────────────────────────────────────────────────
     auto fap = text.find("Final Answer:");
     if (fap != std::string::npos) {
         std::string answer = text.substr(fap + 13);
