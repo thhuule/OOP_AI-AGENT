@@ -385,6 +385,7 @@ bool looks_like_tool_call_attempt(const std::string& text) {
     // prose containing a stray '{' is not misclassified.
     if (text.find('{') != std::string::npos) {
         return text.find("\"tool\"")         != std::string::npos ||
+               text.find("\"args\"")         != std::string::npos ||
                text.find("\"functionCall\"") != std::string::npos ||
                text.find("\"name\"")         != std::string::npos;
     }
@@ -588,14 +589,11 @@ AgentLoop::think_and_act(int /*step*/) {
     }
 
     // ── 5. Classify malformed tool-call protocol ───────────────────────────
-    // If the response appears to be a tool-call attempt but all parsers failed,
-    // classify as MALFORMED_TOOL_CALL instead of returning raw JSON as a final answer.
-    if (is_apparent_tool_call(text)) {
-        const std::string reason = "MALFORMED_TOOL_CALL";
-        observe("PARSER_ERROR: " + reason);
-        abort_ = true;
-        return FinalAnswerAction{reason};
-    }
+    // All supported parsers have failed. A response that still looks like a
+    // tool call is an observable parser failure, never a normal final answer.
+    if (looks_like_tool_call_attempt(text))
+        return FinalAnswerAction{
+            "PARSE_ERROR: malformed tool-call JSON — no valid action parsed"};
 
     // ── 6. Final Answer ───────────────────────────────────────────────────
     auto fap = text.find("Final Answer:");
@@ -610,15 +608,6 @@ AgentLoop::think_and_act(int /*step*/) {
         return FinalAnswerAction{answer};
     }
 
-    // ── 6. Fallthrough ──────────────────────────────────────────────────────
-    // A response that attempted a tool call but failed every parser is a
-    // CLASSIFIED parse failure: report it with a stable "PARSE_ERROR:" prefix
-    // so the evaluator can bucket it, instead of echoing the raw text as a
-    // (successful-looking) final answer. Genuine free-form text that matches
-    // no tool-call signature is still returned as the final answer.
-    if (looks_like_tool_call_attempt(text))
-        return FinalAnswerAction{
-            "PARSE_ERROR: malformed tool-call JSON — no valid action parsed"};
     return FinalAnswerAction{text};
 }
 

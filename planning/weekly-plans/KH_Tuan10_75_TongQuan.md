@@ -1,6 +1,6 @@
 # Kế hoạch Tuần 10.75 — Tổng quan
 
-> **Mục tiêu:** khôi phục production benchmark sau run Gemini thật `2/10`, rồi quyết định freeze dựa trên evidence mới. Không thêm feature và không bật lại deterministic fallback.
+> **Mục tiêu:** khôi phục production benchmark sau baseline Gemini thật `2/10`, ghi nhận evidence re-run trung thực, rồi quyết định freeze dựa trên các gate bắt buộc. Không thêm feature và không bật lại deterministic fallback.
 
 > **Chi tiết task/DoD:** [KH_Tuan10_75_ChiTiet.md](KH_Tuan10_75_ChiTiet.md).
 
@@ -8,22 +8,20 @@
 
 | Area | Status | Evidence |
 |---|---|---|
-| Build + CTest | PASS | CTest `5/5 PASS` on 2026-08-19 |
-| Vector | PASS evidence | `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS |
-| Multi-agent | PASS evidence | `test_multi_agent` and demo PASS |
-| Real-provider benchmark | FAIL | Gemini run `run_20260819_002033_735`: `2/10`, all actions `source: llm` |
-| Code freeze | NO | mandatory benchmark workflow is failing |
+| Build + CTest | PASS | CTest `5/5 PASS` on 2026-08-20 |
+| Vector | PASS evidence | `RUN_LIVE_OLLAMA=1 ./build/test_tools` PASS on 2026-08-20 |
+| Multi-agent | PASS evidence | `./build/test_multi_agent` PASS on 2026-08-20 |
+| Real-provider benchmark | PASS as evidence; model score recorded | Gemini run `run_20260820_002933_100`: `7/10`, all recorded actions `source: llm`, no fixture |
+| Code freeze | PENDING | benchmark is a reported model-quality measurement, not a requirement for a fixed 10/10; independent review and package gate remain |
 
 `[requires tool]` is expected: the task must call a relevant tool successfully, not only return prose.
 
 ## 2. Confirmed gaps
 
-1. Skills tell the model to call `file_read`/`file_write`, but the registry canonical names are `read_file`/`write_file`.
-2. The AgentLoop parser truncates escaped JSON arguments to `"{\\"`.
-3. File artifacts are therefore missing in task 002, 003, 005–010.
-4. Gemini timeout/503 errors are real provider failures and must remain visible; they are not a reason to restore fallback.
-5. The previous simple-task set did not explicitly cover calculator and TimeTool as required by §7.3; C-00 revises the suite while preserving 10 tasks and the 4/4/2 distribution.
-6. Review of A's parser delivery found that malformed apparent tool calls fall through as raw final answers. A-03 must classify them before any new production benchmark is accepted.
+1. The former skill/registry name mismatch, escaped-argument parser defect, and raw malformed-call fall-through are fixed and covered by focused tests.
+2. The suite now explicitly covers calculator, file write/read, and TimeTool in its four simple tasks, while preserving the required 4/4/2 distribution.
+3. Gemini timeout/503 errors and model loop behaviour remain visible; they are not a reason to restore fallback.
+4. The 2026-08-20 run still shows model-planning failures: task 004 chose `execute_shell(date)` rather than `time`; tasks 005 and 009 repeated a successful calculator call until `LoopDetector` stopped them. These are recorded benchmark outcomes, not proof of a missing tool implementation.
 
 ## 3. Role allocation
 
@@ -45,11 +43,11 @@ A: parser + skills + classified malformed-call failure ─┐
 
 Before code freeze:
 
-- [ ] `test_role_a`, `test_tools`, and CTest pass after the parser/alias fix.
-- [ ] Malformed apparent tool calls produce a stable classified failure, not a raw final answer.
-- [ ] A fresh `run_eval` has 10 trajectories with `source: llm`, never `fixture`.
-- [ ] File workflow tasks are no longer blocked by truncated args or unknown file aliases.
+- [x] `test_role_a`, `test_tools`, and CTest pass after the parser/alias fix.
+- [x] Malformed apparent tool calls produce a stable classified failure, not a raw final answer.
+- [x] A fresh `run_eval` has 10 trajectories with `source: llm`, never `fixture`.
+- [x] File workflow tasks are no longer blocked by truncated args or unknown file aliases (tasks 002, 003, 006, 007 and 010 passed in the re-run).
 - [ ] A and B independently review the production trajectories.
-- [ ] README/report/status all report the same fresh evidence.
+- [x] Report/status/plan evidence has been synchronized to `run_20260820_002933_100`.
 
-Until every item passes: **Code freeze = NO**.
+Remaining before declaring freeze: independent A/B trajectory review plus the clean-extraction/package gate. A non-10/10 live score alone does not block freeze because §7.3 requires reporting the selected model's success rate, not a perfect rate.
