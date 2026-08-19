@@ -1,6 +1,8 @@
 #include "agent/agent_loop.h"
 #include "tools/Tool.h"
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <chrono>
 #include <cctype>
@@ -13,6 +15,8 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
+
+using json = nlohmann::json;
 
 // std::inplace_vector is a C++26 library feature, but some compilers accept
 // -std=c++26 before their standard library ships the header. Check both the
@@ -227,29 +231,121 @@ std::string serializeAction(const std::string& tool_name, const std::string& arg
            "\",\"args\":\"" + esc(args) + "\"}";
 }
 
+// ── Extract a balanced {...} JSON object starting at `start` ──────────────────
+// Respects JSON string literals and backslash escapes so that braces or quotes
+// embedded inside a string value (e.g. nested escaped JSON in `args`) never
+// break the outer-object boundaries. Returns the object text, or nullopt if a
+// balanced object cannot be found.
+std::optional<std::string> extract_balanced_object(std::string_view s,
+                                                   std::size_t start) {
+    if (start >= s.size() || s[start] != '{') return std::nullopt;
+    int depth = 0;
+    bool in_string = false;
+    bool escape = false;
+    for (std::size_t i = start; i < s.size(); ++i) {
+        const char c = s[i];
+        if (in_string) {
+            if (escape)      escape = false;
+            else if (c == '\\') escape = true;
+            else if (c == '"')  in_string = false;
+        } else {
+            if (c == '"')        in_string = true;
+            else if (c == '{')   ++depth;
+            else if (c == '}') {
+                --depth;
+                if (depth == 0)
+                    return std::string(s.substr(start, i - start + 1));
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+// ── Find the first tool-call JSON object in a response ─────────────────────────
+// Supports a bare `{"tool":...,"args":...}` object and a fenced ```json ... ```
+// block. The fence is honored only when the inner content holds exactly one
+// valid tool-call object. Returns the object text, or nullopt if none.
+std::optional<std::string> find_tool_object(std::string_view text) {
+    constexpr std::string_view fence = "```json";
+    auto fo = text.find(fence);
+    if (fo != std::string_view::npos) {
+        // Restrict the search to the content between the fence markers so a
+        // second unrelated block cannot leak into the parsed object.
+        auto cf = text.find("```", fo + fence.size());
+        std::string_view body = (cf != std::string_view::npos)
+                                  ? text.substr(fo + fence.size(), cf - fo - fence.size())
+                                  : text.substr(fo + fence.size());
+        auto start = body.find('{');
+        if (start == std::string_view::npos) return std::nullopt;
+        auto obj = extract_balanced_object(body, start);
+        if (!obj) return std::nullopt;
+        // A fenced block must hold exactly ONE tool-call object; a second
+        // unrelated object rejects the whole block.
+        if (body.find('{', start + obj->size()) != std::string_view::npos)
+            return std::nullopt;
+        return obj;
+    }
+    auto start = text.find('{');
+    if (start == std::string_view::npos) return std::nullopt;
+    auto obj = extract_balanced_object(text, start);
+    if (!obj) return std::nullopt;
+    // Reject a second unrelated top-level object (multiple JSON blocks):
+    // the model must return exactly one tool call per response.
+    if (text.find('{', start + obj->size()) != std::string_view::npos)
+        return std::nullopt;
+    return obj;
+}
+
+// ── Parse the advertised tool-call contract ────────────────────────────────────
+// {"tool":"name","args":"..."} → ToolCallAction, preserving the FULL escaped
+// string value of `args` (e.g. a nested JSON payload) via a real JSON parser.
+// Invalid or missing fields fall through to nullopt so the caller never emits a
+// partial/truncated tool call.
+std::optional<ToolCallAction> parse_json_tool_call(const std::string& text) {
+    auto obj = find_tool_object(text);
+    if (!obj) return std::nullopt;
+    try {
+        const auto j = json::parse(*obj);
+        if (!j.is_object()) return std::nullopt;
+        if (!j.contains("tool") || !j.contains("args")) return std::nullopt;
+        if (!j["tool"].is_string() || !j["args"].is_string()) return std::nullopt;
+        const std::string tool = j["tool"].get<std::string>();
+        const std::string args = j["args"].get<std::string>();
+        if (tool.empty()) return std::nullopt;
+        return ToolCallAction{tool, args};
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 // ── Normalize Gemini/OpenAI-style functionCall JSON ───────────────────────────
 // {"functionCall":{"name":"...","args":"..."}}  →  ToolCallAction
+// Uses a balanced-object scan + JSON parse so escaped args strings survive.
 std::optional<ToolCallAction> parse_function_call(const std::string& text) {
     const auto pos = text.find("functionCall");
     if (pos == std::string::npos) return std::nullopt;
 
-    const auto np = text.find("\"name\"", pos);
-    if (np == std::string::npos) return std::nullopt;
-    const auto ns = text.find('"', np + 6);
-    const auto ne = text.find('"', ns + 1);
-    if (ns == std::string::npos || ne == std::string::npos) return std::nullopt;
-    const std::string name = text.substr(ns + 1, ne - ns - 1);
+    auto bo = text.find('{', pos);
+    if (bo == std::string::npos) return std::nullopt;
+    auto obj = extract_balanced_object(text, bo);
+    if (!obj) return std::nullopt;
 
-    std::string args;
-    const auto ap = text.find("\"args\"", pos);
-    if (ap != std::string::npos) {
-        const auto as = text.find('"', ap + 6);
-        const auto ae = text.find('"', as + 1);
-        if (as != std::string::npos && ae != std::string::npos)
-            args = text.substr(as + 1, ae - as - 1);
+    try {
+        const auto j = json::parse(*obj);
+        if (!j.contains("name") || !j["name"].is_string()) return std::nullopt;
+        const std::string name = j["name"].get<std::string>();
+        std::string args;
+        if (j.contains("args")) {
+            if (j["args"].is_string())      args = j["args"].get<std::string>();
+            else if (j["args"].is_object()) args = j["args"].dump();
+            else if (j["args"].is_null())   args = "";
+            else                            args = j["args"].dump();
+        }
+        if (name.empty()) return std::nullopt;
+        return ToolCallAction{name, args};
+    } catch (...) {
+        return std::nullopt;
     }
-    if (name.empty()) return std::nullopt;
-    return ToolCallAction{name, args};
 }
 
 // ── Normalize provider-prefixed call: call:<provider>:<tool>{<args>} ──────────
@@ -443,25 +539,11 @@ AgentLoop::think_and_act(int /*step*/) {
     last_thought_ = text;
 
     // ── 3. Parse JSON: {"tool":"name","args":"..."} ───────────────────────
-    try {
-        auto fi = text.find('{');
-        auto la = text.rfind('}');
-        if (fi != std::string::npos && la != std::string::npos && la > fi) {
-            const std::string obj = text.substr(fi, la - fi + 1);
-            auto tp = obj.find("\"tool\"");
-            auto ap = obj.find("\"args\"");
-            if (tp != std::string::npos && ap != std::string::npos) {
-                auto ts_ = obj.find('"', tp + 6);
-                auto te_ = obj.find('"', ts_ + 1);
-                auto as_ = obj.find('"', ap + 6);
-                auto ae_ = obj.find('"', as_ + 1);
-                if (ts_ != std::string::npos && te_ != std::string::npos &&
-                    as_ != std::string::npos && ae_ != std::string::npos)
-                    return ToolCallAction{obj.substr(ts_+1, te_-ts_-1),
-                                          obj.substr(as_+1, ae_-as_-1)};
-            }
-        }
-    } catch (...) {}
+    // Replaces the previous manual quote-search that truncated escaped JSON
+    // arguments (e.g. nested '{"path":"..."}' became '"{\\"'). A real JSON
+    // parse preserves the complete `args` string value. Invalid JSON falls
+    // through to the next parser rather than emitting a partial tool call.
+    if (auto tc = parse_json_tool_call(text)) return *tc;
 
     // ── 3b. Gemini/OpenAI functionCall normalization ─────────────────────
     if (auto fc = parse_function_call(text)) return *fc;

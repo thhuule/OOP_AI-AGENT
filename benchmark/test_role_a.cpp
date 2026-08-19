@@ -166,6 +166,65 @@ void testParserVariants() {
     }
 }
 
+// ── 3b. testEscapedJsonArgsParse (W10.75-A-01) ───────────────────────────────
+void testEscapedJsonArgsParse() {
+    std::cout << "[TEST] testEscapedJsonArgsParse\n";
+
+    // Model returns a tool call whose `args` is itself an escaped JSON string
+    // (nested payload). The previous naive quote-search truncated this to
+    // `"{\\"`. A real JSON parse must preserve the COMPLETE args value.
+    const std::string escaped =
+        R"({"tool":"write_file","args":"{\"filename\":\"notes.txt\",\"content\":\"Agent test run\"}"})";
+    {
+        auto client = std::make_shared<MockLLMClient>(escaped);
+        CaptureAgent agent(client);
+        agent.run(kNoFallback, 1);
+        check(agent.captured.size() == 1 &&
+              agent.captured[0].tool_name == "write_file",
+              "escaped nested JSON tool call -> write_file");
+        check(agent.captured[0].args ==
+                  R"({"filename":"notes.txt","content":"Agent test run"})",
+              "escaped args string survives parse intact (no truncation to '{\\\"')");
+    }
+
+    // Fenced JSON with a nested escaped payload must also resolve correctly.
+    const std::string fenced =
+        "```json\n" +
+        std::string(R"({"tool":"read_file","args":"{\"filename\":\"notes.txt\"}"})") +
+        "\n```";
+    {
+        auto client = std::make_shared<MockLLMClient>(fenced);
+        CaptureAgent agent(client);
+        agent.run(kNoFallback, 1);
+        check(agent.captured.size() == 1 &&
+              agent.captured[0].tool_name == "read_file" &&
+              agent.captured[0].args == R"({"filename":"notes.txt"})",
+              "fenced escaped JSON object parsed with full args");
+    }
+
+    // Truncated / malformed JSON must NOT invoke a (partial) tool call.
+    {
+        const std::string bad = R"({"tool":"write_file","args":"{\")";
+        auto client = std::make_shared<MockLLMClient>(bad);
+        CaptureAgent agent(client);
+        std::string result = agent.run(kNoFallback, 1);
+        check(agent.captured.empty(),
+              "malformed/truncated JSON does not invoke a tool");
+        check(result == bad,
+              "malformed JSON is returned verbatim as a final answer, not executed");
+    }
+
+    // Multiple unrelated JSON objects must not be merged into one tool call.
+    {
+        auto client = std::make_shared<MockLLMClient>(
+            R"({"tool":"calculator","args":"1+1"}{"tool":"read_file","args":"x"})");
+        CaptureAgent agent(client);
+        std::string result = agent.run(kNoFallback, 1);
+        check(agent.captured.empty(),
+              "multiple unrelated JSON blocks do not yield a tool call");
+    }
+}
+
 // ── 4. testMalformedToolIntentNotFinalAnswer ──────────────────────────────────
 void testMalformedToolIntentNotFinalAnswer() {
     std::cout << "[TEST] testMalformedToolIntentNotFinalAnswer\n";
@@ -669,6 +728,7 @@ int main() {
     testClientErrorContract();          std::cout << "\n";
     testMultimodalInterface();          std::cout << "\n";
     testParserVariants();               std::cout << "\n";
+    testEscapedJsonArgsParse();         std::cout << "\n";
     testMalformedToolIntentNotFinalAnswer(); std::cout << "\n";
     testMaxStepsAndHistoryGrowth();     std::cout << "\n";
     testSkillInjectionBeforeEachRun();  std::cout << "\n";
