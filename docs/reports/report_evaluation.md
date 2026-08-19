@@ -176,10 +176,12 @@ These runs are historical evidence only. They do **not** prove that the current 
 
 The run exposed two blocking integration defects:
 
-- active skills instruct `file_read`/`file_write`, while the registry canonical names are `read_file`/`write_file`;
-- the manual AgentLoop parser truncates escaped JSON arguments to `"{\\"`.
+- active skills instructed `file_read`/`file_write`, while the registry canonical names are `read_file`/`write_file`;
+- the manual AgentLoop parser truncated escaped JSON arguments to `"{\\"`.
 
-As a result, file artifacts are missing for tasks 002, 003, and 005–010. Gemini timeout/503 responses were also recorded as failures. The recovery work is tracked in `planning/weekly-plans/KH_Tuan10_75_ChiTiet.md`; until it passes, the project must not claim a current 10/10 benchmark result or code freeze.
+As a result, file artifacts were missing for tasks 002, 003, and 005–010. Gemini timeout/503 responses were also recorded as failures.
+
+Both defects are now **resolved** (verified 2026-08-19): the skills were realigned to the canonical `read_file`/`write_file`/`append_file` protocol (W10.75-A-02, B's independent review closed), and the AgentLoop parser was replaced with a balanced-object scan + `nlohmann::json` parse that preserves escaped `args` and rejects partial/truncated tool calls (W10.75-A-01). The recovery work is tracked in `planning/weekly-plans/KH_Tuan10_75_ChiTiet.md`; the project must still not claim a current 10/10 benchmark result or code freeze until the re-verified run is recorded.
 
 ## 8. Multi-Agent Support
 

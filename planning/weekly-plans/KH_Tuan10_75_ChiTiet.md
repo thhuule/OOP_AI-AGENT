@@ -56,6 +56,11 @@
 - [x] `parse_function_call` also uses the balanced scan + JSON parse so escaped args survive.
 - [x] `skills/task_planner.md`, `skills/step_verifier.md`, `skills/error_recovery.md` now use canonical `read_file`/`write_file`/`append_file` with one exact JSON tool-call example per response.
 - [x] `test_role_a` adds `testEscapedJsonArgsParse`; all 5 CTest targets PASS after the fix.
+- [x] **B independent review (2026-08-19):** verified every skill tool-call example against the real `FileTool` input contract (`src/tools/FileTool.{h,cpp}`):
+  - `read_file` — `path` or `{"filename":...}`/`{"path":...}`/`{"file":...}` → matches `task_planner.md` (`result.txt`, `data/config.json`) and `error_recovery.md`.
+  - `write_file` — `filename,content` or `{"filename":...,"content":...}` → matches `task_planner.md` (`result.txt,1200`, nested `notes.txt` example), `step_verifier.md` (`output.txt,hello`), `error_recovery.md` (`data/config.json,{}`).
+  - `append_file` — `filename,content` → matches `task_planner.md`.
+  - No legacy `file_read`/`file_write` remains in any skill (only canonical `read_file`/`write_file`/`append_file`). Examples use one JSON call per response. **Conclusion: skill examples match the FileTool contract — A-02 review gate closed.**
 - [ ] A/B/C sign-off on trajectory evidence pending review (dependent on B-01 merge).
 
 ### [x] W10.75-A-03 — Classify malformed tool-call responses instead of accepting them as final answers
