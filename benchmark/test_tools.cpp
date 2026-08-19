@@ -176,6 +176,8 @@ void test_register_all_tools() {
     assert(reg.lookup("exec") != nullptr);
     assert(reg.lookup("google_search") != nullptr);
     assert(reg.lookup("create_file") != nullptr);
+    assert(reg.lookup("file_read") != nullptr);
+    assert(reg.lookup("file_write") != nullptr);
     assert(reg.lookup("screenshot") != nullptr);
     
     // Verify tool execution returns valid result
@@ -259,6 +261,8 @@ void test_canonical_names_and_descriptions() {
     assert(reg.lookup("exec")->get_name() == "execute_shell");
     assert(reg.lookup("google_search")->get_name() == "web_search");
     assert(reg.lookup("create_file")->get_name() == "write_file");
+    assert(reg.lookup("file_read")->get_name() == "read_file");
+    assert(reg.lookup("file_write")->get_name() == "write_file");
     assert(reg.lookup("screenshot")->get_name() == "capture_screenshot");
 
     std::cout << "  -> PASSED\n";
@@ -314,6 +318,78 @@ void test_file_args_formats() {
     std::filesystem::remove("notes.txt");
     std::filesystem::remove("capital.txt");
     std::filesystem::remove("data.txt");
+    std::cout << "  -> PASSED\n";
+}
+
+/// W10.75-B-01: Legacy file-tool aliases (file_read, file_write) & end-to-end artifact workflow
+void test_file_legacy_aliases_and_artifact_e2e() {
+    std::cout << "[TEST] Running test_file_legacy_aliases_and_artifact_e2e...\n";
+    ToolRegistry reg;
+    reg.register_all_tools();
+
+    // 1. Alias lookup & creation
+    Tool* read_tool_alias = reg.lookup("file_read");
+    Tool* write_tool_alias = reg.lookup("file_write");
+    assert(read_tool_alias != nullptr);
+    assert(write_tool_alias != nullptr);
+    assert(read_tool_alias->get_name() == "read_file");
+    assert(write_tool_alias->get_name() == "write_file");
+
+    auto created_read = reg.create("file_read");
+    auto created_write = reg.create("file_write");
+    assert(created_read != nullptr);
+    assert(created_write != nullptr);
+    assert(created_read->get_name() == "read_file");
+    assert(created_write->get_name() == "write_file");
+
+    // 2. End-to-end artifact creation via file_write alias with JSON args
+    const std::string artifact_path = "artifacts/test_artifact_b01.txt";
+    std::filesystem::create_directories("artifacts");
+
+    auto write_res = write_tool_alias->execute(R"({"filename":"artifacts/test_artifact_b01.txt","content":"Header content\n"})");
+    assert(write_res.has_value());
+    assert(write_res.value().find("wrote") != std::string::npos || write_res.value().find("OK") != std::string::npos);
+
+    // 3. Read back exact content via file_read alias with JSON args
+    auto read_res = read_tool_alias->execute(R"({"path":"artifacts/test_artifact_b01.txt"})");
+    assert(read_res.has_value());
+    assert(read_res.value() == "Header content\n");
+
+    // 4. Append content via append_file tool
+    Tool* append_tool = reg.lookup("append_file");
+    assert(append_tool != nullptr);
+    auto append_res = append_tool->execute(R"({"filename":"artifacts/test_artifact_b01.txt","content":"Appended line\n"})");
+    assert(append_res.has_value());
+
+    // 5. Read back and verify both previous and new content exist
+    auto read_after_append = read_tool_alias->execute("artifacts/test_artifact_b01.txt");
+    assert(read_after_append.has_value());
+    assert(read_after_append.value() == "Header content\nAppended line\n");
+
+    // 6. Failure cases matrix for file tools -> ToolError, no exceptions thrown
+    // - Unknown legacy name: reg.lookup returns nullptr
+    assert(reg.lookup("unknown_file_alias") == nullptr);
+    assert(reg.create("unknown_file_alias") == nullptr);
+
+    // - Invalid/missing path for read:
+    auto bad_read_path = read_tool_alias->execute("non_existent_file_xyz_123.txt");
+    assert(!bad_read_path.has_value());
+    assert(bad_read_path.error() == ToolError::NotFound);
+
+    // - Missing content for write:
+    auto bad_write_nocontent = write_tool_alias->execute(R"({"filename":"artifacts/test_artifact_b01.txt"})");
+    assert(!bad_write_nocontent.has_value());
+    assert(bad_write_nocontent.error() == ToolError::InvalidArgument);
+
+    // - Malformed JSON-style argument:
+    auto malformed_json_write = write_tool_alias->execute(R"({"filename":"artifacts/test_artifact_b01.txt", "content":)");
+    assert(!malformed_json_write.has_value());
+    assert(malformed_json_write.error() == ToolError::InvalidArgument);
+
+    // Cleanup temp artifact
+    std::filesystem::remove(artifact_path);
+    assert(!std::filesystem::exists(artifact_path));
+
     std::cout << "  -> PASSED\n";
 }
 
@@ -478,31 +554,43 @@ void test_websearch_offline_fixture() {
 
     FakeWebSearchTool tool;
 
-    // Network failure / timeout -> ExecutionFailed, không throw.
+    // 1. Timeout / network error -> ExecutionFailed, không throw.
     tool.response = std::unexpected(ToolError::ExecutionFailed);
     auto net = tool.execute("C++ programming");
     assert(!net.has_value());
     assert(net.error() == ToolError::ExecutionFailed);
 
-    // HTTP error body (JSON không có AbstractText/Answer/RelatedTopics).
+    // 2. HTTP status failure (500/503/404) -> ExecutionFailed
+    tool.response = std::unexpected(ToolError::ExecutionFailed);
+    auto http_status_err = tool.execute("weather");
+    assert(!http_status_err.has_value());
+    assert(http_status_err.error() == ToolError::ExecutionFailed);
+
+    // 3. Malformed JSON response body -> ExecutionFailed
+    tool.response = R"({"AbstractText": "truncated...)";
+    auto malformed_body = tool.execute("C++");
+    assert(!malformed_body.has_value());
+    assert(malformed_body.error() == ToolError::ExecutionFailed);
+
+    // 4. HTTP response body with error JSON (no AbstractText/Answer/RelatedTopics) -> NotFound
     tool.response = R"({"error": "internal server error"})";
     auto http_err = tool.execute("C++");
     assert(!http_err.has_value());
     assert(http_err.error() == ToolError::NotFound);
 
-    // JSON hợp lệ: AbstractText -> trả về nội dung.
+    // 5. JSON hợp lệ: AbstractText -> trả về nội dung.
     tool.response = R"({"AbstractText": "C++ is a compiled language."})";
     auto ok = tool.execute("C++");
     assert(ok.has_value());
     assert(ok.value().find("compiled") != std::string::npos);
 
-    // JSON hợp lệ: chỉ có Answer -> trả về Answer.
+    // 6. JSON hợp lệ: chỉ có Answer -> trả về Answer.
     tool.response = R"({"Answer": "42"})";
     auto answer = tool.execute("life");
     assert(answer.has_value());
     assert(answer.value().find("42") != std::string::npos);
 
-    // Args rỗng -> InvalidArgument.
+    // 7. Args rỗng -> InvalidArgument.
     auto empty = tool.execute("");
     assert(!empty.has_value());
     assert(empty.error() == ToolError::InvalidArgument);
@@ -803,6 +891,7 @@ int main() {
     test_tool_error_paths();
     test_canonical_names_and_descriptions();
     test_file_args_formats();
+    test_file_legacy_aliases_and_artifact_e2e();
     test_calculator_args_trim();
     test_memory_modes();
     test_memory_lifecycle();
