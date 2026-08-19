@@ -370,21 +370,23 @@ std::optional<ToolCallAction> parse_provider_call(const std::string& text) {
     return ToolCallAction{tool, args};
 }
 
-// ── Detect apparent tool-call protocol attempts ────────────────────────────────
-bool is_apparent_tool_call(std::string_view text) {
-    if (text.find("```json") != std::string_view::npos ||
-        text.find("```JSON") != std::string_view::npos) return true;
-    if (text.find("functionCall") != std::string_view::npos) return true;
-    if (text.find("call:") != std::string_view::npos) return true;
-    if (text.find("ACTION:") != std::string_view::npos) return true;
-    if (text.find('{') != std::string_view::npos) {
-        if (text.find("\"tool\"") != std::string_view::npos ||
-            text.find("'tool'") != std::string_view::npos ||
-            text.find("\"args\"") != std::string_view::npos ||
-            text.find("'args'") != std::string_view::npos ||
-            text.find("\"name\"") != std::string_view::npos) {
-            return true;
-        }
+// ── Detect a tool-call intent that failed to parse ─────────────────────────────
+// A response that clearly attempted a tool call (JSON-shaped with a tool-call
+// contract, or a legacy ACTION:/call: marker) but produced no valid action via
+// any parser is a CLASSIFIED parse failure. Genuine free-form text that matches
+// no tool-call signature is NOT flagged here and is returned as a final answer.
+bool looks_like_tool_call_attempt(const std::string& text) {
+    // Explicit non-JSON tool-call syntaxes.
+    if (text.find("ACTION:") != std::string::npos ||
+        text.find("call:")   != std::string::npos)
+        return true;
+
+    // JSON-shaped: only flag when a real contract key is present so ordinary
+    // prose containing a stray '{' is not misclassified.
+    if (text.find('{') != std::string::npos) {
+        return text.find("\"tool\"")         != std::string::npos ||
+               text.find("\"functionCall\"") != std::string::npos ||
+               text.find("\"name\"")         != std::string::npos;
     }
     return false;
 }
@@ -608,6 +610,15 @@ AgentLoop::think_and_act(int /*step*/) {
         return FinalAnswerAction{answer};
     }
 
+    // ── 6. Fallthrough ──────────────────────────────────────────────────────
+    // A response that attempted a tool call but failed every parser is a
+    // CLASSIFIED parse failure: report it with a stable "PARSE_ERROR:" prefix
+    // so the evaluator can bucket it, instead of echoing the raw text as a
+    // (successful-looking) final answer. Genuine free-form text that matches
+    // no tool-call signature is still returned as the final answer.
+    if (looks_like_tool_call_attempt(text))
+        return FinalAnswerAction{
+            "PARSE_ERROR: malformed tool-call JSON — no valid action parsed"};
     return FinalAnswerAction{text};
 }
 

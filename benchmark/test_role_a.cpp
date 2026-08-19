@@ -202,7 +202,8 @@ void testEscapedJsonArgsParse() {
               "fenced escaped JSON object parsed with full args");
     }
 
-    // Truncated / malformed JSON must NOT invoke a (partial) tool call.
+    // Truncated / malformed JSON must NOT invoke a (partial) tool call, and must
+    // be reported as a CLASSIFIED parse failure rather than echoed verbatim.
     {
         const std::string bad = R"({"tool":"write_file","args":"{\")";
         auto client = std::make_shared<MockLLMClient>(bad);
@@ -210,8 +211,10 @@ void testEscapedJsonArgsParse() {
         std::string result = agent.run(kNoFallback, 1);
         check(agent.captured.empty(),
               "malformed/truncated JSON does not invoke a tool");
-        check(result == "MALFORMED_TOOL_CALL",
-              "malformed JSON produces classified MALFORMED_TOOL_CALL failure, not final answer");
+        check(result.find("PARSE_ERROR:") == 0,
+              "malformed JSON returns a classified PARSE_ERROR failure, not raw text");
+        check(result != bad,
+              "malformed JSON is not returned verbatim as a final answer");
     }
 
     // Multiple unrelated JSON objects must not be merged into one tool call.
