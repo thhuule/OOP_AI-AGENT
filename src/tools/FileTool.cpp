@@ -60,6 +60,14 @@ std::optional<FileArguments> parseWriteArguments(const std::string& arguments,
     FileArguments parsed;
     parsed.append = force_append;
 
+    // Detect JSON intent: if the trimmed input starts with '{', treat the
+    // entire input as JSON.  A parse failure here must NOT fall through to
+    // the text/comma parser — return nullopt so the caller surfaces
+    // ToolError::InvalidArgument, matching the contract expected by tests.
+    const auto first_non_ws = arguments.find_first_not_of(" \t\r\n");
+    const bool looks_like_json =
+        (first_non_ws != std::string::npos && arguments[first_non_ws] == '{');
+
     try {
         const auto json = nlohmann::json::parse(arguments);
         if (json.is_object()) {
@@ -83,8 +91,13 @@ std::optional<FileArguments> parseWriteArguments(const std::string& arguments,
             return parsed;
         }
     } catch (const nlohmann::json::exception&) {
+        // If the input looked like JSON but failed to parse → invalid JSON
+        // argument; do not fall through to the text/comma parser.
+        if (looks_like_json)
+            return std::nullopt;
     }
 
+    // Only reach here for non-JSON inputs (plain text / comma protocol).
     // Canonical text protocol: split only at the first comma so content may
     // contain spaces and additional commas without changing the filename.
     const auto comma = arguments.find(',');
