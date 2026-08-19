@@ -14,7 +14,7 @@ When a step fails, do not give up immediately. Try to recover before reporting f
 |---|---|
 | Tool returned empty output | Retry with simpler/shorter input |
 | Tool returned error message | Switch to a different tool that can do the same job |
-| File not found | Use `file_write` to create it first, then retry |
+| File not found | Use `write_file` to create it first, then retry |
 | Calculation wrong | Re-check the input values, retry with corrected input |
 | Web search no results | Simplify the search query, retry |
 
@@ -35,9 +35,9 @@ Recovery:
 - Attempt 1: simplify query → `web_search("Vietnam GDP 2024")` → got result ✓
 - Proceed to next step
 
-Step: `file_read("data/config.json")` → "file not found"
+Step: `{"tool":"read_file","args":"data/config.json"}` → "file not found"
 
 Recovery:
-- Attempt 1: `file_write("data/config.json", "{}")` → created ✓
-- Retry original step: `file_read("data/config.json")` → "{}" ✓
+- Attempt 1: `{"tool":"write_file","args":"data/config.json,{}"}` → created ✓
+- Retry original step: `{"tool":"read_file","args":"data/config.json"}` → "{}" ✓
 - Proceed to next step

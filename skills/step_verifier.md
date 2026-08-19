@@ -15,10 +15,12 @@ You must verify the result of every tool call before moving to the next step.
 4. All checks pass? → PASSED, proceed to next step
 
 ## Example
-Step: dùng `file_write` để ghi "hello" vào output.txt
+Step: dùng `write_file` để ghi "hello" vào output.txt
+
+Response: `{"tool":"write_file","args":"output.txt,hello"}`
 
 After tool call:
-- Output: "written 5 bytes to output.txt"
+- Output: "OK: wrote output.txt"
 - Check 1: non-empty ✓
 - Check 2: no error ✓
 - Check 3: matches expected ✓
