@@ -210,8 +210,8 @@ void testEscapedJsonArgsParse() {
         std::string result = agent.run(kNoFallback, 1);
         check(agent.captured.empty(),
               "malformed/truncated JSON does not invoke a tool");
-        check(result == bad,
-              "malformed JSON is returned verbatim as a final answer, not executed");
+        check(result == "MALFORMED_TOOL_CALL",
+              "malformed JSON produces classified MALFORMED_TOOL_CALL failure, not final answer");
     }
 
     // Multiple unrelated JSON objects must not be merged into one tool call.
@@ -222,6 +222,38 @@ void testEscapedJsonArgsParse() {
         std::string result = agent.run(kNoFallback, 1);
         check(agent.captured.empty(),
               "multiple unrelated JSON blocks do not yield a tool call");
+        check(result == "MALFORMED_TOOL_CALL",
+              "multiple JSON objects in one response is classified as MALFORMED_TOOL_CALL");
+    }
+}
+
+// ── 3c. testClassifiedMalformedToolCall (W10.75-A-03) ─────────────────────────
+void testClassifiedMalformedToolCall() {
+    std::cout << "[TEST] testClassifiedMalformedToolCall\n";
+
+    struct TestCase {
+        std::string name;
+        std::string response;
+    };
+
+    const TestCase cases[] = {
+        {"1. truncated escaped argument",   R"({"tool":"write_file","args":"{\")"},
+        {"2. missing tool field",           R"({"args":"foo"})"},
+        {"3. missing args field",           R"({"tool":"write_file"})"},
+        {"4. non-string args field",        R"({"tool":"write_file","args":123})"},
+        {"5. invalid fenced JSON",          "```json\n{\"tool\":\"write_file\",...\n```"},
+        {"6. two JSON objects in response", R"({"tool":"read_file","args":"a"}{"tool":"write_file","args":"b"})"},
+    };
+
+    for (const auto& tc : cases) {
+        auto client = std::make_shared<MockLLMClient>(tc.response);
+        CaptureAgent agent(client);
+        std::string result = agent.run(kNoFallback, 1);
+
+        check(agent.captured.empty(),
+              tc.name + " -> zero tools executed");
+        check(result == "MALFORMED_TOOL_CALL",
+              tc.name + " -> returns classified MALFORMED_TOOL_CALL failure");
     }
 }
 
@@ -729,6 +761,7 @@ int main() {
     testMultimodalInterface();          std::cout << "\n";
     testParserVariants();               std::cout << "\n";
     testEscapedJsonArgsParse();         std::cout << "\n";
+    testClassifiedMalformedToolCall();  std::cout << "\n";
     testMalformedToolIntentNotFinalAnswer(); std::cout << "\n";
     testMaxStepsAndHistoryGrowth();     std::cout << "\n";
     testSkillInjectionBeforeEachRun();  std::cout << "\n";
