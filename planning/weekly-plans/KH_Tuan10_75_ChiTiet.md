@@ -41,7 +41,7 @@
 - **DoD:** [x] focused test proves exact escaped argument survives parse [x] malformed input does not invoke a tool [x] existing parser variants remain PASS [x] `test_role_a` + CTest PASS [ ] C independently reads emitted trajectory.
 - **Evidence:** test name/output, revision, one trajectory showing the full args string.
 
-### [ ] W10.75-A-02 — Align skill instructions with canonical tool protocol
+### [x] W10.75-A-02 — Align skill instructions with canonical tool protocol
 
 - **Requirement / gap:** R05, R06; GAP-10.75-01.
 - **Owner → reviewer:** A → B.
@@ -49,7 +49,7 @@
 - **Current behavior:** skills advertise `file_read` and `file_write`, which are not canonical registry names.
 - **Required change:** use `read_file`, `write_file`, and `append_file`; include one exact JSON tool-call example using the string args format supported by the tools. Instruct the model to return one call per response and wait for the observation before the next call.
 - **Failure cases:** legacy alias appears; a response contains plan text plus several calls; file content contains commas/newlines; tool error observation must lead to retry or explicit final failure.
-- **DoD:** [x] no `file_read`/`file_write` remains in active skill instructions [x] SkillLoader test still injects all three skills [ ] B reviews examples against actual FileTool input contract.
+- **DoD:** [x] no `file_read`/`file_write` remains in active skill instructions [x] SkillLoader test still injects all three skills [x] B reviews examples against actual FileTool input contract.
 
 **Checkpoint 2026-08-19 (Role A delivered):**
 - [x] `agent_loop.cpp` parser replaced manual quote-search with balanced-object scan + `nlohmann::json` parse (escaped `args` preserved, fenced JSON honored only for one object, multiple blocks rejected).
@@ -58,7 +58,7 @@
 - [x] `test_role_a` adds `testEscapedJsonArgsParse`; all 5 CTest targets PASS after the fix.
 - [ ] A/B/C sign-off on trajectory evidence pending review (dependent on B-01 merge).
 
-### [ ] W10.75-A-03 — Classify malformed tool-call responses instead of accepting them as final answers
+### [x] W10.75-A-03 — Classify malformed tool-call responses instead of accepting them as final answers
 
 - **Requirement / gap:** R06, R08; GAP-10.75-05. This is a review finding after A-01; its completed checklist above remains historical evidence.
 - **Owner → reviewer:** A → C.
@@ -68,19 +68,19 @@
 - **Change scope:** `src/agent/agent_loop.cpp` and `benchmark/test_role_a.cpp` only. Do not enable fallback, change `Tool::execute(std::string)`, change the Harness JSON schema, or add a retry policy.
 - **Failure cases to test:** truncated escaped argument; missing `tool`; missing `args`; non-string `args`; invalid fenced JSON; two JSON objects in one response. Each must execute zero tools and yield the classified failure, not the raw JSON as a final answer.
 - **DoR:** [x] Requirement, production path, owner, and reviewer identified [x] existing parser contract inspected [x] expected failure evidence defined.
-- **DoD:** [ ] malformed response is classified rather than returned verbatim [ ] all six failure cases have focused assertions [ ] escaped valid JSON remains executable with complete args [ ] `./build/test_role_a` PASS [ ] `ctest --test-dir build --output-on-failure` PASS [ ] C reviews one emitted failure trajectory/record.
+- **DoD:** [x] malformed response is classified rather than returned verbatim [x] all six failure cases have focused assertions [x] escaped valid JSON remains executable with complete args [x] `./build/test_role_a` PASS [x] `ctest --test-dir build --output-on-failure` PASS [x] C reviews one emitted failure trajectory/record.
 - **Evidence:** commit hash; focused test output; one captured record containing the stable parser-failure reason; C approval.
 
 ## 4. Role B — Backward-compatible tool contract
 
-### [ ] W10.75-B-01 — Support legacy file-tool aliases and prove file arguments end-to-end
+### [x] W10.75-B-01 — Support legacy file-tool aliases and prove file arguments end-to-end
 
 - **Requirement / gap:** R02, R03; GAP-10.75-01, GAP-10.75-03.
 - **Owner → reviewer:** B → A.
 - **Production path:** parsed tool name/args → `ToolRegistry::normalize()` → FileRead/FileWrite/FileAppend tool → artifact.
 - **Required change:** add the two backwards-compatible aliases `file_read → read_file` and `file_write → write_file`. Confirm whether the File tools accept the full preserved JSON string produced by A-01; if not, document one canonical string syntax in the skill and test that syntax. Do not add a second file implementation.
 - **Failure cases:** unknown legacy name; invalid/missing path; missing content; malformed JSON-style argument; write then read exact content; append retains previous content.
-- **DoD:** [ ] alias lookup test PASS [ ] file write/read/append integration test creates then verifies a temp artifact [ ] invalid input returns `ToolError`, no exception [ ] `test_tools` + CTest PASS [ ] A reviews canonical/alias behavior.
+- **DoD:** [x] alias lookup test PASS [x] file write/read/append integration test creates then verifies a temp artifact [x] invalid input returns `ToolError`, no exception [x] `test_tools` + CTest PASS [x] A reviews canonical/alias behavior.
 - **Evidence:** focused test output and temporary artifact cleanup proof.
 
 ## 5. Role C — Evidence, regression, and documentation
@@ -122,12 +122,12 @@
 - [x] Report records the real-provider `2/10` baseline and distinguishes it from historical fallback-assisted 10/10 evidence.
 - [x] Submission checklist now requires CTest 5/5 and explicit calculator/file/time coverage in the four simple tasks.
 
-### [ ] W10.75-B-02 — Close the remaining WebSearch error matrix
+### [x] W10.75-B-02 — Close the remaining WebSearch error matrix
 
 - **Transferred from:** W10.5-C-01 / B-03 review gate.
 - **Owner → reviewer:** B → C.
 - **Requirement:** R03; tool errors must be returned as typed, observable failures rather than a fabricated research result.
-- **DoD:** [ ] offline fixtures cover timeout, HTTP failure, and malformed body [ ] `test_tools` passes [ ] C confirms the multi-agent worker reports `STATUS=FAIL` for the injected error.
+- **DoD:** [x] offline fixtures cover timeout, HTTP failure, and malformed body [x] `test_tools` passes [x] C confirms the multi-agent worker reports `STATUS=FAIL` for the injected error.
 
 ### [ ] W10.75-C-03 — Lock Vector and Multi-agent final evidence
 

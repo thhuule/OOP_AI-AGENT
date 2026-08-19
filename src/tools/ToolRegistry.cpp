@@ -152,9 +152,9 @@ void ToolRegistry::register_all_tools() {
     register_alias("exec",          "execute_shell");
     register_alias("google_search", "web_search");
     register_alias("create_file",   "write_file");   // → FileWriteTool
+    register_alias("file_read",     "read_file");    // legacy alias → FileReadTool
+    register_alias("file_write",    "write_file");   // legacy alias → FileWriteTool
     register_alias("screenshot",    "capture_screenshot");
-    // "read_file", "write_file", "append_file" are canonical names now —
-    // no alias needed (they are registered directly above).
 }
 
 } // namespace oop_agent
