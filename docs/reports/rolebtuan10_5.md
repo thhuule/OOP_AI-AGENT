@@ -10,7 +10,7 @@
 
 ## I. TỔNG QUAN CÔNG VIỆC THỰC HIỆN
 
-Trong Tuần 10.5, Role B chịu trách nhiệm thực thi **3 nhiệm vụ phát triển chính (Implementation Tasks)** và **2 nhiệm vụ đánh giá chéo (Review Tasks)** theo đúng yêu cầu chi tiết trong file [`KH_Tuan10_5_ChiTiet.md`](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/planning/weekly-plans/KH_Tuan10_5_ChiTiet.md):
+Trong Tuần 10.5, Role B chịu trách nhiệm thực thi **3 nhiệm vụ phát triển chính (Implementation Tasks)** và **2 nhiệm vụ đánh giá chéo (Review Tasks)** theo đúng yêu cầu chi tiết trong file [`KH_Tuan10_5_ChiTiet.md`](../../planning/weekly-plans/KH_Tuan10_5_ChiTiet.md):
 
 ### 1. Implementation Tasks (Role B làm Owner)
 
@@ -117,7 +117,7 @@ Total Test time (real) = 2.61 sec
 
 ## IV. BẢNG TRACEABILITY VÀ TRẠNG THÁI CUỐI CÙNG
 
-Trong file kế hoạch [`KH_Tuan10_5_ChiTiet.md`](file:///Users/thienguyen0302/Desktop/OOP/OOP_AI-AGENT-main%203/planning/weekly-plans/KH_Tuan10_5_ChiTiet.md):
+Trong file kế hoạch [`KH_Tuan10_5_ChiTiet.md`](../../planning/weekly-plans/KH_Tuan10_5_ChiTiet.md):
 - Checkbox các task W10.5-B-01, W10.5-B-02, W10.5-B-03 đã chuyển sang `[x]`.
 - Yêu cầu **`RQ-TOOLS-01`** đã chuyển từ `NOT VERIFIED` thành **`VERIFIED`**.
 

@@ -396,7 +396,12 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
     result.latency_ms =
         std::chrono::duration<double, std::milli>(end - start).count();
     result.trajectory = current_trajectory_;
-    result.tool_steps_count = result.trajectory.size();
+    result.tool_steps_count = static_cast<std::size_t>(std::ranges::count_if(
+        result.trajectory, [](const TrajectoryStep& step) {
+            return !step.tool_name.empty() && step.tool_name != "final_answer";
+        }));
+    for (const auto& step : result.trajectory)
+        result.total_tokens += step.tokens_used;
 
     const auto evaluator = findEvaluator(task.eval_type);
     if (!evaluator) {
@@ -477,6 +482,7 @@ bool HarnessRunner::exportResults(
             {"success", result.success},
             {"requires_tool", result.requires_tool},
             {"tool_steps_count", result.tool_steps_count},
+            {"total_tokens", result.total_tokens},
             {"failure_reason", result.failure_reason},
             {"evaluator_success", result.evaluator_success},
             {"evaluator_score", result.evaluator_score},
@@ -503,18 +509,17 @@ bool HarnessRunner::exportResults(
             {"success", result.success},
             {"requires_tool", result.requires_tool},
             {"tool_steps_count", result.tool_steps_count},
+            {"final_answer", result.agent_output},
             {"failure_reason", result.failure_reason},
             {"evaluator_score", result.evaluator_score},
             {"action_level_score", result.action_level_score},
             {"total_time_ms", result.latency_ms}
         };
 
-        int total_tokens = 0;
         nlohmann::json steps = nlohmann::json::array();
         for (std::size_t index = 0;
              index < result.trajectory.size(); ++index) {
             const auto& step = result.trajectory[index];
-            total_tokens += step.tokens_used;
             nlohmann::json step_json = {
                 {"step_id", index + 1},
                 {"source", step.source.empty() ? "llm" : step.source},
@@ -526,7 +531,7 @@ bool HarnessRunner::exportResults(
             };
             steps.push_back(std::move(step_json));
         }
-        trajectory["total_tokens"] = total_tokens;
+        trajectory["total_tokens"] = result.total_tokens;
         trajectory["steps"] = std::move(steps);
 
         const auto path =

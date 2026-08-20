@@ -76,6 +76,29 @@
 - **DoD:** [x] malformed response is classified rather than returned verbatim [x] all six failure cases have focused assertions [x] escaped valid JSON remains executable with complete args [x] `./build/test_role_a` PASS [x] `ctest --test-dir build --output-on-failure` PASS [x] C reviews one emitted failure trajectory/record.
 - **Evidence:** commit hash; focused test output; one captured record containing the stable parser-failure reason; C approval.
 
+### [ ] W10.75-A-04 — Close skill selection, dynamic tool catalog, and ReAct history roles
+
+- **Requirement / audit gap:** R02, R05–R07; skill files were all injected, tool descriptions were hard-coded, assistant output was absent from history, and observations used role `user`.
+- **Owner → reviewer:** A → C.
+- **Production path:** task instruction → `SkillLoader::getSystemPromptForTask()` + `ToolRegistry::catalog()` → AgentLoop system prompt → LLM response (`assistant`) → tool observation (`tool`).
+- **Contract freeze:** keep the existing JSON tool-call protocol and `Tool::execute(std::string)` interface.
+- **DoD:** [x] three skills contain keyword metadata [x] relevant skill is selected and `task_planner` is the default [x] tool catalog is generated from registered instances [x] history order `system → user → assistant → tool` is tested [x] focused tests and CTest pass [ ] C records independent code/trajectory approval.
+
+### [ ] W10.75-A-05 — Record provider usage and final-answer trajectory correctly
+
+- **Requirement / audit gap:** R01, R08; provider token usage was always zero and final answers were absent from trajectories.
+- **Owner → reviewer:** A → C.
+- **Production path:** Gemini/Ollama response metadata → `LLMUsage` → AgentLoop step hook → Harness result/export.
+- **Expected contract:** missing provider metadata legitimately exports zero; a final-answer step is exported but is never counted as a tool step.
+- **DoD:** [x] Gemini `usageMetadata` is parsed [x] Ollama `prompt_eval_count`/`eval_count` are parsed [x] per-step and total tokens are exported [x] `final_answer` and its trajectory step are exported [x] focused tests prove token totals and tool-step exclusion [x] CTest passes [ ] C independently approves one exported fixture.
+
+### [ ] W10.75-A-06 — Supply compile evidence for an active C++26 feature
+
+- **Requirement / audit gap:** R11; `inplace_vector` was unavailable on the current standard library, so the existing vector fallback was not active C++26 evidence.
+- **Owner → reviewer:** A → C.
+- **Change:** use compiler-supported deleted-function reason syntax on the non-copyable thread owner; keep the existing `std::vector` portability fallback.
+- **DoD:** [x] GCC 15/C++26 clean build accepts `= delete("reason")` [x] non-copyable assertion remains PASS [x] docs do not claim `inplace_vector` is active [ ] C approves compile evidence.
+
 ## 4. Role B — Backward-compatible tool contract
 
 ### [x] W10.75-B-01 — Support legacy file-tool aliases and prove file arguments end-to-end
@@ -87,6 +110,15 @@
 - **Failure cases:** unknown legacy name; invalid/missing path; missing content; malformed JSON-style argument; write then read exact content; append retains previous content.
 - **DoD:** [x] alias lookup test PASS [x] file write/read/append integration test creates then verifies a temp artifact [x] invalid input returns `ToolError`, no exception [x] `test_tools` + CTest PASS [x] A reviews canonical/alias behavior.
 - **Evidence:** focused test output and temporary artifact cleanup proof.
+
+### [ ] W10.75-B-03 — Make Vector the primary persistent-memory search contract
+
+- **Requirement / audit gap:** R03, R16; `vsave/vsearch` worked, but primary `save/search` still meant keyword search and exact production tools `memory_save/memory_search` were missing.
+- **Owner → reviewer:** B → C.
+- **Production path:** dynamic tool catalog → `memory_save`/`memory_search` → shared `MemoryTool` → SQLite + `OllamaEmbedder(nomic-embed-text)` → cosine-ranked result.
+- **Compatibility:** `memory`, `vsave`, and `vsearch` remain accepted; keyword mode is explicit as `legacy_save/legacy_search`.
+- **Failure cases:** empty input, database initialization failure, embedder unavailable/invalid response, inconsistent vector dimensions, no result.
+- **DoD:** [x] exact production tool names are registered [x] primary `save/search` uses embeddings [x] offline ranking injects `HashEmbedder` [x] live Ollama acceptance passes with `nomic-embed-text` [x] legacy keyword behavior is separately tested [ ] C approves the production path and evidence.
 
 ## 5. Role C — Evidence, regression, and documentation
 
@@ -148,7 +180,8 @@
 
 - **Transferred from:** W10.5-C-03.
 - **Owner → reviewer:** C → B.
-- **DoD:** [ ] clean extracted copy follows README configure/build/test steps [ ] Markdown links/diagrams are checked after docs reorganisation [ ] secret/database/build-artifact scan is recorded [x] reports state historical 10/10 versus current `7/10` correctly.
+- **DoD:** [x] candidate-only extracted copy follows README configure/build/test steps [x] local Markdown links changed in this audit use repository-relative paths [x] secret/database/build-artifact scan is recorded [x] reports state historical 10/10 versus current `7/10` correctly [ ] B independently approves the package content.
+- **Evidence 2026-08-20:** the final temporary package contained 170 intended tracked/untracked candidate files (including the two new evidence files); `check_repo_hygiene.sh --package` printed `PASS`, clean CMake configure/build completed, and CTest passed `5/5`. The temporary directory was removed after the gate.
 
 ### [ ] W10.75-C-05 — Cross-role integration walkthrough
 
@@ -160,7 +193,16 @@
 
 - **Transferred from:** W10.5-REG-01.
 - **Owner → reviewers:** C → A and B.
-- **DoD:** [ ] clean build [ ] all focused targets + CTest PASS [ ] new real-provider benchmark is reviewed [ ] each R01–R15 row has source/test/doc/evidence [ ] status template is completed. Freeze only if no mandatory row is FAIL/PARTIAL/NOT VERIFIED.
+- **DoD:** [x] clean build [x] all focused targets + CTest PASS [ ] new real-provider benchmark is reviewed by A/B [x] each R01–R15 row has source/test/doc/evidence in the audit and reports [x] status template is completed. Freeze only if no mandatory row is FAIL/PARTIAL/NOT VERIFIED after independent review.
+
+### [ ] W10.75-TEAM-01 — Resolve the official Git contribution gate honestly
+
+- **Requirement:** the specification requires source contribution difference not over 20%, at least six commits per member, and no gap over seven days between the nearest commits.
+- **Owner → reviewer:** A + B + C → all members verify together.
+- **Current evidence:** the exact 2026-08-20 audit of tracked C/C++ files under `src/` found `5835 / 395 / 139` committed lines plus 256 uncommitted lines. Normalized commit counts are `101 / 66 / 50`; maximum personal gaps are `8.76 / 20.85 / 10.91` days. Details: [`requirement_traceability_final_2026-08-20.md`](../../docs/evidence/requirement_traceability_final_2026-08-20.md).
+- **Allowed action:** verify author identities/aliases, produce the real contribution table, and explain legitimate non-line contributions with links to original commits/tests/docs. Ask the instructor how the rule is applied if the repository history already violates it.
+- **Forbidden action:** rewrite history, change author metadata, or recommit another member's work merely to manufacture balance.
+- **DoD:** [x] author aliases are normalized for measurement [x] commit count and spacing per member are recorded [x] source-line contribution is measured [ ] team records an honest disposition/instructor guidance [x] no fake ownership change is introduced.
 
 ## 6. Dependency and review gate
 
@@ -180,14 +222,17 @@ No deterministic benchmark fallback in production.
 ## 7. Final status template
 
 ```text
-Build + CTest: PASS / FAIL
-Parser contract: PASS / FAIL
-Malformed tool-call failure: PASS / FAIL
-Skill/registry names: PASS / FAIL
-File artifact workflow: PASS / FAIL
-Real provider benchmark: <score>/10, LLM source verified YES/NO
-Vector bonus: PASS / FAIL / SKIPPED
-Multi-agent bonus: PASS / FAIL / SKIPPED
-Mandatory docs: PASS / FAIL
-Code freeze: YES / NO
+Build + CTest: PASS
+Parser contract: PASS
+Malformed tool-call failure: PASS
+Skill selection + dynamic catalog + history roles: PASS (technical), REVIEW PENDING
+Token/final-answer trajectory: PASS (technical), REVIEW PENDING
+File artifact workflow: PASS
+Real provider benchmark: 7/10, LLM source verified YES
+Vector bonus: PASS (technical), REVIEW PENDING
+Multi-agent bonus: PASS (technical), REVIEW PENDING
+Mandatory docs: PASS (technical), REVIEW PENDING
+Clean package: PASS
+Git contribution gate: HIGH-RISK / TEAM ACTION REQUIRED
+Code freeze: NO — A/B independent review, Git disposition, and team declaration pending
 ```

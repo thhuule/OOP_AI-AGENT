@@ -132,6 +132,17 @@ nlohmann::json GeminiClient::build_request_body(
     return request;
 }
 
+LLMUsage GeminiClient::parse_usage(const nlohmann::json& response) noexcept {
+    try {
+        if (!response.contains("usageMetadata")) return {};
+        const auto& usage = response["usageMetadata"];
+        return {usage.value("promptTokenCount", 0),
+                usage.value("candidatesTokenCount", 0)};
+    } catch (...) {
+        return {};
+    }
+}
+
 size_t GeminiClient::write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
     return WriteCallback(contents, size, nmemb, userp);
 }
@@ -203,6 +214,7 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
     const std::vector<Message>& conversation_history,
     const LLMConfig& config
 ) {
+    last_usage_ = {};
     const LLMConfig effective = resolve_config(config);
     if (effective.api_key.empty() || effective.gemini_model.empty()) {
         return std::unexpected(LLMError::ConnectionRefused);
@@ -219,6 +231,7 @@ std::expected<std::string, LLMError> GeminiClient::generate_chat(
 
     try {
         auto res_json = nlohmann::json::parse(res.body);
+        last_usage_ = parse_usage(res_json);
         if (!res_json.contains("candidates") || res_json["candidates"].empty()) {
             return std::unexpected(LLMError::MalformedJSON);
         }

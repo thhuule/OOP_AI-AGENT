@@ -418,6 +418,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
     last_fallback_result_.clear();
     fallback_plan_.clear();
     fallback_index_ = 0;
+    last_llm_tokens_ = 0;
     history_.clear();
     detector_.reset();
 
@@ -432,8 +433,16 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
             // A graceful stop was requested (e.g. an LLM client error).
             // If think_and_act produced a classified final answer, surface
             // that reason; otherwise report the generic abort.
-            if (auto* fa = std::get_if<FinalAnswerAction>(&action))
+            if (auto* fa = std::get_if<FinalAnswerAction>(&action)) {
+                TrajectoryStep ts;
+                ts.step = step;
+                ts.action = "final_answer";
+                ts.tool_name = "final_answer";
+                ts.result = fa->answer;
+                ts.tokens = ts.tokens_used = last_llm_tokens_;
+                emit_hook(ts);
                 return fa->answer;
+            }
             return "Aborted at step " + std::to_string(step);
         }
 
@@ -447,10 +456,8 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
             ts.args        = "";
             ts.result      = fa->answer;
             ts.success     = true;
-            ts.tokens_used = 0;
-            // Final answers are not tool steps. StepHook is intentionally
-            // reserved for actual tool executions so tool_steps_count and
-            // action-level evaluation remain accurate.
+            ts.tokens      = ts.tokens_used = last_llm_tokens_;
+            emit_hook(ts);
             return fa->answer;
         }
 
@@ -471,7 +478,7 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
         ts.tool_name   = tc.tool_name;
         ts.args        = tc.args;
         ts.latency_ms  = latency;
-        ts.tokens_used = 0;
+        ts.tokens      = ts.tokens_used = last_llm_tokens_;
 
         if (result) {
             ts.result             = *result;
@@ -522,15 +529,20 @@ std::string AgentLoop::run(const std::string& instruction, int max_steps) {
 
 // ── Primitive operations ──────────────────────────────────────────────────────
 
-std::string AgentLoop::build_system_prompt(const std::string& /*instruction*/) {
-    std::string skills = skills_ ? skills_->getSystemPrompt() : "";
-    return "You are a helpful AI agent with tool-use capabilities.\n\n"
-           "Available tools: use JSON {\"tool\":\"name\",\"args\":\"...\"} "
-           "or reply with Final Answer.\n\n" + skills;
+std::string AgentLoop::build_system_prompt(const std::string& instruction) {
+    std::string prompt = "You are a helpful AI agent with tool-use capabilities.\n\n"
+                         "Available tools:\n";
+    for (const auto& [name, description] : registry_.catalog())
+        prompt += "- " + name + ": " + description + "\n";
+    prompt += "\nUse JSON {\"tool\":\"name\",\"args\":\"...\"} or reply with Final Answer.\n\n";
+    if (skills_)
+        prompt += skills_->getSystemPromptForTask(instruction);
+    return prompt;
 }
 
 std::variant<ToolCallAction, FinalAnswerAction>
 AgentLoop::think_and_act(int /*step*/) {
+    last_llm_tokens_ = 0;
 
     // ── 1. Deterministic fallback — only if explicitly opted in by test fixture ─
     if (fallback_enabled_) {
@@ -558,7 +570,9 @@ AgentLoop::think_and_act(int /*step*/) {
     }
 
     const std::string& text = *response;
+    last_llm_tokens_ = llm_->last_usage().total_tokens();
     last_thought_ = text;
+    history_.push_back({"assistant", text, std::nullopt});
 
     // ── 3. Parse JSON: {"tool":"name","args":"..."} ───────────────────────
     // Replaces the previous manual quote-search that truncated escaped JSON
@@ -637,7 +651,7 @@ AgentLoop::execute_tool(const ToolCallAction& action) {
 }
 
 void AgentLoop::observe(const std::string& text) {
-    history_.push_back({"user", "Observation: " + text, std::nullopt});
+    history_.push_back({"tool", "Observation: " + text, std::nullopt});
 }
 
 void AgentLoop::on_loop_detected() {

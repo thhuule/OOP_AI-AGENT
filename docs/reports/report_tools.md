@@ -340,13 +340,13 @@ MemoryTool được triển khai độc lập với AgentLoop và chỉ giao ti�
 
 Triển khai bonus vector search cho persistent memory:
 
-- **Embedding:** `src/tools/Embedding.h/.cpp` — interface `Embedder` (Strategy Pattern) + `HashEmbedder` deterministic (character n-gram hashing, 64 chiều, L2-normalize). Không cần mạng/model ngoài nên test chạy offline và lặp lại ổn định. Có thể thay bằng provider thật (ví dụ `nomic-embed-text`) qua interface mà không đổi MemoryTool.
+- **Embedding:** `src/tools/Embedding.h/.cpp` — interface `Embedder` (Strategy Pattern). Production `MemoryTool` defaults to `OllamaEmbedder(nomic-embed-text)`; offline tests inject deterministic `HashEmbedder`.
 - **Cosine similarity:** `cosine_similarity()` thuần C++, deterministic; bất biến scale, rỗng/lệch size → 0.
 - **Schema migration:** `memories` có thêm cột `embedding BLOB`; nếu DB cũ chưa có, `init_database()` tự `ALTER TABLE` — không mất dữ liệu cũ.
-- **Lệnh mới:** `vsave <text>` (lưu text kèm vector), `vsearch <text>` (trả top-3 theo cosine similarity, kèm score). `save`/`search` cũ giữ nguyên.
-- **Tests:** `test_cosine_similarity_fixed_vectors` (fixed vectors: trùng→1, trực giao→0, ngược→-1, bất biến scale; HashEmbedder deterministic cùng text → cùng vector) và `test_memory_vector_search_ranking` (integration: lưu 3 chủ đề, query về weather/code → kết quả đúng đứng đầu; invalid args → `InvalidArgument`; regression `save`/`search`).
+- **Production contract:** canonical tools `memory_save <text>` and `memory_search <query>` delegate to the shared persistent memory. `save`/`search` are the primary vector operations; `vsave`/`vsearch` remain compatible names inside `memory`; `legacy_save`/`legacy_search` explicitly preserve keyword mode.
+- **Tests:** `test_cosine_similarity_fixed_vectors`, `test_memory_vector_search_ranking`, registry/catalog checks for both canonical tools, Ollama failure validation, and optional live `RUN_LIVE_OLLAMA=1 ./build/test_tools` acceptance.
 
-Giới hạn trung thực: `HashEmbedder` là provider nội bộ dùng cho evidence/test deterministic; để chứng minh semantic ranking bằng model embedding thật (ví dụ `nomic-embed-text`) cần provider/quota được nhóm phê duyệt — không tự nhận là đã chạy model thật.
+Live acceptance with Ollama `nomic-embed-text` passed on 2026-08-20. `HashEmbedder` is test evidence only and is not advertised as the production Vector provider.
 
 ---
 
@@ -487,7 +487,9 @@ GitTool cung cấp khả năng tương tác với Git Repository thông qua Tool
 | `append_file` | — | `FileAppendTool` | Append content to a file | `data.txt,appended` hoặc JSON `{"filename":"data.txt","content":"appended"}` |
 | `execute_shell` | `exec` | `ExecTool` | Execute an allowed shell command | `pwd` |
 | `web_search` | `google_search` | `WebSearchTool` | Search the web (DuckDuckGo Instant Answer API) | `C++ programming` |
-| `memory` | — | `MemoryTool` | Save and search memories using SQLite | `save Tokyo` / `search Tokyo` / `vsave ...` / `vsearch ...` |
+| `memory` | — | `MemoryTool` | Vector memory plus explicit legacy keyword commands | `save Tokyo weather` / `search Tokyo climate` / `legacy_search Tokyo` |
+| `memory_save` | — | `MemoryCommandTool` | Save text to persistent vector memory | `Tokyo weather` |
+| `memory_search` | — | `MemoryCommandTool` | Search persistent memory by semantic similarity | `Tokyo climate` |
 | `time` | — | `TimeTool` | Get the current local date and time | `(trống)` |
 | `json` | — | `JsonTool` | Parse and pretty print JSON | `{"a":1}` |
 | `git` | — | `GitTool` | Run git commands (status/branch/log/diff) | `status` |
@@ -782,17 +784,17 @@ Tool Layer được kiểm thử thông qua `benchmark/test_tools.cpp` (CTest ta
 | `test_aliases_and_normalization` | alias resolve, create qua alias, normalize unknown | ✅ PASS |
 | `test_allow_deny_policies` | deny → nullptr, allow-list whitelist | ✅ PASS |
 | `test_duplicate_creator_overwrite` | overwrite creator, verify new type, fresh objects | ✅ PASS |
-| `test_register_all_tools` | 13 instances, 5 aliases, Calculator execute | ✅ PASS |
+| `test_register_all_tools` | 15 instances including `memory_save`/`memory_search`, dynamic catalog entries, aliases, Calculator execute | ✅ PASS |
 | `test_tool_error_paths` | ExecTool empty→InvalidArgument; GitTool empty/unallowed→InvalidArgument; JsonTool empty→InvalidArgument, malformed→ExecutionFailed; MemoryTool empty/unknown→InvalidArgument | ✅ PASS |
 | `test_canonical_names_and_descriptions` | 13 canonical name self-consistent, description không rỗng và không gọi `python_interpreter`, 5 alias resolve về tool thật (B-10-01) | ✅ PASS |
 | `test_file_args_formats` | CSV `result.txt,1081`; JSON `{"path":...,"content":...}`; JSON `{"filename":...,"content":...}`; append CSV; read plain/JSON; invalid → `InvalidArgument` (B-10-02) | ✅ PASS |
 | `test_calculator_args_trim` | `47*23` và ` 47 * 23 ` → 1081; `2+3` → 5; `abc` → `InvalidArgument`; `1/0` → `ExecutionFailed` (B-10-02) | ✅ PASS |
-| `test_memory_modes` | `save`/`search` roundtrip; no-match → `No memory found`; unknown/empty → `InvalidArgument` (B-10-02) | ✅ PASS |
+| `test_memory_modes` | primary vector `save`/`search`, empty-store result, unknown/empty → `InvalidArgument`, injected `HashEmbedder` (B-10-02) | ✅ PASS |
 | `test_exec_policy` | deny `execute_shell` chặn cả alias `exec`; empty args → `InvalidArgument` (B-10-02) | ✅ PASS |
 | `test_exec_timeout_offline` | timeout 200ms với `sleep 2` → `ExecutionFailed`; lệnh hợp lệ `printf hello` → output (B-10-03) | ✅ PASS |
 | `test_websearch_offline_fixture` | inject transport: network failure/timeout → `ExecutionFailed`; body lỗi → `NotFound`; `AbstractText`/`Answer` parse OK; empty args → `InvalidArgument` (B-10-03) | ✅ PASS |
 | `test_cosine_similarity_fixed_vectors` | fixed vectors: trùng→1, trực giao→0, ngược→-1, bất biến scale; HashEmbedder deterministic (BNS-V-01) | ✅ PASS |
-| `test_memory_vector_search_ranking` | `vsave`/`vsearch` ranking đúng thứ tự, invalid args → `InvalidArgument`, regression `save`/`search` (BNS-V-01) | ✅ PASS |
+| `test_memory_vector_search_ranking` | cosine ranking, invalid vector args, and explicit `legacy_save`/`legacy_search` regression (BNS-V-01) | ✅ PASS |
 | `test_screenshot_contract` | mock capture → `data:image/png;base64,...`; capture fail → `NotFound`; base64 padding chuẩn (BNS-G-01) | ✅ PASS |
 | `test_action_tool_safety` | allow-list `click`/`type_text`/`key_press` pass; action/key ngoài allow-list → `AccessDenied`; toạ độ âm/lớn, text quá dài, args rỗng → `InvalidArgument` (BNS-G-01) | ✅ PASS |
 
@@ -1068,7 +1070,7 @@ Qua kiểm tra source code, Tool Layer vẫn còn một số hạn chế cần �
 | ExecTool | ✅ empty command → `InvalidArgument`; policy deny qua alias `exec` (B-10-02); timeout → `ExecutionFailed` (B-10-03) | Command bị cấm ở cấp sandbox nội bộ (hiện deny qua registry) |
 | GitTool | ✅ empty → `InvalidArgument`, unallowed subcommand → `InvalidArgument` | Repo không tồn tại, git lỗi môi trường |
 | JsonTool | ✅ empty → `InvalidArgument`, malformed JSON → `ExecutionFailed` | Schema validation, deep nesting |
-| MemoryTool | ✅ empty → `InvalidArgument`, unknown command → `InvalidArgument`, save/search roundtrip, no-match → `No memory found` (B-10-02) | DB open failure, isolated DB fixture |
+| MemoryTool | ✅ empty/unknown → `InvalidArgument`; primary vector save/search; explicit legacy keyword mode; DB-open failure; isolated DB; Ollama unavailable/malformed validation | No blocking focused-test gap |
 | WebSearchTool | ✅ network failure/timeout → `ExecutionFailed`, HTTP body lỗi → `NotFound`, parse hợp lệ, empty → `InvalidArgument` (B-10-03, offline fixture) | Không còn backlog chặn; chỉ phụ thuộc mạng cho lần chạy thật |
 
 Các hạn chế này được ghi nhận là khoảng cách cần tiếp tục hoàn thiện, không được xem là tính năng đã hoàn chỉnh. GitTool error-path và MemoryTool isolated-DB fixture được ghi backlog; WebSearchTool đã có offline fixture từ Tuần 10.

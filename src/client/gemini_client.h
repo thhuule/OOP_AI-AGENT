@@ -20,6 +20,8 @@ public:
         const LLMConfig& config = LLMConfig{}
     ) override;
 
+    [[nodiscard]] LLMUsage last_usage() const noexcept override { return last_usage_; }
+
     LLMConfig resolve_config(const LLMConfig& config) const;
     std::string build_url() const;
     std::string build_url(const LLMConfig& config) const;
@@ -27,10 +29,12 @@ public:
         const std::vector<Message>& history,
         const LLMConfig& config = LLMConfig{}
     ) const;
+    [[nodiscard]] static LLMUsage parse_usage(const nlohmann::json& response) noexcept;
 
 private:
     std::string api_key_;
     std::string model_name_;
+    LLMUsage last_usage_;
 
     HttpResponse send_request_raw(const nlohmann::json& payload, const LLMConfig& config);
     HttpResponse send_request(const nlohmann::json& payload, const LLMConfig& config);

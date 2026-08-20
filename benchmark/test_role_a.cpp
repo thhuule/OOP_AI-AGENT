@@ -30,6 +30,7 @@
 #include "tools/CalculatorTool.h"
 #include "environment/Environment.h"
 #include "environment/NativeEnvironment.h"
+#include "multiagent/MultiAgentRunner.h"
 
 #include <cassert>
 #include <cctype>
@@ -40,6 +41,7 @@
 #include <optional>
 #include <ranges>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include <variant>
 
@@ -81,12 +83,15 @@ public:
 
     void set_reply(std::string r) { reply_ = std::move(r); }
     void set_failure(LLMError e) { fail_with_ = e; }
+    void set_usage(LLMUsage usage) { usage_ = usage; }
+    [[nodiscard]] LLMUsage last_usage() const noexcept override { return usage_; }
     const std::vector<Message>& last_history() const { return last_history_; }
 
 private:
     std::string reply_;
     std::optional<LLMError> fail_with_;
     std::vector<Message> last_history_;
+    LLMUsage usage_;
 };
 
 // Instruction that matches NO fallback keyword (so think_and_act goes to the LLM).
@@ -354,6 +359,72 @@ void testSkillInjectionBeforeEachRun() {
     fs::remove_all(dir);
 }
 
+void testKeywordSkillSelection() {
+    std::cout << "[TEST] testKeywordSkillSelection\n";
+    const fs::path dir = fs::temp_directory_path() / "role_a_skill_selection";
+    fs::remove_all(dir);
+    fs::create_directories(dir);
+    std::ofstream(dir / "task_planner.md") << "# Planner\nKeywords: plan, task\nPLAN";
+    std::ofstream(dir / "error_recovery.md") << "# Recovery\nKeywords: error, missing, retry\nRECOVER";
+    std::ofstream(dir / "step_verifier.md") << "# Verifier\nKeywords: verify, check\nVERIFY";
+
+    SkillLoader loader(dir.string());
+    loader.loadAll();
+    const auto recovery = loader.getSystemPromptForTask("recover a missing file");
+    check(recovery.find("RECOVER") != std::string::npos &&
+          recovery.find("VERIFY") == std::string::npos,
+          "error task injects matching recovery skill only");
+    const auto fallback = loader.getSystemPromptForTask("unclassified request");
+    check(fallback.find("PLAN") != std::string::npos &&
+          fallback.find("RECOVER") == std::string::npos,
+          "task_planner is the default when no keyword matches");
+    fs::remove_all(dir);
+}
+
+class HistoryUsageClient final : public LLMClient {
+public:
+    std::expected<std::string, LLMError> generate_chat(
+        const std::vector<Message>& history, const LLMConfig&) override {
+        histories.push_back(history);
+        if (histories.size() == 1) {
+            usage = {2, 3};
+            return R"({"tool":"calculator","args":"1+1"})";
+        }
+        usage = {3, 4};
+        return "Final Answer: done";
+    }
+    [[nodiscard]] LLMUsage last_usage() const noexcept override { return usage; }
+
+    std::vector<std::vector<Message>> histories;
+    LLMUsage usage;
+};
+
+void testPromptHistoryUsageAndFinalTrajectory() {
+    std::cout << "[TEST] testPromptHistoryUsageAndFinalTrajectory\n";
+    auto client = std::make_shared<HistoryUsageClient>();
+    AgentLoop agent(client);
+    std::vector<TrajectoryStep> steps;
+    agent.set_step_hook([&](const TrajectoryStep& step) { steps.push_back(step); });
+
+    check(agent.run("calculate 1+1", 3) == "done", "two-step ReAct run completes");
+    check(client->histories.size() == 2, "LLM called twice");
+    if (client->histories.size() == 2) {
+        const auto& history = client->histories[1];
+        check(history.size() == 4 && history[0].role == "system" &&
+              history[1].role == "user" && history[2].role == "assistant" &&
+              history[3].role == "tool",
+              "history order is system -> user -> assistant -> tool");
+        check(history[0].content.find("- calculator:") != std::string::npos,
+              "system prompt contains the dynamic ToolRegistry catalog");
+    }
+    check(steps.size() == 2 && steps[0].tool_name == "calculator" &&
+          steps[1].tool_name == "final_answer",
+          "trajectory records tool action and final answer separately");
+    check(steps.size() == 2 && steps[0].tokens_used == 5 &&
+          steps[1].tokens_used == 7,
+          "provider token usage reaches each trajectory step");
+}
+
 // ── 7. testLoopDetectorUnit ───────────────────────────────────────────────────
 void testLoopDetectorUnit() {
     std::cout << "[TEST] testLoopDetectorUnit\n";
@@ -477,14 +548,17 @@ void testObserverHook() {
 
     auto client = std::make_shared<MockLLMClient>("Final Answer: never");
     HookAgent agent(client);
+    bool saw_calculator = false;
     agent.set_step_hook([&](const TrajectoryStep& ts) {
         ++agent.hook_calls;
         agent.seen_tool = ts.tool_name;
+        saw_calculator = saw_calculator || ts.tool_name == "calculator";
     });
     agent.run(kNoFallback, 4);
 
-    check(agent.hook_calls == 1, "StepHook fired for the tool-execution step");
-    check(agent.seen_tool == "calculator", "hook observed the executed tool name");
+    check(agent.hook_calls == 2, "StepHook fired for tool and final-answer steps");
+    check(saw_calculator && agent.seen_tool == "final_answer",
+          "hook distinguishes tool execution from final answer");
 }
 
 // ── 11. testRegistryFactoryStrategy ───────────────────────────────────────────
@@ -557,12 +631,14 @@ void testCppFeatureMatrix() {
     iv.push_back(1);
     check(iv.size() == 1, "C++26 inplace_vector absent -> portable std::vector fallback");
 #endif
+
+    static_assert(!std::is_copy_constructible_v<MultiAgentRunner>);
+    check(true, "C++26 deleted function with reason compiled for non-copyable thread owner");
 }
 
 // ── 13. testProductionPathDoesNotInvokeFallback (W10.5-A-01 honest production path) ──
 void testProductionPathDoesNotInvokeFallback() {
     std::cout << "[TEST] testProductionPathDoesNotInvokeFallback\n";
-
     // 1. When fallback is disabled (default), benchmark wording must NOT bypass LLM
     auto failing_client = std::make_shared<MockLLMClient>("");
     failing_client->set_failure(LLMError::ConnectionRefused);
@@ -571,11 +647,13 @@ void testProductionPathDoesNotInvokeFallback() {
     check(!agent.is_fallback_enabled(), "AgentLoop has fallback disabled by default in production");
 
     // Task phrase that previously triggered hardcoded fallback
-    std::string result = agent.run("Tạo file notes.txt với nội dung 'Agent test run'", 3);
+    const fs::path forbidden_artifact = "role_a_no_fallback_notes.txt";
+    std::string result = agent.run(
+        "Tạo file role_a_no_fallback_notes.txt với nội dung 'Agent test run'", 3);
 
     check(result.find("LLM error: Connection refused") != std::string::npos,
           "production path reports LLM error, never synthesizes success for benchmark task");
-    check(!fs::exists("notes.txt"),
+    check(!fs::exists(forbidden_artifact),
           "production path does not execute hardcoded side-effect when LLM fails");
 
     // 2. When LLM succeeds, step source provenance is "llm"
@@ -683,6 +761,25 @@ void testProviderConfigWiring() {
           "OllamaClient with missing config returns typed LLMError before network");
 }
 
+void testProviderUsageMetadataParsing() {
+    std::cout << "[TEST] testProviderUsageMetadataParsing\n";
+    const auto gemini = GeminiClient::parse_usage({
+        {"usageMetadata", {{"promptTokenCount", 11}, {"candidatesTokenCount", 7}}}
+    });
+    check(gemini.prompt_tokens == 11 && gemini.completion_tokens == 7 &&
+          gemini.total_tokens() == 18,
+          "Gemini usageMetadata is parsed exactly");
+    const auto ollama = OllamaClient::parse_usage({
+        {"prompt_eval_count", 13}, {"eval_count", 5}
+    });
+    check(ollama.prompt_tokens == 13 && ollama.completion_tokens == 5 &&
+          ollama.total_tokens() == 18,
+          "Ollama prompt/eval counts are parsed exactly");
+    check(GeminiClient::parse_usage(nlohmann::json::object()).total_tokens() == 0 &&
+          OllamaClient::parse_usage(nlohmann::json::object()).total_tokens() == 0,
+          "missing provider metadata remains explicitly unmeasured");
+}
+
 // ── 16. testMultimodalSerialization (W10.5-A-03) ──────────────────────────────
 void testMultimodalSerialization() {
     std::cout << "[TEST] testMultimodalSerialization\n";
@@ -768,6 +865,8 @@ int main() {
     testMalformedToolIntentNotFinalAnswer(); std::cout << "\n";
     testMaxStepsAndHistoryGrowth();     std::cout << "\n";
     testSkillInjectionBeforeEachRun();  std::cout << "\n";
+    testKeywordSkillSelection();        std::cout << "\n";
+    testPromptHistoryUsageAndFinalTrajectory(); std::cout << "\n";
     testLoopDetectorUnit();             std::cout << "\n";
     testLoopAbortIntegration();         std::cout << "\n";
     testTemplateMethodSkeleton();       std::cout << "\n";
@@ -777,6 +876,7 @@ int main() {
     testProductionPathDoesNotInvokeFallback(); std::cout << "\n";
     test_agent_loop_fallback_real_tools(); std::cout << "\n";
     testProviderConfigWiring();         std::cout << "\n";
+    testProviderUsageMetadataParsing(); std::cout << "\n";
     testMultimodalSerialization();      std::cout << "\n";
     test_native_environment();          std::cout << "\n";
 

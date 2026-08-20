@@ -3,6 +3,9 @@
   "api_key": "YOUR_API_HERE",
   "model": "gemma-4-31b-it",
   "api_url": "https://generativelanguage.googleapis.com/v1beta",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "timeout_seconds": 60,
   "use_mock": false,
   "ollama_host": "http://localhost:11434",
   "embedding_model": "nomic-embed-text"
