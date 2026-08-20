@@ -77,13 +77,15 @@ Action-level evaluation is still a heuristic: it verifies that a relevant tool s
 
 ## 5. Trajectory and Export
 
-Each recorded tool step currently contains:
+Each recorded step contains:
 
 - `thought`: raw reasoning text when an LLM response produced the tool call; it may be empty for a deterministic fallback action;
 - `action`: an object containing `type`, `tool`, and `args`;
 - `tool_result`: the result or `ToolError`;
 - `latency_ms`: elapsed time since the previous hook event;
-- `tokens_used`: a placeholder field that is not currently measured.
+- `tokens_used`: provider-reported prompt plus completion tokens for the LLM call that produced the step; `0` means metadata was absent.
+
+Final answers are recorded as `tool_name = final_answer`. They appear in the trajectory and token total but do not increase `tool_steps_count`.
 
 Exported files:
 
@@ -93,15 +95,11 @@ Exported files:
 | `trajectory_task_XXX.json` | Steps, action arguments, tool results, latency, and token fields |
 | `benchmark_summary.txt` | A human-readable pass/fail summary |
 
-### 5.1 Token Limitation
+### 5.1 Token Usage
 
-`HarnessRunner::createStepHook()` currently assigns `tokens_used = 0`. `LLMClient::generate_chat()` returns only response text, so Gemini `usageMetadata` and Ollama token-count fields do not reach the harness.
+`LLMClient::last_usage()` exposes metadata for the most recent call without changing the existing `generate_chat()` result contract. Gemini reads `usageMetadata`; Ollama reads `prompt_eval_count` and `eval_count`. `AgentLoop` attaches the total to the corresponding tool or final-answer step, and the harness exports the sum as `total_tokens`.
 
-Therefore:
-
-> `tokens_used = 0` means **not measured**; it does not mean that the model used zero tokens.
-
-Real token collection is deferred to the Week 10 backlog: add response metadata to `LLMClient`, parse provider usage, pass it through `AgentLoop` and its hook, and include the final-answer LLM call in the total. Character-count estimates must not be reported as official token counts.
+> `tokens_used = 0` means **not measured** when the provider omitted metadata; it does not mean that the model used zero tokens. Character-count estimates are never reported as official token counts.
 
 ## 6. Failure Taxonomy
 
@@ -193,7 +191,7 @@ The repaired production workflow passed tasks 002, 003, 006, 007, and 010. The r
 
 `MultiAgentRunner` provides worker registration, dedicated threads, a dispatcher, message queues, receive timeouts, and `stopAndJoinAll()`. `test_multi_agent` verifies that `ping` becomes `RESULT:ping` and that the runner stops completely. `demo_multi_agent` runs calculator and search workers, then combines their results into `report.txt`.
 
-This is an independent extension. `HarnessRunner` does not currently call `MultiAgentRunner`, so the demo is not sufficient evidence for the sub-agent integration bonus.
+`HarnessRunner::runMultiAgentDemo()` is the production integration path into `MultiAgentRunner`. It starts calculator and researcher workers, exchanges messages through the queue, requires both results, writes the combined report, and returns failure instead of inventing missing data. This extension remains separate from the ten-task single-agent benchmark.
 
 ## 9. Final Verification Procedure
 
@@ -229,6 +227,7 @@ Post-run checklist:
 - rejection of artifact paths containing `..` and duplicate task IDs;
 - evaluator Strategy selection with preserved scores and feedback;
 - StepHook preservation of action type, tool name, arguments, result, and latency;
+- final-answer trajectory recording, token totals, and JSON export schema;
 - removal of stale batch artifacts in an isolated test directory;
 - cleanup through an injected in-memory `SandboxEnvironment`;
 - explicit `ARTIFACT_CLEANUP_FAILED` classification when an injected environment rejects cleanup;
@@ -251,11 +250,8 @@ CMake registers `harness`, `multi_agent`, `tools`, `template_method`, and `role_
 ctest --test-dir build --output-on-failure
 ```
 
-## 11. Backlog After Week 9
+## 11. Remaining Limitations
 
-- Collect real token metadata from Gemini and Ollama.
 - Extend failure-taxonomy tests for rate limits, timeouts, and loop detection.
-- Separate `tool_steps_count` from total LLM steps when trajectories begin recording final answers.
 - Consider isolated workspaces or explicit fixtures to reduce task-order dependencies.
-- Re-run the real-provider benchmark after the Week 10.75 parser, skill, and file-alias fixes; compare it with the 2/10 baseline without restoring fallback.
-- Implement `HarnessRunner → MultiAgentRunner → MessageQueue` integration only if the team commits to the bonus objective.
+- Re-run the real-provider benchmark only when the team wants a newer model-quality measurement; retain the honest 7/10 baseline otherwise.

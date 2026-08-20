@@ -103,16 +103,19 @@ Ollama example:
   "api_key": "",
   "model": "gemma4:e4b",
   "api_url": "http://localhost:11434",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "timeout_seconds": 60,
   "use_mock": false
 }
 ```
 
 Current implementation notes:
 
-- `run_eval` reads `provider`, `api_key`, `model`, and `api_url`.
+- `run_eval` reads `provider`, `api_key`, `model`, `api_url`, `temperature`, `max_tokens`, and `timeout_seconds`.
 - `OopAgent` always creates a `GeminiClient` and reads only `api_key` and `model`.
 - The example configuration contains `use_mock`, but the executables do not currently connect this field to a mock execution path. Do not use it as evidence that a run used a mock or a real provider.
-- `LLMConfig` defines default temperature and timeout values in source code, but `run_eval` does not currently read them from `config.json`.
+- Missing optional numeric fields use the defaults in `LLMConfig`.
 
 Never commit `config.json`. It may contain an API key and is listed in `.gitignore`.
 
@@ -177,9 +180,9 @@ benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
 
 The timestamped directory is local output. To preserve an approved baseline, review it and copy only the selected files to `benchmark/results/latest/`, including a short note with its run ID, revision, provider/model, and fallback limitation.
 
-`eval_results.json` contains the evaluator score, action-level score, and final success rate. Each trajectory contains the thought, action, tool result, and latency for its recorded tool steps.
+`eval_results.json` contains the evaluator score, action-level score, final success rate, and per-task token total. Each trajectory contains tool steps plus the final-answer step, while `tool_steps_count` counts only actual tool calls.
 
-`tokens_used` is currently `0` because the clients do not pass provider token metadata to the harness. This value means **not measured**; it does not mean that the model used no tokens.
+Gemini `usageMetadata` and Ollama `prompt_eval_count`/`eval_count` are propagated to `tokens_used` and `total_tokens`. A value of `0` means the provider did not return usage metadata; it does not prove that no tokens were used.
 
 ## Benchmark Criteria
 

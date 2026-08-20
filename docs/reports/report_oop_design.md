@@ -363,7 +363,8 @@ Thêm evaluator mới: tạo subclass `Evaluator`, đăng ký — không sửa `
 
 | Kỹ thuật | Vị trí | Mục đích | Portability |
 |---|---|---|---|
-| `std::inplace_vector<TrajectoryStep, N>` | `src/agent/agent_loop.cpp` — buffer history trong `run()` | Fixed-capacity vector không allocate heap | Guarded: `#if __cpp_lib_inplace_vector >= 202406L` → fallback `std::vector` |
+| Deleted function with reason (`= delete("reason")`) | `src/multiagent/MultiAgentRunner.h` | Makes thread ownership explicitly non-copyable with a compiler diagnostic | Supported by the configured GCC C++26 mode |
+| Guarded `std::inplace_vector` | `src/agent/agent_loop.cpp` | Uses fixed-capacity storage when the standard library provides it | Falls back to `std::vector`; not counted as the active C++26 feature on this toolchain |
 
 ```cpp
 // Guarded C++26 usage
@@ -407,10 +408,10 @@ target_compile_features(demo_multi_agent  PRIVATE cxx_std_26)
 ## 7. Giới hạn trung thực
 
 - `VLMEvaluator` là skeleton — chưa chấm ảnh; ghi đúng là evaluator thị giác chưa hoàn chỉnh.
-- `token` trong `TrajectoryStep` luôn bằng `0` — giới hạn đo lường phía client, không phải model không dùng token.
+- `tokens_used` is populated from Gemini/Ollama usage metadata; `0` means metadata was absent.
 - Kết quả 10/10 (run `220549_361`) là lịch sử; cần run sạch trước báo cáo cuối.
-- Multi-agent là tính năng mở rộng/demo, không phải benchmark đơn-agent.
-- Multimodal qua `Message::images` mới được serialize đúng trên Ollama client; Gemini client chưa gửi ảnh — không suy rộng khả năng.
+- Multi-agent is an extension reached through `HarnessRunner::runMultiAgentDemo()`; it remains separate from the ten-task single-agent benchmark.
+- Both Gemini and Ollama serialize `Message::images` through the shared `LLMClient` interface; provider/model image capability must still be configured correctly.
 
 ---
 
@@ -418,5 +419,5 @@ target_compile_features(demo_multi_agent  PRIVATE cxx_std_26)
 
 - Gamma, Helm, Johnson, Vlissides. *Design Patterns: Elements of Reusable Object-Oriented Software.* Addison-Wesley, 1994.
 - cppreference.com — `std::expected` (C++23), `std::inplace_vector` (C++26), `std::ranges` (C++20).
-- Tài liệu đề bài: [`planning/reference/OOP Project 2026 AI Agent.docx (1).md`](../planning/reference/OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md).
+- Project specification: [`planning/reference/OOP Project 2026 AI Agent.docx (1).md`](../../planning/reference/OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md).
 - Kết quả benchmark: `benchmark/results/run_20260801_220549_361/`.

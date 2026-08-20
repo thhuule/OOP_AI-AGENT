@@ -2,7 +2,7 @@
  
 > **Nhóm:** 3 người, năng lực tương đương  
 > **Bắt đầu:** Tuần 3 | **Code freeze nội bộ:** cuối Tuần 10 | **Nộp đầy đủ:** trước 21:00 Chủ nhật Tuần 12
-> **Điểm thưởng đã chốt Tuần 10:** Vector Search (+4đ), Multi-agent (+3đ) và VLM/GUI Agent (+8đ); chỉ bắt đầu/merge sau mọi gate bắt buộc.
+> **Điểm thưởng đã chốt Tuần 10:** Vector Search (+4đ) và Multi-agent (+3đ). VLM/GUI Agent không nằm trong freeze scope.
 >
 > **Nguồn ràng buộc hiện hành:** [`OOP Project 2026 AI Agent.docx (1).md`](OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md), [tổng quan Tuần 10](../weekly-plans/KH_Tuan10_TongQuan_1Trang.md) và [kế hoạch chi tiết Tuần 10](../weekly-plans/KH_Tuan10_ChiTiet.md). Mốc demo live Tuần 13 đã bị hủy; Tuần 12 phải nộp thiết kế, source, báo cáo hoàn chỉnh và link YouTube video demo ở chế độ Unlisted.
  
@@ -149,7 +149,7 @@
 
 - Đóng toàn bộ requirement bắt buộc, bug, focused test và evidence/source path cho docs theo `KH_Tuan10_ChiTiet.md`; render 4 UML.
 - Clean build, 4 test executable, CTest, clean-state/benchmark evidence, sanitizer (hoặc limitation), package dry-run và clean extraction.
-- Sau mọi gate bắt buộc PASS, triển khai/merge lần lượt Vector Search (+4), Multi-agent Coordination (+3) và VLM/GUI Agent (+8); mỗi bonus merge xong phải full regression lại.
+- Sau mọi gate bắt buộc PASS, triển khai/merge Vector Search (+4) và Multi-agent Coordination (+3); mỗi bonus merge xong phải full regression lại. Không mở rộng VLM/GUI trong freeze scope.
 - Chốt final revision/freeze note cuối tuần. Sau freeze: không thêm feature mới, trừ Critical Fix → targeted test → regression → re-freeze.
 ---
  

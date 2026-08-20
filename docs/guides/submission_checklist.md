@@ -33,7 +33,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [ ] Each artifact has the exact required filename and content in the current run.
 - [ ] The trajectories for tasks 005 and 010 preserve the actual arguments.
 - [ ] Provider and model results are recorded correctly without exposing the API key.
-- [ ] A token count of `0` is identified as not measured.
+- [ ] Gemini/Ollama token metadata is present when returned; a token count of `0` is identified as not measured.
 
 ## 3. Cross-Review
 
@@ -43,7 +43,7 @@ Current deadline: **before 21:00 on Sunday of Week 12**. The submission includes
 - [x] Every relative Markdown link in README and the three Role C documents opens the correct file.
 - [ ] All four Mermaid diagrams render without errors.
 - [x] `VLMEvaluator` is not described as a completed feature.
-- [x] The multi-agent demo is not described as benchmark-harness integration.
+- [x] Multi-agent is described through `HarnessRunner::runMultiAgentDemo()` and is not confused with the ten-task single-agent benchmark.
 - [x] A fallback-assisted 10/10 run is described as pipeline evidence, not proof of model planning quality.
 
 ## 4. Secret and Artifact Checks

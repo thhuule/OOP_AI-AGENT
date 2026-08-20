@@ -29,6 +29,12 @@ classDiagram
         UnknownError
     }
 
+    class LLMUsage {
+        +int prompt_tokens
+        +int completion_tokens
+        +total_tokens() int
+    }
+
     class Message {
         +string role
         +string content
@@ -38,6 +44,7 @@ classDiagram
     class LLMClient {
         <<abstract>>
         +generate_chat(messages: vector~Message~, config: LLMConfig) expected~string,LLMError~
+        +last_usage() LLMUsage
     }
 
     class OllamaClient {
@@ -65,9 +72,11 @@ classDiagram
         -string skills_dir_
         -vector~string~ loaded_skills_
         -vector~string~ skill_contents_
+        -vector~vector~string~~ skill_keywords_
         +loadAll() void
         +loadSkill(skill_name: string) bool
         +getSystemPrompt() string
+        +getSystemPromptForTask(task: string) string
         +getLoadedSkills() vector~string~
     }
 
@@ -163,6 +172,7 @@ classDiagram
         +register_all_tools() void
         +has_creator(name: string) bool
         +has_instance(name: string) bool
+        +catalog() vector~pair~string,string~~
     }
 
     class CalculatorTool {
@@ -199,6 +209,8 @@ classDiagram
         +execute(args) expected~string,ToolError~
         -memory_save(key, value) string
         -memory_search(query) string
+        -vsave_memory(text) expected~string,ToolError~
+        -vsearch_memory(query, top_k) expected~string,ToolError~
     }
 
     class TimeTool {
@@ -238,13 +250,16 @@ classDiagram
     %% ─────────────────────────────────────────
     class TrajectoryStep {
         +int    step
+        +string source
         +string thought
+        +string action
         +string tool_name
         +string args
         +string result
         +bool   success
         +double latency_ms
         +int    tokens
+        +int    tokens_used
     }
 
     class Task {
@@ -264,6 +279,8 @@ classDiagram
         +double                  evaluator_score
         +double                  action_score
         +string                  failure_reason
+        +size_t                  tool_steps_count
+        +int                     total_tokens
         +vector~TrajectoryStep~  trajectory
     }
 

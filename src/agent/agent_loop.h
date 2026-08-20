@@ -38,7 +38,7 @@ struct TrajectoryStep {
     std::string result;
     bool        success     = false;
     double      latency_ms  = 0.0;
-    int         tokens      = 0;   // NOTE: currently 0 — measurement gap
+    int         tokens      = 0;
     int         tokens_used = 0;
 };
 
@@ -138,6 +138,7 @@ protected:
     bool        used_fallback_action_ = false;
     bool        fallback_enabled_     = false;
     bool        abort_          = false;
+    int         last_llm_tokens_ = 0;
 };
 
 } // namespace oop_agent

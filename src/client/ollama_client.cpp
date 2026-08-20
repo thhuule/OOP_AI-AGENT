@@ -73,10 +73,20 @@ nlohmann::json OllamaClient::build_request_body(
     return request_json;
 }
 
+LLMUsage OllamaClient::parse_usage(const nlohmann::json& response) noexcept {
+    try {
+        return {response.value("prompt_eval_count", 0),
+                response.value("eval_count", 0)};
+    } catch (...) {
+        return {};
+    }
+}
+
 std::expected<std::string, LLMError> OllamaClient::generate_chat(
     const std::vector<Message>& conversation_history,
     const LLMConfig& config
 ) {
+    last_usage_ = {};
     const LLMConfig effective = resolve_config(config);
     if (effective.ollama_host.empty() || effective.ollama_model.empty()) {
         return std::unexpected(LLMError::ConnectionRefused);
@@ -123,6 +133,7 @@ std::expected<std::string, LLMError> OllamaClient::generate_chat(
 
     try {
         auto res_json = json::parse(read_buffer);
+        last_usage_ = parse_usage(res_json);
         if (res_json.contains("message") && res_json["message"].contains("content")) {
             return res_json["message"]["content"].get<std::string>();
         }

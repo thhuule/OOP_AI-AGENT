@@ -2,7 +2,7 @@
 
 > **Mục tiêu:** chuyển project từ “có code/test cục bộ” thành “mọi requirement bắt buộc có production path, failure behavior, test, evidence và independent review”. Đây là tuần hardening; không thêm scope GUI/VLM.
 >
-> **Source of truth:** đề gốc [`OOP Project 2026 AI Agent.docx (1).md`](../reference/OOP%20Project%202026%20AI%20Agent.docx%20(1).md) → source/CMake/test hiện tại → artifact chạy mới → docs. Kế hoạch Tuần 10 chỉ là lịch sử điều phối.
+> **Source of truth:** đề gốc [`OOP Project 2026 AI Agent.docx (1).md`](../reference/OOP%20Project%202026%20AI%20Agent.docx%20%281%29.md) → source/CMake/test hiện tại → artifact chạy mới → docs. Kế hoạch Tuần 10 chỉ là lịch sử điều phối.
 
 ## 1. Current status và scope quyết định
 

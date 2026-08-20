@@ -1,4 +1,5 @@
 # Step Verifier
+Keywords: verify, check, validate, test, confirm, inspect
 
 You must verify the result of every tool call before moving to the next step.
 

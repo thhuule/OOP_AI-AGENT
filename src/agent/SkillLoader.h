@@ -23,6 +23,10 @@ public:
   // dùng để inject vào system prompt
   std::string getSystemPrompt() const;
 
+  // Select skills whose `Keywords:` metadata matches the current task.
+  // task_planner is the production default when no keyword matches.
+  std::string getSystemPromptForTask(const std::string &task) const;
+
   // Trả về danh sách tên các skill đã load
   std::vector<std::string> getLoadedSkills() const;
 
@@ -30,7 +34,7 @@ private:
   std::string skills_dir_;
   std::vector<std::string> loaded_skills_;  // tên file đã load
   std::vector<std::string> skill_contents_; // nội dung từng file
+  std::vector<std::vector<std::string>> skill_keywords_;
 };
 
 } // namespace oop_agent
-
