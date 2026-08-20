@@ -1,4 +1,5 @@
 #include <cassert>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -165,11 +166,24 @@ void test_register_all_tools() {
     assert(reg.has_instance("execute_shell"));
     assert(reg.has_instance("web_search"));
     assert(reg.has_instance("memory"));
+    assert(reg.has_instance("memory_save"));
+    assert(reg.has_instance("memory_search"));
     assert(reg.has_instance("time"));
     assert(reg.has_instance("json"));
     assert(reg.has_instance("git"));
     assert(reg.has_instance("capture_screenshot"));
     assert(reg.has_instance("gui_action"));
+    assert(reg.has_creator("memory_save"));
+    assert(reg.has_creator("memory_search"));
+
+    const auto catalog = reg.catalog();
+    const auto has_catalog_entry = [&](const std::string& name) {
+        return std::ranges::any_of(catalog, [&](const auto& entry) {
+            return entry.first == name && !entry.second.empty();
+        });
+    };
+    assert(has_catalog_entry("memory_save"));
+    assert(has_catalog_entry("memory_search"));
     
     // Verify aliases
     assert(reg.lookup("calculate") != nullptr);
@@ -427,7 +441,12 @@ void test_calculator_args_trim() {
 /// B-10-02: MemoryTool hai mode save/search và invalid input trả ToolError.
 void test_memory_modes() {
     std::cout << "[TEST] Running test_memory_modes...\n";
-    MemoryTool mem;
+    std::remove("test_memory_modes.db");
+    MemoryTool mem("test_memory_modes.db", std::make_unique<HashEmbedder>());
+
+    auto empty_search = mem.execute("search zzz_no_such_keyword_zzz");
+    assert(empty_search.has_value());
+    assert(empty_search.value().find("No vector memory found") != std::string::npos);
 
     auto saved = mem.execute("save Tokyo");
     assert(saved.has_value());
@@ -435,10 +454,6 @@ void test_memory_modes() {
     auto found = mem.execute("search Tokyo");
     assert(found.has_value());
     assert(found.value().find("Tokyo") != std::string::npos);
-
-    auto notfound = mem.execute("search zzz_no_such_keyword_zzz");
-    assert(notfound.has_value());
-    assert(notfound.value().find("No memory found") != std::string::npos);
 
     auto bad = mem.execute("unknown_command");
     assert(!bad.has_value());
@@ -453,6 +468,7 @@ void test_memory_modes() {
     assert(custom_mem.get_db_path() == "custom_test_mem.db");
     auto custom_save = custom_mem.execute("save test item");
     assert(custom_save.has_value());
+    std::remove("test_memory_modes.db");
     std::remove("custom_test_mem.db");
 
     // W10.5-B-02: Test invalid/unwritable DB path -> returns ToolError::ExecutionFailed safely without crash
@@ -674,10 +690,10 @@ void test_memory_vector_search_ranking() {
     assert(!bad_search.has_value());
     assert(bad_search.error() == ToolError::InvalidArgument);
 
-    // save/search cũ vẫn hoạt động (regression).
-    auto old_save = mem.execute("save legacy entry");
+    // save/search are the primary vector path; legacy_* preserves keyword mode.
+    auto old_save = mem.execute("legacy_save legacy entry");
     assert(old_save.has_value());
-    auto old_search = mem.execute("search legacy");
+    auto old_search = mem.execute("legacy_search legacy");
     assert(old_search.has_value());
 
     std::cout << "  -> PASSED\n";
@@ -710,11 +726,11 @@ void test_ollama_embedder() {
     assert(!bad_vsearch.has_value());
     assert(bad_vsearch.error() == ToolError::ExecutionFailed);
 
-    // save/search (offline regression) work without vector embedder.
-    auto legacy_save = offline_ollama_mem.execute("save legacy offline note");
+    // Explicit legacy keyword mode works without a vector service.
+    auto legacy_save = offline_ollama_mem.execute("legacy_save legacy offline note");
     assert(legacy_save.has_value());
 
-    auto legacy_search = offline_ollama_mem.execute("search offline note");
+    auto legacy_search = offline_ollama_mem.execute("legacy_search offline note");
     assert(legacy_search.has_value());
 
     std::cout << "  -> PASSED\n";
@@ -747,9 +763,9 @@ void test_live_ollama_vector_acceptance() {
     std::filesystem::create_directories(db_path.parent_path());
     {
         MemoryTool memory(db_path.string(), std::make_unique<OllamaEmbedder>());
-        assert(memory.execute("vsave weather forecast for Tokyo").has_value());
-        assert(memory.execute("vsave C++ compiler optimization flags").has_value());
-        const auto result = memory.execute("vsearch Tokyo weather");
+        assert(memory.execute("save weather forecast for Tokyo").has_value());
+        assert(memory.execute("save C++ compiler optimization flags").has_value());
+        const auto result = memory.execute("search Tokyo weather");
         assert(result.has_value());
         assert(result->find("weather forecast for Tokyo") != std::string::npos);
     }

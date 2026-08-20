@@ -34,22 +34,25 @@ sequenceDiagram
             Harness->>Agent: run(instruction, max_steps)
             loop Each AgentLoop step
                 Agent->>LLM: generate_chat(history)
-                alt LLM error or malformed response
+                alt LLM error or malformed provider response
                     LLM-->>Agent: LLMError
-                    Agent->>Agent: Add retry instruction or stop at limit
+                    Agent->>Hook: classified failure/final step
+                    Agent-->>Harness: Stop gracefully
                 else Tool call
-                    LLM-->>Agent: tool name + args
+                    LLM-->>Agent: tool name + args + usage
+                    Agent->>Agent: Append assistant response
                     Agent->>Tool: find and execute(args)
                     alt Tool success
                         Tool-->>Agent: Result
                     else Tool rejected/failed
                         Tool-->>Agent: ToolError
                     end
-                    Agent->>Hook: thought, action with args, result
+                    Agent->>Agent: Append tool observation
+                    Agent->>Hook: thought, action with args, result, tokens
                     Hook->>Harness: Append trajectory step + latency
                 else Final answer
-                    LLM-->>Agent: Final text
-                    Agent->>Agent: Check completion guards
+                    LLM-->>Agent: Final text + usage
+                    Agent->>Hook: final_answer step + tokens
                 end
             end
             Agent-->>Harness: Final output

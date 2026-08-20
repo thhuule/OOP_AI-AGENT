@@ -13,8 +13,36 @@
 #include "ActionTool.h"
 
 #include <print>    // C++23
+#include <algorithm>
 
 namespace oop_agent {
+
+namespace {
+class MemoryCommandTool final : public Tool {
+public:
+    MemoryCommandTool(std::string name, std::string command,
+                      std::shared_ptr<MemoryTool> memory)
+        : name_(std::move(name)), command_(std::move(command)),
+          memory_(std::move(memory)) {}
+
+    [[nodiscard]] std::string_view get_name() const noexcept override { return name_; }
+    [[nodiscard]] std::string_view get_description() const noexcept override {
+        return name_ == "memory_save"
+            ? "Save text to persistent vector memory. Args: text"
+            : "Search persistent vector memory by semantic similarity. Args: query";
+    }
+    std::expected<std::string, ToolError> execute(const std::string& arguments) override {
+        if (arguments.empty())
+            return std::unexpected(ToolError::InvalidArgument);
+        return memory_->execute(command_ + " " + arguments);
+    }
+
+private:
+    std::string name_;
+    std::string command_;
+    std::shared_ptr<MemoryTool> memory_;
+};
+} // namespace
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
@@ -111,6 +139,19 @@ bool ToolRegistry::has_instance(const std::string& name) const
     return registry_.contains(normalize(name));
 }
 
+std::vector<std::pair<std::string, std::string>> ToolRegistry::catalog() const {
+    auto names = registry_.list();
+    std::ranges::sort(names);
+    std::vector<std::pair<std::string, std::string>> result;
+    for (const auto& name : names) {
+        if (!is_allowed(name))
+            continue;
+        if (const Tool* tool = registry_.get(name))
+            result.emplace_back(name, std::string(tool->get_description()));
+    }
+    return result;
+}
+
 // ── register_all_tools ────────────────────────────────────────────────────────
 
 void ToolRegistry::register_all_tools() {
@@ -123,6 +164,14 @@ void ToolRegistry::register_all_tools() {
     register_creator("execute_shell", [] { return std::make_unique<ExecTool>(); });
     register_creator("web_search",    [] { return std::make_unique<WebSearchTool>(); });
     register_creator("memory",        [] { return std::make_unique<MemoryTool>(); });
+    register_creator("memory_save",   [] {
+        return std::make_unique<MemoryCommandTool>(
+            "memory_save", "save", std::make_shared<MemoryTool>());
+    });
+    register_creator("memory_search", [] {
+        return std::make_unique<MemoryCommandTool>(
+            "memory_search", "search", std::make_shared<MemoryTool>());
+    });
     register_creator("time",          [] { return std::make_unique<TimeTool>(); });
     register_creator("json",          [] { return std::make_unique<JsonTool>(); });
     register_creator("git",           [] { return std::make_unique<GitTool>(); });
@@ -138,7 +187,10 @@ void ToolRegistry::register_all_tools() {
     register_tool(std::make_shared<FileAppendTool>());  // "append_file"
     register_tool(std::make_shared<ExecTool>());
     register_tool(std::make_shared<WebSearchTool>());
-    register_tool(std::make_shared<MemoryTool>());
+    auto memory = std::make_shared<MemoryTool>();
+    register_tool(memory);
+    register_tool(std::make_shared<MemoryCommandTool>("memory_save", "save", memory));
+    register_tool(std::make_shared<MemoryCommandTool>("memory_search", "search", memory));
     register_tool(std::make_shared<TimeTool>());
     register_tool(std::make_shared<JsonTool>());
     register_tool(std::make_shared<GitTool>());

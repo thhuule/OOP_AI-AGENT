@@ -39,22 +39,25 @@ sequenceDiagram
             Harness->>Agent: run(instruction, max_steps)
             loop Each AgentLoop step
                 Agent->>LLM: generate_chat(history)
-                alt LLM error or malformed response
+                alt LLM error or malformed provider response
                     LLM-->>Agent: LLMError
-                    Agent->>Agent: Add retry instruction or stop at limit
+                    Agent->>Hook: classified failure/final step
+                    Agent-->>Harness: Stop gracefully
                 else Tool call
-                    LLM-->>Agent: tool name + args
+                    LLM-->>Agent: tool name + args + usage
+                    Agent->>Agent: Append assistant response
                     Agent->>Tool: find and execute(args)
                     alt Tool success
                         Tool-->>Agent: Result
                     else Tool rejected/failed
                         Tool-->>Agent: ToolError
                     end
-                    Agent->>Hook: thought, action with args, result
+                    Agent->>Agent: Append tool observation
+                    Agent->>Hook: thought, action with args, result, tokens
                     Hook->>Harness: Append trajectory step + latency
                 else Final answer
-                    LLM-->>Agent: Final text
-                    Agent->>Agent: Check completion guards
+                    LLM-->>Agent: Final text + usage
+                    Agent->>Hook: final_answer step + tokens
                 end
             end
             Agent-->>Harness: Final output
@@ -94,8 +97,8 @@ Standalone Mermaid source for reproducible rendering: [`sequence_harness.mmd`](s
 - Strategy: `HarnessRunner` selects `KeywordEvaluator` or `FunctionalEvaluator` according to `eval_type`.
 - Observer/Hook: `AgentLoop` only invokes a callback; it neither includes nor depends on `HarnessRunner`.
 - Tool arguments are packaged in the JSON action before being sent through the hook.
-- The hook currently records tool steps only. The LLM's final answer does not have a separate trajectory step.
-- `tokens_used` is currently set to `0`, which means it has not been measured.
+- The hook records tool steps and a separate `final_answer` step. `tool_steps_count` excludes the final-answer step.
+- `tokens_used` comes from Gemini/Ollama response metadata; `0` means the provider omitted that metadata.
 - If a tool does not exist, `AgentLoop` adds the error to the history so the model can retry; the current code does not invoke the hook on the tool-not-found path.
 - `runAll()` waits three seconds between tasks to reduce rate-limit pressure.
 
@@ -103,8 +106,4 @@ Standalone Mermaid source for reproducible rendering: [`sequence_harness.mmd`](s
 
 `benchmark/test_harness.cpp` currently covers task specifications, IDs and paths, Strategy selection, stale-artifact cleanup, tool-argument preservation, missing artifacts, content mismatches, invalid/tool/evaluator errors, required tool steps, and score aggregation.
 
-Add the following checks after the related interfaces stabilize:
-
-1. The harness uses an `Environment` abstraction instead of accessing the filesystem directly.
-2. A cleanup failure produced by a fake environment stops the batch.
-3. Rate limits, timeouts, and loop detection are classified with independent fixtures.
+Remaining focused-test gap: rate limits, timeouts, and loop detection need independent classifier fixtures. Environment cleanup failure, final-answer recording, token totals, and JSON export are covered.

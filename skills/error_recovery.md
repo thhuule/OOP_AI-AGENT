@@ -1,4 +1,5 @@
 # Error Recovery
+Keywords: error, fail, failure, missing, recover, recovery, retry, invalid
 
 When a step fails, do not give up immediately. Try to recover before reporting failure.
 

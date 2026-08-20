@@ -30,8 +30,8 @@ public:
     ~MultiAgentRunner();
 
     // Không cho copy
-    MultiAgentRunner(const MultiAgentRunner&) = delete;
-    MultiAgentRunner& operator=(const MultiAgentRunner&) = delete;
+    MultiAgentRunner(const MultiAgentRunner&) = delete("MultiAgentRunner owns worker threads and is non-copyable");
+    MultiAgentRunner& operator=(const MultiAgentRunner&) = delete("MultiAgentRunner owns worker threads and is non-copyable");
 
     /**
      * @brief Đăng ký một Sub-Agent vào hệ thống.

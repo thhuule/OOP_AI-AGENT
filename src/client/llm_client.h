@@ -47,6 +47,15 @@ struct LLMConfig {
     int max_tokens = 2048;                       
 };
 
+struct LLMUsage {
+    int prompt_tokens = 0;
+    int completion_tokens = 0;
+
+    [[nodiscard]] int total_tokens() const noexcept {
+        return prompt_tokens + completion_tokens;
+    }
+};
+
 // 4. Lớp giao tiếp cơ sở
 class LLMClient {
 public:
@@ -56,6 +65,10 @@ public:
         const std::vector<Message>& conversation_history,
         const LLMConfig& config = LLMConfig{}
     ) = 0;
+
+    /// Token metadata for the most recent generate_chat() call. Providers
+    /// that do not return usage keep the default zero value (not measured).
+    [[nodiscard]] virtual LLMUsage last_usage() const noexcept { return {}; }
 };
 
 } // namespace oop_agent
