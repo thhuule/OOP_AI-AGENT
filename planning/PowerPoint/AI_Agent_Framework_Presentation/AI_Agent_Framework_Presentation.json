@@ -1,0 +1,278 @@
+{
+  "width": 13.333,
+  "height": 7.5,
+  "meta": {
+    "title": "AI Agent Framework với Ollama và Gemini",
+    "author": "Role A · Role B · Role C"
+  },
+  "theme": {
+    "colors": {
+      "dk1": "0B1220",
+      "lt1": "F4F7FB",
+      "dk2": "162033",
+      "lt2": "A9B5C7",
+      "accent1": "35C2FF",
+      "accent2": "33D6A6",
+      "accent3": "F5B942",
+      "accent4": "FF6B6B"
+    },
+    "majorFont": "Aptos Display",
+    "minorFont": "Aptos"
+  },
+  "slides": [
+    {
+      "background": { "type": "gradient", "stops": [{ "position": 0, "color": "0B1220" }, { "position": 100, "color": "162033" }], "angle": 135 },
+      "transition": "fade",
+      "elements": [
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 9.8, "y": -1.1, "w": 4.8, "h": 4.8 }, "fill": { "type": "gradient", "stops": [{ "position": 0, "color": "35C2FF" }, { "position": 100, "color": "33D6A6" }], "angle": 45 }, "line": { "color": "35C2FF", "width": 0 }, "animations": [{ "type": "fadeIn", "duration": 700, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "AI Agent Framework", "position": { "x": 0.72, "y": 1.35, "w": 8.7, "h": 0.85 }, "fontSize": 46, "bold": true, "color": "F4F7FB", "fontFamily": "Aptos Display", "animations": [{ "type": "fadeIn", "duration": 700, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "với Ollama và Gemini APIs", "position": { "x": 0.75, "y": 2.25, "w": 8.5, "h": 0.6 }, "fontSize": 25, "color": "35C2FF", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "Modern C++17 / 20 / 23 / 26", "position": { "x": 0.76, "y": 3.0, "w": 6.7, "h": 0.45 }, "fontSize": 18, "color": "A9B5C7", "animations": [{ "type": "fadeIn", "duration": 450, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 4.05, "w": 3.65, "h": 1.05 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "Role A\n[Tên – MSSV]\nSystems / Core", "fontSize": 15, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.84, "y": 4.05, "w": 3.65, "h": 1.05 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "Role B\n[Tên – MSSV]\nTools / Data", "fontSize": 15, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.93, "y": 4.05, "w": 3.65, "h": 1.05 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.5 }, "text": "Role C\n[Tên – MSSV]\nEval / Infra", "fontSize": 15, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "1", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "push",
+      "elements": [
+        { "type": "text", "text": "Từ chatbot sang Agent có khả năng hành động", "position": { "x": 0.65, "y": 0.45, "w": 11.9, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "LLM đơn thuần chỉ sinh văn bản — Agent biến quyết định thành hành động có kiểm chứng.", "position": { "x": 0.68, "y": 1.28, "w": 11.2, "h": 0.48 }, "fontSize": 18, "color": "A9B5C7", "animations": [{ "type": "fadeIn", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 2.45, "w": 2.25, "h": 1.4 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "THINK\nLLM chọn bước tiếp theo", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 3.17, "y": 2.85, "w": 0.65, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 }, "animations": [{ "type": "wipeIn", "direction": "right", "duration": 300, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.0, "y": 2.45, "w": 2.25, "h": 1.4 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "ACT\nFramework chạy tool", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 6.42, "y": 2.85, "w": 0.65, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 }, "animations": [{ "type": "wipeIn", "direction": "right", "duration": 300, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 7.25, "y": 2.45, "w": 2.25, "h": 1.4 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.5 }, "text": "OBSERVE\nKết quả vào history", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 9.67, "y": 2.85, "w": 0.65, "h": 0.55 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 }, "animations": [{ "type": "wipeIn", "direction": "right", "duration": 300, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 10.5, "y": 2.45, "w": 2.1, "h": 1.4 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "CONTINUE\nhoặc FINISH", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "Mở rộng được  ·  Lỗi rõ ràng  ·  Đánh giá tái lập", "position": { "x": 2.2, "y": 5.0, "w": 8.9, "h": 0.65 }, "fontSize": 24, "bold": true, "color": "33D6A6", "align": "center", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious", "delay": 150 }] },
+        { "type": "text", "text": "Role A · Systems / Core", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "2", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Các tầng được tách bằng contract rõ ràng", "position": { "x": 0.65, "y": 0.45, "w": 11.8, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.8, "y": 1.75, "w": 2.2, "h": 3.8 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "LLM CLIENT\n\nGeminiClient\nOllamaClient\n\ntext + image\nconfig + usage", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 3.15, "y": 3.25, "w": 0.6, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.9, "y": 1.75, "w": 2.2, "h": 3.8 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "AGENT CORE\n\nAgentLoop\nLoopDetector\nSkillLoader\n\nReAct + history", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 6.25, "y": 3.25, "w": 0.6, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 7.0, "y": 1.75, "w": 2.2, "h": 3.8 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.5 }, "text": "TOOLS\n\nToolRegistry\nFactory + policy\nConcrete tools\n\nToolError", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 9.35, "y": 3.25, "w": 0.6, "h": 0.55 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 10.1, "y": 1.75, "w": 2.4, "h": 3.8 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "EVALUATION\n\nHarnessRunner\nEvaluator Strategy\nTrajectory export\n\nStepHook", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "text", "text": "Agent phát sự kiện; Harness quan sát mà không tạo dependency ngược.", "position": { "x": 1.55, "y": 5.88, "w": 10.2, "h": 0.48 }, "fontSize": 19, "color": "A9B5C7", "align": "center" },
+        { "type": "text", "text": "Role A · Systems / Core", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "3", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "AgentLoop điều phối LLM, tool và history", "position": { "x": 0.65, "y": 0.45, "w": 11.9, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 1.65, "w": 5.55, "h": 4.7 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "LLM CLIENT\n\n• Text và ảnh base64 trong một interface\n• Endpoint, model, temperature\n• Max tokens và timeout từ config\n• Gemini / Ollama cùng contract", "fontSize": 19, "color": "F4F7FB", "align": "left", "vertAlign": "middle", "margin": 0.35, "animations": [{ "type": "flyIn", "direction": "left", "duration": 550, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 6.75, "y": 1.65, "w": 5.8, "h": 4.7 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "PARSER + HISTORY\n\n• JSON và fenced JSON\n• Escaped arguments không bị cắt\n• Role: system → user → assistant → tool\n• JSON hỏng → PARSE_ERROR, không chạy tool", "fontSize": 19, "color": "F4F7FB", "align": "left", "vertAlign": "middle", "margin": 0.35, "animations": [{ "type": "flyIn", "direction": "right", "duration": 550, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "Role A · Systems / Core", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "4", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Loop Detector và Skill System giữ Agent đúng hướng", "position": { "x": 0.65, "y": 0.45, "w": 12.0, "h": 0.75 }, "fontSize": 33, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 1.0, "y": 2.1, "w": 2.0, "h": 2.0 }, "fill": "162033", "line": { "color": "35C2FF", "width": 2 }, "text": "Action\nhistory", "fontSize": 20, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 450, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 3.2, "y": 2.78, "w": 0.9, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.3, "y": 1.75, "w": 3.0, "h": 2.75 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.5 }, "text": "LOOP DETECTOR\n\nGeneric repeat\nPing-pong A ↔ B\n\nWarning → Critical", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 7.5, "y": 2.78, "w": 0.9, "h": 0.55 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.65, "y": 1.75, "w": 3.65, "h": 2.75 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "SKILL LOADER\n\nerror_recovery\nstep_verifier\ntask_planner\n\nChọn theo keyword mỗi run", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "right", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 2.15, "y": 5.18, "w": 3.8, "h": 0.8 }, "fill": "162033", "line": { "color": "FF6B6B", "width": 1.5 }, "text": "Critical → dừng an toàn", "fontSize": 20, "bold": true, "color": "FF6B6B", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 7.4, "y": 5.18, "w": 3.8, "h": 0.8 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "Không khớp → task_planner", "fontSize": 20, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Role A · Systems / Core", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "5", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "push",
+      "elements": [
+        { "type": "text", "text": "Bốn design pattern nằm trên production path", "position": { "x": 0.65, "y": 0.45, "w": 11.9, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 1.7, "w": 2.82, "h": 3.9 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.6 }, "text": "STRATEGY\n\nEvaluator\nTool\n\nĐổi implementation\nkhông đổi caller", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.75, "y": 1.7, "w": 2.82, "h": 3.9 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.6 }, "text": "TEMPLATE METHOD\n\nAgentLoop::run()\n\nSkeleton cố định,\nprimitive có thể override", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 6.75, "y": 1.7, "w": 2.82, "h": 3.9 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.6 }, "text": "REGISTRY / FACTORY\n\nToolRegistry\n\nLookup instance\nTạo instance mới", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 9.75, "y": 1.7, "w": 2.82, "h": 3.9 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.6 }, "text": "OBSERVER / HOOK\n\nStepHook\n\nHarness ghi trace,\nAgent không biết Harness", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "Pattern được chứng minh bằng luồng chạy và focused tests — không chỉ nằm trong sơ đồ.", "position": { "x": 1.35, "y": 5.95, "w": 10.6, "h": 0.42 }, "fontSize": 18, "color": "A9B5C7", "align": "center" },
+        { "type": "text", "text": "Role B · Tools / Data", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "6", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Modern C++ làm rõ ownership và contract", "position": { "x": 0.65, "y": 0.45, "w": 11.9, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "line", "position": { "x": 1.15, "y": 3.15, "w": 10.9, "h": 0.02 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 2 } },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 1.0, "y": 2.88, "w": 0.55, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 4.35, "y": 2.88, "w": 0.55, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 7.7, "y": 2.88, "w": 0.55, "h": 0.55 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 } },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 11.05, "y": 2.88, "w": 0.55, "h": 0.55 }, "fill": "FF6B6B", "line": { "color": "FF6B6B", "width": 0 } },
+        { "type": "text", "text": "C++17", "position": { "x": 0.65, "y": 1.8, "w": 1.25, "h": 0.5 }, "fontSize": 25, "bold": true, "color": "35C2FF", "align": "center", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "smart pointers\nfilesystem\nvariant · optional", "position": { "x": 0.35, "y": 3.65, "w": 2.0, "h": 1.4 }, "fontSize": 17, "color": "F4F7FB", "align": "center" },
+        { "type": "text", "text": "C++20", "position": { "x": 4.0, "y": 1.8, "w": 1.25, "h": 0.5 }, "fontSize": 25, "bold": true, "color": "33D6A6", "align": "center", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "ranges\nviews", "position": { "x": 3.65, "y": 3.65, "w": 2.0, "h": 1.1 }, "fontSize": 17, "color": "F4F7FB", "align": "center" },
+        { "type": "text", "text": "C++23", "position": { "x": 7.35, "y": 1.8, "w": 1.25, "h": 0.5 }, "fontSize": 25, "bold": true, "color": "F5B942", "align": "center", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "std::expected\nstd::println", "position": { "x": 7.0, "y": 3.65, "w": 2.0, "h": 1.1 }, "fontSize": 17, "color": "F4F7FB", "align": "center" },
+        { "type": "text", "text": "C++26", "position": { "x": 10.7, "y": 1.8, "w": 1.25, "h": 0.5 }, "fontSize": 25, "bold": true, "color": "FF6B6B", "align": "center", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 9.75, "y": 3.65, "w": 3.25, "h": 1.35 }, "fill": "162033", "line": { "color": "FF6B6B", "width": 1.3 }, "text": "= delete(\"owns worker threads\")", "fontSize": 16, "color": "F4F7FB", "fontFamily": "Cascadia Mono", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Không claim std::inplace_vector", "position": { "x": 9.9, "y": 5.25, "w": 2.95, "h": 0.38 }, "fontSize": 14, "color": "A9B5C7", "align": "center" },
+        { "type": "text", "text": "Role B · Tools / Data", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "7", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "ToolRegistry mở rộng tool mà không sửa Agent Core", "position": { "x": 0.65, "y": 0.45, "w": 12.0, "h": 0.75 }, "fontSize": 33, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "ellipse", "position": { "x": 5.1, "y": 2.4, "w": 3.1, "h": 2.1 }, "fill": "162033", "line": { "color": "35C2FF", "width": 2 }, "text": "ToolRegistry\n\nlookup · create · catalog", "fontSize": 20, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 2.65, "y": 2.95, "w": 1.7, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "text", "text": "register", "position": { "x": 2.9, "y": 2.62, "w": 1.05, "h": 0.28 }, "fontSize": 13, "color": "35C2FF", "align": "center" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.65, "y": 2.4, "w": 2.25, "h": 1.65 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "Concrete Tool\nname · description\nexecute(arguments)", "fontSize": 16, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 8.95, "y": 2.95, "w": 1.7, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "text", "text": "catalog", "position": { "x": 9.2, "y": 2.62, "w": 1.05, "h": 0.28 }, "fontSize": 13, "color": "33D6A6", "align": "center" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 10.4, "y": 2.4, "w": 2.25, "h": 1.65 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "System Prompt\nTên và mô tả\nkhớp runtime", "fontSize": 16, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 1.05, "y": 5.1, "w": 3.15, "h": 0.75 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.4 }, "text": "Alias normalization", "fontSize": 18, "bold": true, "color": "F5B942", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 400, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.1, "y": 5.1, "w": 3.15, "h": 0.75 }, "fill": "162033", "line": { "color": "FF6B6B", "width": 1.4 }, "text": "Allow / deny policy", "fontSize": 18, "bold": true, "color": "FF6B6B", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 400, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 9.15, "y": 5.1, "w": 3.15, "h": 0.75 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.4 }, "text": "Fresh-instance factory", "fontSize": 18, "bold": true, "color": "35C2FF", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 400, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "text", "text": "Role B · Tools / Data", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "8", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Bộ tool đáp ứng requirement bắt buộc", "position": { "x": 0.65, "y": 0.45, "w": 11.8, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "5 nhóm bắt buộc", "position": { "x": 0.75, "y": 1.45, "w": 3.0, "h": 0.45 }, "fontSize": 22, "bold": true, "color": "35C2FF" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 2.05, "w": 2.1, "h": 1.25 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.3 }, "text": "Shell\nexecute_shell", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 350, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.05, "y": 2.05, "w": 2.1, "h": 1.25 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.3 }, "text": "File\nread · write · append", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 350, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.35, "y": 2.05, "w": 2.1, "h": 1.25 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.3 }, "text": "Web Search\nDuckDuckGo / Wiki", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 350, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 7.65, "y": 2.05, "w": 2.1, "h": 1.25 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.3 }, "text": "Memory\nmemory_save\nmemory_search", "fontSize": 16, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 350, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 9.95, "y": 2.05, "w": 2.1, "h": 1.25 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.3 }, "text": "Calculator\nbiểu thức số học", "fontSize": 17, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 350, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "text", "text": "3 tool bổ sung", "position": { "x": 0.75, "y": 4.0, "w": 3.0, "h": 0.45 }, "fontSize": 22, "bold": true, "color": "F5B942" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 4.65, "w": 2.65, "h": 1.0 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.3 }, "text": "Time", "fontSize": 19, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.75, "y": 4.65, "w": 2.65, "h": 1.0 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.3 }, "text": "JSON", "fontSize": 19, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 6.75, "y": 4.65, "w": 2.65, "h": 1.0 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.3 }, "text": "Git", "fontSize": 19, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 9.75, "y": 4.65, "w": 2.35, "h": 1.0 }, "fill": "162033", "line": { "color": "FF6B6B", "width": 1.3 }, "text": "Failure → ToolError", "fontSize": 17, "bold": true, "color": "FF6B6B", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Role B · Tools / Data", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "9", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Vector Search thay thế tìm kiếm từ khóa", "position": { "x": 0.65, "y": 0.45, "w": 10.6, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 11.2, "y": 0.52, "w": 1.45, "h": 0.48 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 }, "text": "BONUS +4", "fontSize": 15, "bold": true, "color": "0B1220", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.6, "y": 2.0, "w": 1.95, "h": 2.2 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "1\nVăn bản", "fontSize": 20, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 430, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 2.62, "y": 2.78, "w": 0.52, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.2, "y": 2.0, "w": 2.05, "h": 2.2 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "2\nOllama\nnomic-embed-text", "fontSize": 18, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 430, "trigger": "afterPrevious", "delay": 90 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 5.32, "y": 2.78, "w": 0.52, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.9, "y": 2.0, "w": 1.95, "h": 2.2 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "3\nEmbedding\nvector", "fontSize": 18, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 430, "trigger": "afterPrevious", "delay": 90 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 7.92, "y": 2.78, "w": 0.52, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.5, "y": 2.0, "w": 1.95, "h": 2.2 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "4\nSQLite\ntext + vector", "fontSize": 18, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 430, "trigger": "afterPrevious", "delay": 90 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 10.52, "y": 2.78, "w": 0.52, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 11.1, "y": 2.0, "w": 1.65, "h": 2.2 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "5\nCosine\nsimilarity", "fontSize": 18, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 430, "trigger": "afterPrevious", "delay": 90 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.85, "y": 5.0, "w": 5.2, "h": 0.85 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.3 }, "text": "Production: OllamaEmbedder", "fontSize": 21, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 7.0, "y": 4.75, "w": 5.45, "h": 1.35 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.3 }, "text": "Offline test: HashEmbedder\nKhông tự fallback trong production", "fontSize": 18, "bold": true, "color": "F5B942", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Role B · Tools / Data", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "10", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "push",
+      "elements": [
+        { "type": "text", "text": "Harness biến một lần chạy thành evidence", "position": { "x": 0.65, "y": 0.45, "w": 11.8, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.65, "y": 2.05, "w": 1.85, "h": 1.45 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.4 }, "text": "SETUP\nDọn artifact", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 2.57, "y": 2.5, "w": 0.55, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.18, "y": 2.05, "w": 1.85, "h": 1.45 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.4 }, "text": "RUN\nAgentLoop", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 5.1, "y": 2.5, "w": 0.55, "h": 0.55 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.71, "y": 2.05, "w": 1.85, "h": 1.45 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.4 }, "text": "EVALUATE\nHậu điều kiện", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 7.63, "y": 2.5, "w": 0.55, "h": 0.55 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.24, "y": 2.05, "w": 1.85, "h": 1.45 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.4 }, "text": "RECORD\nTrajectory", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 10.16, "y": 2.5, "w": 0.55, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 10.77, "y": 2.05, "w": 1.9, "h": 1.45 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.4 }, "text": "CLEANUP\nKết thúc sạch", "fontSize": 17, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "fadeIn", "duration": 400, "trigger": "afterPrevious", "delay": 80 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 1.2, "y": 4.55, "w": 3.2, "h": 1.05 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.4 }, "text": "4 SIMPLE", "fontSize": 25, "bold": true, "color": "35C2FF", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.05, "y": 4.55, "w": 3.2, "h": 1.05 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.4 }, "text": "4 MEDIUM", "fontSize": 25, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.9, "y": 4.55, "w": 3.2, "h": 1.05 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.4 }, "text": "2 HARD", "fontSize": 25, "bold": true, "color": "F5B942", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Success rate đo model thật — không phải unit-test score.", "position": { "x": 2.05, "y": 5.95, "w": 9.2, "h": 0.42 }, "fontSize": 18, "color": "A9B5C7", "align": "center" },
+        { "type": "text", "text": "Role C · Eval / Infra", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "11", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Trajectory giải thích vì sao task PASS hoặc FAIL", "position": { "x": 0.65, "y": 0.45, "w": 12.0, "h": 0.75 }, "fontSize": 33, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 1.55, "w": 3.55, "h": 4.55 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "EVALUATOR STRATEGY\n\nKeywordEvaluator\nNội dung có từ khóa đúng?\n\nFunctionalEvaluator\nFile và hậu điều kiện có thật?", "fontSize": 18, "color": "F4F7FB", "align": "left", "vertAlign": "middle", "margin": 0.3, "animations": [{ "type": "flyIn", "direction": "left", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 4.55, "y": 3.25, "w": 0.85, "h": 0.6 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 5.65, "y": 1.55, "w": 6.9, "h": 4.55 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "TRAJECTORY JSON\n\n✓ action và tool name\n✓ arguments và result\n✓ success và latency\n✓ token usage khi provider cung cấp\n✓ final answer\n\nFinal answer được ghi lại nhưng không tính là tool step.", "fontSize": 18, "color": "F4F7FB", "align": "left", "vertAlign": "middle", "margin": 0.35, "animations": [{ "type": "flyIn", "direction": "right", "duration": 500, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "Role C · Eval / Infra", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "12", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": "0B1220",
+      "transition": "push",
+      "elements": [
+        { "type": "text", "text": "Hai worker phối hợp qua message queue", "position": { "x": 0.65, "y": 0.45, "w": 10.6, "h": 0.75 }, "fontSize": 34, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 11.2, "y": 0.52, "w": 1.45, "h": 0.48 }, "fill": "F5B942", "line": { "color": "F5B942", "width": 0 }, "text": "BONUS +3", "fontSize": 15, "bold": true, "color": "0B1220", "align": "center", "vertAlign": "middle" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 2.25, "w": 2.35, "h": 2.0 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "HarnessRunner\n\nChia task\nTổng hợp report", "fontSize": 18, "bold": true, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "left", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 3.25, "y": 2.95, "w": 0.9, "h": 0.55 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.3, "y": 1.85, "w": 3.15, "h": 2.8 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.5 }, "text": "MultiAgentRunner\n\nstd::queue\nmutex\ncondition_variable\n\nstop + join", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 7.6, "y": 2.25, "w": 0.8, "h": 0.5 }, "fill": "33D6A6", "line": { "color": "33D6A6", "width": 0 } },
+        { "type": "shape", "shapeType": "rightArrow", "position": { "x": 7.6, "y": 3.75, "w": 0.8, "h": 0.5 }, "fill": "35C2FF", "line": { "color": "35C2FF", "width": 0 } },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.55, "y": 1.5, "w": 3.9, "h": 1.65 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.5 }, "text": "CALCULATOR WORKER\n47 × 23", "fontSize": 20, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "right", "duration": 480, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.55, "y": 3.55, "w": 3.9, "h": 1.65 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.5 }, "text": "RESEARCHER WORKER\nTìm thủ đô Nhật Bản", "fontSize": 20, "bold": true, "color": "35C2FF", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "right", "duration": 480, "trigger": "afterPrevious", "delay": 100 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 3.8, "y": 5.45, "w": 5.7, "h": 0.75 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.4 }, "text": "Hai kết quả → report; worker failure không biến thành PASS", "fontSize": 18, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Role C · Eval / Infra", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "13", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": { "type": "gradient", "stops": [{ "position": 0, "color": "0B1220" }, { "position": 100, "color": "121B2E" }], "angle": 90 },
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Benchmark thật đạt 7/10", "position": { "x": 0.65, "y": 0.45, "w": 7.5, "h": 0.75 }, "fontSize": 36, "bold": true, "color": "F4F7FB", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "Gemini · gemma-4-31b-it", "position": { "x": 8.25, "y": 0.58, "w": 4.35, "h": 0.42 }, "fontSize": 18, "color": "35C2FF", "align": "right" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 1.65, "w": 3.7, "h": 3.65 }, "fill": "162033", "line": { "color": "33D6A6", "width": 2 }, "text": "7 / 10\n\nFINAL PASS\n70%", "fontSize": 30, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 550, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.8, "y": 1.65, "w": 3.7, "h": 3.65 }, "fill": "162033", "line": { "color": "35C2FF", "width": 2 }, "text": "70%\n\nEVALUATOR\nSCORE", "fontSize": 28, "bold": true, "color": "35C2FF", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 550, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.85, "y": 1.65, "w": 3.7, "h": 3.65 }, "fill": "162033", "line": { "color": "F5B942", "width": 2 }, "text": "90%\n\nACTION-LEVEL\nSCORE", "fontSize": 28, "bold": true, "color": "F5B942", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 550, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.75, "y": 5.65, "w": 12.0, "h": 0.72 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.2 }, "text": "run_20260820_002933_100  ·  source: llm  ·  không dùng fixture fallback", "fontSize": 18, "color": "F4F7FB", "align": "center", "vertAlign": "middle" },
+        { "type": "text", "text": "Role C · Eval / Infra", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "14", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    },
+    {
+      "background": { "type": "gradient", "stops": [{ "position": 0, "color": "0B1220" }, { "position": 100, "color": "162033" }], "angle": 135 },
+      "transition": "fade",
+      "elements": [
+        { "type": "text", "text": "Requirement kỹ thuật đã có bằng chứng kiểm thử", "position": { "x": 0.75, "y": 0.65, "w": 11.8, "h": 0.85 }, "fontSize": 36, "bold": true, "color": "F4F7FB", "align": "center", "animations": [{ "type": "fadeIn", "duration": 600, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 0.85, "y": 2.0, "w": 3.65, "h": 1.55 }, "fill": "162033", "line": { "color": "33D6A6", "width": 1.7 }, "text": "CTest\n5 / 5 PASS", "fontSize": 25, "bold": true, "color": "33D6A6", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 480, "trigger": "afterPrevious" }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.85, "y": 2.0, "w": 3.65, "h": 1.55 }, "fill": "162033", "line": { "color": "35C2FF", "width": 1.7 }, "text": "Vector\nLive acceptance PASS", "fontSize": 23, "bold": true, "color": "35C2FF", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 480, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 8.85, "y": 2.0, "w": 3.65, "h": 1.55 }, "fill": "162033", "line": { "color": "F5B942", "width": 1.7 }, "text": "Multi-agent\nFocused test PASS", "fontSize": 23, "bold": true, "color": "F5B942", "align": "center", "vertAlign": "middle", "animations": [{ "type": "flyIn", "direction": "bottom", "duration": 480, "trigger": "afterPrevious", "delay": 120 }] },
+        { "type": "text", "text": "4 design patterns  ·  4 Mermaid diagrams  ·  Benchmark thật 7/10", "position": { "x": 1.2, "y": 4.35, "w": 10.9, "h": 0.55 }, "fontSize": 23, "bold": true, "color": "F4F7FB", "align": "center", "animations": [{ "type": "fadeIn", "duration": 500, "trigger": "afterPrevious", "delay": 150 }] },
+        { "type": "text", "text": "Không claim GUI/VLM hoàn chỉnh hoặc benchmark 10/10", "position": { "x": 2.0, "y": 5.15, "w": 9.3, "h": 0.45 }, "fontSize": 18, "color": "A9B5C7", "align": "center" },
+        { "type": "shape", "shapeType": "roundRect", "position": { "x": 4.1, "y": 5.8, "w": 5.15, "h": 0.78 }, "fill": { "type": "gradient", "stops": [{ "position": 0, "color": "35C2FF" }, { "position": 100, "color": "33D6A6" }], "angle": 0 }, "line": { "color": "35C2FF", "width": 0 }, "text": "Chuyển sang video demo", "fontSize": 22, "bold": true, "color": "0B1220", "align": "center", "vertAlign": "middle", "animations": [{ "type": "zoomIn", "duration": 500, "trigger": "afterPrevious" }] },
+        { "type": "text", "text": "Role C · Eval / Infra", "position": { "x": 0.68, "y": 6.85, "w": 3.4, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7" },
+        { "type": "text", "text": "15", "position": { "x": 12.1, "y": 6.85, "w": 0.5, "h": 0.3 }, "fontSize": 11, "color": "A9B5C7", "align": "right" }
+      ]
+    }
+  ]
+}
