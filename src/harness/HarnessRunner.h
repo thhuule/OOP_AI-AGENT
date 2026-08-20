@@ -34,6 +34,7 @@ struct TaskRunResult {
   bool success = false;                    // PASS cuối: evaluator và action-level đều đạt
   bool requires_tool = false;
   std::size_t tool_steps_count = 0;
+  int total_tokens = 0;
   std::string failure_reason = "NONE";
   std::string eval_feedback;              // Nhận xét chi tiết từ Evaluator
   double latency_ms = 0.0;                // Thời gian chạy task (milliseconds)

@@ -7,6 +7,8 @@
 #include <optional>   // C++17
 #include <set>
 #include <string>
+#include <utility>
+#include <vector>
 #include "Registry.h"
 
 namespace oop_agent {
@@ -70,6 +72,7 @@ public:
     // ── Inspection ────────────────────────────────────────────────────────
     bool has_creator(const std::string& name) const;
     bool has_instance(const std::string& name) const;
+    [[nodiscard]] std::vector<std::pair<std::string, std::string>> catalog() const;
 
 private:
     std::map<std::string, ToolCreator>            creators_;

@@ -2,14 +2,14 @@
 
 > **Cập nhật:** 2026-08-09
 > **Mục tiêu cuối tuần:** `Implementation Complete → Test Evidence Locked → Bonus Checked → Full Regression Passed → Code Freeze`. Docs được merge/format/chốt phát hành vào Tuần 11 dựa trên evidence đã khóa.
-> **Quy tắc:** chỉ tick `[x]` khi có source + test/log + tài liệu tương ứng. Benchmark có deterministic fallback chỉ là **pipeline evidence**, không phải bằng chứng model reasoning. Ba bonus đã được nhóm chọn cho Tuần 10: Vector Search, Multi-agent và VLM/GUI Agent.
+> **Quy tắc:** chỉ tick `[x]` khi có source + test/log + tài liệu tương ứng. Benchmark có deterministic fallback chỉ là **pipeline evidence**, không phải bằng chứng model reasoning. Bản kế hoạch lịch sử từng liệt kê ba bonus; quyết định cuối của nhóm chỉ đóng **Vector Search** và **Multi-agent**. VLM/GUI không phải freeze gate.
 > **Nguồn ưu tiên khi có mâu thuẫn:** đề chính thức `planning/reference/OOP Project 2026 AI Agent.docx (1).md` → source/test/CMake → artifact run mới → tài liệu báo cáo → kế hoạch lịch sử.
 
 > **Bản điều phối một trang:** [`KH_Tuan10_TongQuan_1Trang.md`](KH_Tuan10_TongQuan_1Trang.md). File này giữ task, dependency và DoD chi tiết.
 
 ## 1. Project Completion Goal
 
-Tuần 10 là tuần hoàn tất implementation cuối cùng. Cả ba role phải đóng toàn bộ requirement bắt buộc, bug và evidence test, sau đó hoàn thành ba bonus đã chọn: Vector Search, Multi-agent Coordination và VLM/GUI Agent. Các claim/source/test link cho docs phải được khóa để Tuần 11 merge an toàn; việc tổng hợp/format/final review docs diễn ra Tuần 11. Mỗi bonus chỉ được merge khi mandatory gate PASS và không được làm chậm freeze.
+Tuần 10 là tuần hoàn tất implementation cuối cùng. Cả ba role phải đóng toàn bộ requirement bắt buộc, bug và evidence test, sau đó hoàn thành hai bonus đã chọn: Vector Search và Multi-agent Coordination. Các claim/source/test link cho docs phải được khóa để Tuần 11 merge an toàn; việc tổng hợp/format/final review docs diễn ra Tuần 11. Mỗi bonus chỉ được merge khi mandatory gate PASS và không được làm chậm freeze. Các checkbox VLM/GUI bên dưới được giữ như lịch sử kế hoạch cũ, không dùng để quyết định freeze.
 
 Tuần 11 là presentation/documentation phase: merge và format docs theo evidence đã khóa, làm slide, chốt demo flow, quay/chỉnh video Unlisted và chuẩn bị oral. Không thêm feature mới sau freeze; critical fix phải đi theo luồng `fix → targeted test → full regression → re-freeze`.
 
@@ -296,7 +296,7 @@ Parallel work: A-10-01..05, B-10-01..04, and C-10-01 can start independently. Sh
 - [ ] Required bugs fixed or a blocking decision is recorded.
 - [ ] Source/test evidence and four rendered UML are locked; docs merge/format is scheduled for Tuần 11.
 - [ ] Gates 1–6 all PASS on one final revision.
-- [ ] Vector Search, Multi-agent and VLM/GUI Agent each meet their merge criteria; focused tests and full regression pass.
+- [ ] Vector Search and Multi-agent meet their merge criteria; focused tests and full regression pass. VLM/GUI is outside the declared freeze scope.
 - [ ] Benchmark evidence/limitations and token/fallback wording are accurate.
 - [ ] Package dry-run and clean extraction pass; no secret/artifact leak.
 - [ ] Final branch merged, commit/tag and project status recorded by team convention.
@@ -318,7 +318,7 @@ Required tests: PASS / FAIL
 Regression: PASS / FAIL
 Vector bonus: PASS / FAIL
 Multi-agent bonus: PASS / FAIL
-VLM/GUI Agent bonus: PASS / FAIL
+VLM/GUI Agent bonus: SKIPPED (outside declared scope)
 Critical bugs remaining: N
 Code freeze: YES / NO
 Final revision: <commit/tag>
@@ -328,7 +328,7 @@ Verification date: <YYYY-MM-DD>
 ## 17. Next Week — Documentation and Presentation Phase
 
 - Merge, format and cross-review the reports, README and submission checklist using only frozen source/test evidence; reconcile a discovered factual error through the Critical Fix/re-freeze rule.
-- Build slide deck from the frozen revision and the approved evidence, including the three bonuses only if their final status is PASS.
+- Build slide deck from the frozen revision and the approved evidence, including Vector and Multi-agent only if their final status is PASS.
 - Rehearse a safe demo flow: build/test output, one CLI task, benchmark summary/trajectory, one OOP pattern, and bonus only if PASS.
 - Record/edit the YouTube Unlisted video; never show API key and never call fallback-assisted output proof of model reasoning.
 - Prepare oral explanations of each member’s owned code, tests, limitations and design decisions.

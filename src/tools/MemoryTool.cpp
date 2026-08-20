@@ -49,10 +49,9 @@ std::string_view
 MemoryTool::get_description() const noexcept
 {
     return "Save and search memories using SQLite. "
-           "Args: 'save <text>', 'search <keyword>', "
-           "'vsave <text>' (lưu kèm vector embedding), "
-           "'vsearch <text>' (tìm theo cosine similarity).\n"
-           "Examples: save Tokyo, search Tokyo, vsearch weather in Tokyo";
+           "Args: 'save <text>' and 'search <query>' use vector embeddings; "
+           "'legacy_save <text>' and 'legacy_search <keyword>' keep keyword mode.\n"
+           "Examples: save Tokyo weather, search Tokyo climate";
 }
 
 bool MemoryTool::init_database()
@@ -461,7 +460,7 @@ MemoryTool::execute(const std::string& arguments)
                     ToolError::InvalidArgument);
             }
 
-            return save_memory(text);
+            return vsave_memory(text);
         }
 
         if (command == "search")
@@ -476,6 +475,34 @@ MemoryTool::execute(const std::string& arguments)
                     ToolError::InvalidArgument);
             }
 
+            std::string query;
+            std::getline(ss, query);
+            if (!query.empty() && query.front() == ' ')
+                query.erase(0, 1);
+            if (!query.empty())
+                keyword += " " + query;
+            return vsearch_memory(keyword, 3);
+        }
+
+        if (command == "legacy_save")
+        {
+            std::string text;
+            std::getline(ss, text);
+            if (!text.empty() && text.front() == ' ')
+                text.erase(0, 1);
+            if (text.empty())
+                return std::unexpected(ToolError::InvalidArgument);
+            return save_memory(text);
+        }
+
+        if (command == "legacy_search")
+        {
+            std::string keyword;
+            std::getline(ss, keyword);
+            if (!keyword.empty() && keyword.front() == ' ')
+                keyword.erase(0, 1);
+            if (keyword.empty())
+                return std::unexpected(ToolError::InvalidArgument);
             return search_memory(keyword);
         }
 

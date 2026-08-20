@@ -123,8 +123,9 @@ private:
 
 class ScriptedLLMClient final : public LLMClient {
 public:
-    explicit ScriptedLLMClient(std::vector<std::string> responses)
-        : responses_(std::move(responses)) {}
+    explicit ScriptedLLMClient(std::vector<std::string> responses,
+                               LLMUsage usage = {})
+        : responses_(std::move(responses)), usage_(usage) {}
 
     std::expected<std::string, LLMError> generate_chat(
         const std::vector<Message>&,
@@ -134,9 +135,12 @@ public:
         return responses_[next_++];
     }
 
+    [[nodiscard]] LLMUsage last_usage() const noexcept override { return usage_; }
+
 private:
     std::vector<std::string> responses_;
     std::size_t next_ = 0;
+    LLMUsage usage_;
 };
 
 class EchoCalculatorTool final : public Tool {
@@ -273,7 +277,7 @@ void testStepHookPreservesActionArguments() {
         std::vector<std::string>{
             R"({"tool":"calculator","args":"123"})",
             "done"
-        });
+        }, LLMUsage{2, 3});
     AgentLoop agent(client);
     agent.register_tool(std::make_unique<EchoCalculatorTool>());
 
@@ -296,6 +300,11 @@ void testStepHookPreservesActionArguments() {
     require(result.success, "scripted tool task did not pass");
     require(result.tool_steps_count == 1,
             "trajectory did not contain exactly one tool step");
+    require(result.trajectory.size() == 2 &&
+            result.trajectory.back().tool_name == "final_answer",
+            "final answer was not recorded as a non-tool trajectory step");
+    require(result.total_tokens == 10,
+            "token total did not include tool-decision and final-answer calls");
 
     const auto& step = result.trajectory.front();
     const auto action = json::parse(step.action);
@@ -304,8 +313,55 @@ void testStepHookPreservesActionArguments() {
     require(action.at("args") == "123", "tool args were not preserved");
     require(step.result == "123", "tool result was not recorded");
     require(step.latency_ms >= 0.0, "step latency was negative");
-    require(step.tokens_used == 0,
-            "unmeasured token usage must remain explicitly zero for now");
+    require(step.tokens_used == 5,
+            "provider token usage was not preserved on the tool step");
+}
+
+void testExportIncludesFinalAnswerAndTokens() {
+    TempDirectory temp;
+    const auto output = temp.path() / "results";
+    HarnessRunner harness((temp.path() / "unused.json").string(), output.string());
+
+    TaskRunResult result;
+    result.task_id = "task_export";
+    result.category = "simple";
+    result.agent_output = "done";
+    result.success = true;
+    result.tool_steps_count = 1;
+    result.total_tokens = 12;
+    TrajectoryStep tool;
+    tool.step = 1;
+    tool.action = R"({"type":"tool_call","tool":"calculator","args":"1+1"})";
+    tool.tool_name = "calculator";
+    tool.result = "2";
+    tool.success = true;
+    tool.tokens_used = 5;
+    TrajectoryStep final;
+    final.step = 2;
+    final.action = "final_answer";
+    final.tool_name = "final_answer";
+    final.result = "done";
+    final.success = true;
+    final.tokens_used = 7;
+    result.trajectory = {tool, final};
+
+    require(harness.exportResults({result}), "trajectory export failed");
+    fs::path run_dir;
+    for (const auto& entry : fs::directory_iterator(output)) {
+        if (entry.is_directory()) {
+            run_dir = entry.path();
+            break;
+        }
+    }
+    require(!run_dir.empty(), "export did not create a run directory");
+    std::ifstream file(run_dir / "trajectory_task_export.json");
+    const json exported = json::parse(file);
+    require(exported.at("final_answer") == "done",
+            "export omitted final_answer");
+    require(exported.at("total_tokens") == 12,
+            "exported total_tokens is incorrect");
+    require(exported.at("tool_steps_count") == 1 && exported.at("steps").size() == 2,
+            "final answer incorrectly changed tool step count");
 }
 
 void testInstructionFallbackUsesToolWhenLLMOmitsToolCall() {
@@ -581,6 +637,7 @@ int main() {
         {"load task validation", testLoadTasksValidation},
         {"evaluator strategy selection", testStrategySelection},
         {"StepHook action arguments", testStepHookPreservesActionArguments},
+        {"trajectory final answer and tokens export", testExportIncludesFinalAnswerAndTokens},
         {"instruction fallback", testInstructionFallbackUsesToolWhenLLMOmitsToolCall},
         {"count fallback", testCountFallbackReturnsNumericResult},
         {"batch artifact cleanup", testBatchCleanupRemovesStaleArtifacts},

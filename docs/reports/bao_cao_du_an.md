@@ -46,7 +46,7 @@ The client layer accepts conversation history and returns a typed response or `L
 
 ### 4.5 Extensions
 
-The Vector extension persists embeddings and ranks search results with cosine similarity. The Multi-Agent demo delegates calculator and research subtasks to separate workers and reports failure explicitly rather than fabricating a successful result.
+The Vector extension exposes `memory_save` and `memory_search`, persists Ollama embeddings, and ranks results with cosine similarity. `HashEmbedder` is injected only for deterministic offline tests. The Multi-Agent path runs from `HarnessRunner` to separate calculator and research workers and reports failure explicitly rather than fabricating a successful result.
 
 ## 5. Design Techniques
 
@@ -71,9 +71,11 @@ ctest --test-dir build --output-on-failure
 
 The current CTest suite contains five registered tests. A production `run_eval` run disables deterministic fallback; trajectories identify whether actions originate from the LLM or an explicitly opted-in test fixture.
 
+The latest selected-model evidence is `run_20260820_002933_100`: Gemini `gemma-4-31b-it` passed 7 of 10 tasks, with evaluator score `0.7`, action-level score `0.9`, and final success rate `0.7`. All recorded actions were `source: llm`. The project requirement asks the report to state the measured rate; it does not require a deterministic 10/10 model score.
+
 ## 7. Limitations
 
-- Token usage is not yet collected from provider response metadata.
+- Token usage is recorded when Gemini or Ollama returns usage metadata; zero remains the explicit not-measured value when metadata is absent.
 - Benchmark tasks share one working directory within a batch; cleanup is batch-level rather than per-task isolation.
 - VLM/GUI execution remains a guarded contract and is not claimed as an end-to-end desktop automation feature.
 

@@ -18,7 +18,7 @@ sequenceDiagram
     Caller->>AgentLoop: run(instruction, max_steps)
 
     %% ── OBSERVE: build system prompt ──────────────────
-    AgentLoop->>SkillLoader: load_skills_for(instruction)
+    AgentLoop->>SkillLoader: getSystemPromptForTask(instruction)
     SkillLoader-->>AgentLoop: system_prompt (injected skill content)
     AgentLoop->>AgentLoop: init history [system, user(instruction)]
 
@@ -32,16 +32,16 @@ sequenceDiagram
             AgentLoop->>StepHook: notify(step, thought="", tool="", error="LLM_ERROR", latency)
             AgentLoop-->>Caller: return "LLM error — aborting"
         else LLM returns text
-            LLMClient-->>AgentLoop: raw_text
+            LLMClient-->>AgentLoop: raw_text + last_usage metadata
+            AgentLoop->>AgentLoop: append assistant(raw_text) to history
         end
 
         %% ── ACT: parse response ───────────────────────
         AgentLoop->>AgentLoop: parse_llm_response(raw_text)
 
-        alt Parse fail (no valid action found)
-            AgentLoop->>StepHook: notify(step, thought=raw_text, tool="", error="PARSER_FAIL", latency)
-            AgentLoop->>AgentLoop: append observation("PARSER_FAIL: …") to history
-            Note over AgentLoop: model gets chance to retry next step
+        alt Malformed tool-call intent
+            AgentLoop->>StepHook: notify(step, tool="final_answer", result="PARSE_ERROR", tokens)
+            AgentLoop-->>Caller: return classified PARSE_ERROR
         else FinalAnswerAction
             AgentLoop->>StepHook: notify(step, thought, tool="final_answer", result=answer, latency)
             AgentLoop-->>Caller: return final_answer
@@ -66,12 +66,12 @@ sequenceDiagram
                 alt Tool returns ToolError
                     Tool-->>AgentLoop: unexpected(ToolError)
                     AgentLoop->>StepHook: notify(step, thought, tool, error=ToolError, latency)
-                    AgentLoop->>AgentLoop: append observation("TOOL_ERROR: …") to history
+                    AgentLoop->>AgentLoop: append tool("TOOL_ERROR: …") to history
                     Note over AgentLoop: error fed back so model can recover
                 else Tool succeeds
                     Tool-->>AgentLoop: expected(result_string)
                     AgentLoop->>StepHook: notify(step, thought, tool, result, latency, tokens)
-                    AgentLoop->>AgentLoop: append observation(result) to history
+                    AgentLoop->>AgentLoop: append tool(result) to history
                 end
 
                 %% ── Loop detection ────────────────────
