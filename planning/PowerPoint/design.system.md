@@ -2,132 +2,84 @@
 
 ## 1. Purpose
 
-Create a clear 15-slide technical presentation for lecturers and classmates. The deck must communicate the architecture, OOP/C++ implementation, tools, Vector bonus, Multi-agent bonus, benchmark evidence, and conclusion within 15 minutes.
-
-Primary content source: `planning/PowerPoint/Presentation_Script_Detail.md`.
+Create a clear 18-slide technical presentation for an 8–10 minute hybrid video. Slides explain the system; three short demo clips prove Role A, B, and C behavior; Slide 18 closes with a minimal Thank You. Primary source: `planning/PowerPoint/Presentation_Script_Detail.md`.
 
 ## 2. Visual Direction
 
-- Style: modern technical, clean, evidence-led.
-- Canvas: 16:9 widescreen.
-- Background: dark navy or charcoal; use a light background only for dense diagrams or code.
-- Visual hierarchy: one key message per slide, one dominant visual, minimal supporting text.
-- Tone: credible and academic, not promotional.
+- 16:9 widescreen; modern, academic, evidence-led.
+- Dark navy background; light text; one key message per slide.
+- Use diagrams for architecture, sequence, ownership, and evidence flow.
+- Keep Q&A outside the deck.
 
 ## 3. Design Tokens
 
 | Token | Value | Use |
 |---|---|---|
-| Background | `#0B1220` | Main slide background |
-| Surface | `#162033` | Cards and diagram nodes |
-| Primary | `#35C2FF` | Architecture, flow, key terms |
-| Secondary | `#33D6A6` | PASS, completed, production path |
-| Bonus | `#F5B942` | Vector and Multi-agent bonus |
-| Error | `#FF6B6B` | Failure paths and limitations |
-| Main text | `#F4F7FB` | Titles and body text |
-| Muted text | `#A9B5C7` | Captions and secondary labels |
+| Background | `#0B1220` | Main background |
+| Surface | `#162033` | Cards and nodes |
+| Primary | `#35C2FF` | Core architecture and flow |
+| Secondary | `#33D6A6` | PASS and production path |
+| Bonus | `#F5B942` | Vector and Multi-agent |
+| Error | `#FF6B6B` | Failure and limitations |
+| Main text | `#F4F7FB` | Titles/body |
+| Muted text | `#A9B5C7` | Captions/footer |
 
-Use the project colors consistently. Do not introduce extra accent colors without a functional reason.
+## 4. Typography and Layout
 
-## 4. Typography
+- Aptos/Segoe UI/Arial; Consolas/Cascadia Mono for code.
+- Title 30–36 pt; body 18–24 pt; caption 14–16 pt.
+- Safe margin at least 5%; maximum six short body lines.
+- Use 2–4 cards or one dominant diagram; keep title/footer positions consistent.
 
-- Font family: Aptos, Segoe UI, or Arial fallback.
-- Slide title: 30–36 pt, semibold.
-- Section label: 18–22 pt, semibold.
-- Body: 18–24 pt.
-- Caption/evidence label: 14–16 pt.
-- Code: Consolas or Cascadia Mono, minimum 16 pt.
-- Maximum: 6 short lines of body text per slide.
+## 5. Core Patterns
 
-## 5. Layout and Spacing
-
-- Safe margin: at least 5% of slide width on all sides.
-- Use a 12-column grid or simple 60/40 split.
-- Keep at least 24 px between related blocks and 40 px between separate sections.
-- Prefer 2–4 cards per slide; avoid dense card walls.
-- Place slide number and role owner in a small footer.
-- Keep titles in the same position across all slides.
-
-## 6. Core Slide Patterns
-
-| Pattern | Use |
+| Pattern | Slides |
 |---|---|
-| Hero | Slides 1 and 15: one message, minimal text |
-| Process flow | Slides 2, 3, 4, and 5 |
-| Pattern cards | Slides 6 and 7 |
-| Inventory/grid | Slide 9 |
-| Flow diagram | Slides 8, 10, 11, 12, and 13 |
-| Evidence dashboard | Slides 14 and 15 |
+| Hero | 1, 17, 18 |
+| Roadmap/glossary | 2, 3 |
+| Process/architecture | 4–7, 10, 12–15 |
+| Cards/timeline/inventory | 8, 9, 11 |
+| Evidence dashboard | 16, 17 |
 
-## 7. Diagram Rules
+## 6. Diagram Rules
 
-- Show direction with arrows and label inputs/outputs.
-- Use one color per layer or responsibility, not per class.
-- Convert detailed UML into presentation-friendly summaries; keep full UML in the report.
-- Keep class/function names exact when they are evidence.
-- Highlight production path with Primary/Secondary colors and optional or bonus paths with Bonus color.
+- Draw connectors before nodes; label direction, input/output, error, and cleanup where relevant.
+- Use one color per responsibility, not per class.
+- Keep exact class/function names when they are evidence.
+- Show production paths in Primary/Secondary; bonus paths in Bonus; test-only paths must say `Test only`.
 
-## 8. Code, Screenshots, and Evidence
+## 7. Motion and Transitions
 
-- Use code only when a language feature or contract cannot be explained more clearly as a diagram.
-- Crop terminal screenshots to the relevant command and result.
-- Every metric must show its evidence source in a small caption.
-- Benchmark slide must show the selected model and the same run's metrics together.
-- Never display API keys, `config.json` secrets, local user paths, or private data.
+- Fade within a section.
+- Push only at Slide 4, 8, and 13 to mark section changes.
+- Reveal complex flows in 2–4 stages; no decorative spinning or bouncing.
+- In the final video, cross-dissolve from Slide 7/12/16 to the matching demo clip, then return to the next section.
 
-## 9. Motion
+## 8. Slide Map
 
-- Use only Fade or Appear.
-- Reveal complex flows in 2–4 logical stages.
-- No decorative spinning, bouncing, or continuous animation.
-- Transitions must not consume demo time.
-
-## 10. Slide-by-Slide Visual Map
-
-| Slide | Owner | Recommended visual |
+| Slides | Owner | Visual purpose |
 |---|---|---|
-| 1 | A | Project title with Agent → Tool → Result motif |
-| 2 | A | ReAct loop: Observe → Think → Act → Observe |
-| 3 | A | Four-layer architecture diagram |
-| 4 | A | AgentLoop, LLM client, parser, and typed error contract |
-| 5 | A | Loop Detector and keyword-based skill selection |
-| 6 | B | Four OOP pattern cards |
-| 7 | B | C++17/20/23/26 feature timeline |
-| 8 | B | Tool Registry, catalog, alias, and policy boundary |
-| 9 | B | Required and supplemental tool inventory |
-| 10 | B | Vector embedding → cosine search flow |
-| 11 | C | Harness execution and evaluation pipeline |
-| 12 | C | Evaluator and trajectory evidence |
-| 13 | C | Multi-agent queue with two worker threads |
-| 14 | C | Benchmark dashboard: 7/10, 70%, 90% |
-| 15 | C | Final requirement coverage, test evidence, and conclusion |
+| 1–3 | A | Identity, roadmap, definitions |
+| 4–7 | A | ReAct, architecture, AgentLoop, reliability |
+| 8–12 | B | OOP/C++, registry, tools, Vector |
+| 13–18 | C | Harness, trajectory, Multi-agent, benchmark, conclusion, Thank You |
 
-## 11. Fact and Claim Guardrails
-
-The deck must preserve these verified facts:
+## 9. Evidence Guardrails
 
 - CTest: 5/5 PASS.
-- Model: `gemma-4-31b-it`.
-- Benchmark evidence: `run_20260820_002933_100`.
-- Benchmark result: 7/10 final PASS, 70% evaluator score, 90% action-level score.
-- Vector bonus: +4 points; production embedding uses Ollama `nomic-embed-text`.
-- Multi-agent bonus: +3 points; real flow uses two worker threads and a queue.
-- C++26 evidence: deleted function with reason, such as `= delete("reason")`.
+- Model/run: `gemma-4-31b-it`, `run_20260820_002933_100`.
+- Benchmark: 7/10 final PASS, 70% evaluator, 90% action-level.
+- Vector: +4; production uses Ollama `nomic-embed-text`; `HashEmbedder` is test-only.
+- Multi-agent: +3; two worker threads communicate through a queue.
+- C++26: deleted function with reason, not `std::inplace_vector`.
+- Do not claim GUI/VLM, benchmark 10/10, zero warnings/leaks, or automatic provider fallback without evidence.
+- Never expose API keys, `config.json`, private paths, or personal data.
 
-Do not claim:
+## 10. Final Visual QA
 
-- 10/10 benchmark success unless a newer evidenced run is approved.
-- `std::inplace_vector` is used.
-- GUI or VLM bonus is complete.
-- Zero warnings, zero leaks, or automatic provider fallback without matching evidence.
-- `HashEmbedder` is the production embedder; it is for offline tests.
-
-## 12. Final Visual QA
-
-- [ ] All text is readable from presentation distance.
-- [ ] Each slide has one clear takeaway.
-- [ ] Diagrams match the real production path.
-- [ ] Metrics and technical claims have evidence.
-- [ ] No secret or local-only data is visible.
-- [ ] Role A/B/C ownership and 15-slide order are preserved.
-- [ ] Speaker notes fit the assigned presentation time.
+- [ ] All 18 slides are readable and have one takeaway.
+- [ ] Logo, lecturer, names, and MSSVs are filled before recording.
+- [ ] Diagrams match the production path and metrics cite one run.
+- [ ] Role ownership is A 1–7, B 8–12, C 13–18.
+- [ ] Section transitions and three demo handoffs are present.
+- [ ] Total hybrid video remains within 8–10 minutes.

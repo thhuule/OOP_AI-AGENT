@@ -1,104 +1,92 @@
 # AI Agent Framework — Outline đã duyệt
 
-Ngôn ngữ slide và speaker notes: tiếng Việt. Tên class, API và thuật ngữ kỹ thuật giữ nguyên tiếng Anh. Q&A không nằm trong deck.
+Ngôn ngữ slide và speaker notes: tiếng Việt. Tên class, API và thuật ngữ kỹ thuật giữ nguyên tiếng Anh. Q&A chỉ nằm trong script, không nằm trong deck.
 
-## Slide 1: AI Agent Framework với Ollama và Gemini
+## Role A — Systems / Core
+
+### Slide 1: AI Agent Framework với Ollama và Gemini
+- Logo trường/khoa, giảng viên, ba thành viên và MSSV
 - Modern C++17/20/23/26
-- Role A: Systems/Core; Role B: Tools/Data; Role C: Eval/Infra
-- Placeholder tên và MSSV cho ba thành viên
-- Vai trò: cover tối giản
 
-## Slide 2: Từ chatbot sang Agent có khả năng hành động
-- LLM đơn thuần chỉ sinh văn bản
+### Slide 2: Bài trình bày đi từ kiến trúc đến bằng chứng
+- Agent Core → OOP & C++ → Tools & Vector → Evaluation → Evidence
+- Roadmap chung cho toàn bộ video
+
+### Slide 3: Sáu khái niệm giúp đọc toàn bộ hệ thống
+- LLM, Tool, AI Agent, ReAct, Harness, Trajectory
+- Định nghĩa ngắn trước khi đi vào code
+
+### Slide 4: Từ chatbot sang Agent có khả năng hành động
 - ReAct: Think → Act → Observe → Continue/Finish
 - Mục tiêu: mở rộng được, lỗi rõ ràng, đánh giá tái lập
-- Vai trò: problem → solution
 
-## Slide 3: Các tầng được tách bằng contract rõ ràng
+### Slide 5: Các tầng được tách bằng contract rõ ràng
 - LLMClient → AgentLoop → ToolRegistry → tools
-- SkillLoader chọn instruction theo task
-- HarnessRunner quan sát qua StepHook
-- Vai trò: architecture
+- SkillLoader và HarnessRunner/StepHook
 
-## Slide 4: AgentLoop điều phối LLM, tool và history
-- Interface chung cho text và ảnh base64
-- Config provider thay vì hard-code
-- Parser JSON/fenced JSON/escaped arguments
-- Lỗi parse được phân loại
-- Vai trò: runtime flow
+### Slide 6: AgentLoop điều phối LLM, tool và history
+- Config provider; parser nhiều format; typed error
+- Assistant response và tool observation được giữ đúng role
 
-## Slide 5: Loop Detector và Skill System giữ Agent đúng hướng
-- Generic repeat và ping-pong
-- Warning/critical thresholds
-- Ba Markdown skill có keyword metadata
-- Skill phù hợp được inject trước mỗi run
-- Vai trò: control and reliability
+### Slide 7: Loop Detector và Skill System giữ Agent đúng hướng
+- Generic repeat, ping-pong, warning/critical
+- Keyword metadata và task-specific skill injection
+- Sau slide: clip demo Role A bằng `./build/test_role_a`
 
-## Slide 6: Bốn design pattern nằm trên production path
-- Strategy
-- Template Method
-- Registry/Factory
-- Observer/Hook
-- Vai trò: OOP evidence
+## Role B — Tools / Data
 
-## Slide 7: Modern C++ được dùng để làm rõ ownership và contract
-- C++17: smart pointers, filesystem, variant, optional
-- C++20: ranges và views
-- C++23: expected và println
-- C++26: deleted function with reason
-- Vai trò: language-feature timeline
+### Slide 8: Bốn design pattern nằm trên production path
+- Strategy, Template Method, Registry/Factory, Observer/Hook
 
-## Slide 8: ToolRegistry mở rộng tool mà không sửa Agent Core
-- Runtime registration và factory
-- Alias normalization
-- Allow/deny policy
-- Catalog động đi vào system prompt
-- Vai trò: registry flow
+### Slide 9: Modern C++ làm rõ ownership và contract
+- C++17 smart pointers/filesystem/variant/optional
+- C++20 ranges; C++23 expected; C++26 deleted function with reason
 
-## Slide 9: Bộ tool đáp ứng requirement bắt buộc
-- Shell, file, web search, memory, calculator
-- memory_save và memory_search
-- Time, JSON và Git
-- ToolError cho failure path
-- Vai trò: tool inventory
+### Slide 10: ToolRegistry mở rộng tool mà không sửa Agent Core
+- Runtime registration/factory, alias, allow/deny, dynamic catalog
 
-## Slide 10: Vector Search thay thế tìm kiếm từ khóa (+4)
+### Slide 11: Bộ tool đáp ứng requirement bắt buộc
+- Shell, file, web, memory, calculator; Time, JSON, Git
+- `memory_save` và `memory_search`; ToolError cho failure path
+
+### Slide 12: Vector Search thay thế tìm kiếm từ khóa (+4)
 - SQLite lưu text và embedding
-- Production dùng Ollama nomic-embed-text
-- Cosine similarity viết bằng C++
-- HashEmbedder chỉ dành cho offline test
-- Vai trò: representative bonus flow; sample slide
+- Ollama `nomic-embed-text` → cosine similarity C++
+- `HashEmbedder` chỉ dùng offline test
+- Sau slide: clip demo Role B bằng live Vector acceptance
 
-## Slide 11: Harness biến một lần chạy thành evidence
+## Role C — Evaluation / Infrastructure
+
+### Slide 13: Harness biến một lần chạy thành evidence
 - setup → run → evaluate → record → cleanup
 - 10 task: 4 simple / 4 medium / 2 hard
-- Dọn artifact cũ trước mỗi batch
-- Vai trò: evaluation pipeline
 
-## Slide 12: Trajectory giải thích vì sao task PASS hoặc FAIL
+### Slide 14: Trajectory giải thích vì sao task PASS hoặc FAIL
 - KeywordEvaluator và FunctionalEvaluator
-- Action, arguments, result, latency và token
-- Final answer không tính là tool step
-- Vai trò: evaluator and traceability
+- Action, args, result, latency, token và final answer
 
-## Slide 13: Hai worker phối hợp qua message queue (+3)
-- HarnessRunner → MultiAgentRunner → hai thread
-- Queue, mutex và condition_variable
-- Stop/join bằng RAII
-- Demo Calculator và Researcher
-- Vai trò: multi-agent flow
+### Slide 15: Hai worker phối hợp qua message queue (+3)
+- HarnessRunner → MultiAgentRunner → hai thread → queue → report
+- Stop/join bằng RAII; Calculator và Researcher
 
-## Slide 14: Benchmark thật đạt 7/10
-- Run run_20260820_002933_100
-- Gemini gemma-4-31b-it
-- Final success 70%; evaluator 70%; action-level 90%
-- Action source là llm, không dùng fixture fallback
-- Vai trò: evidence dashboard
+### Slide 16: Benchmark thật đạt 7/10
+- Run `run_20260820_002933_100`, Gemini `gemma-4-31b-it`
+- Final 70%; evaluator 70%; action-level 90%
+- Action source là `llm`, không dùng fixture fallback
+- Sau slide: clip demo Role C bằng Multi-agent + benchmark evidence
 
-## Slide 15: Requirement kỹ thuật đã có bằng chứng kiểm thử
+### Slide 17: Requirement kỹ thuật đã có bằng chứng kiểm thử
 - Clean build và CTest 5/5 PASS
-- Vector live acceptance PASS
-- Multi-agent focused test PASS
+- Vector live acceptance và Multi-agent focused test PASS
 - Không claim GUI/VLM hoặc benchmark 10/10
-- Chuyển sang video demo
-- Vai trò: conclusion
+
+### Slide 18: Thank You
+- Cảm ơn thầy/cô và các bạn đã lắng nghe
+- Kết thúc tối giản, không đưa câu hỏi Q&A lên slide
+
+## Transition contract
+
+- Fade giữa các slide trong cùng phần.
+- Push tại Slide 4, 8 và 13 để báo hiệu chuyển sang Core, Role B và Role C.
+- Cuối Slide 7, 12 và 16 có handoff nói ngắn sang clip demo tương ứng.
+- Video dùng một timeline hybrid 8–10 phút; không tách thêm video demo riêng.
