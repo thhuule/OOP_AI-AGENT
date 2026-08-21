@@ -305,6 +305,276 @@ Sau đó mở:
 
 ---
 
+# DEMO FLOW CHI TIẾT THEO ROLE
+
+## Role A — Demo Agent Core
+
+### Slide 5: Sau khi giải thích bốn tầng
+
+Chuyển sang terminal và build project:
+
+```bash
+cmake -S . -B build
+cmake --build build -j2
+```
+
+Chỉ cần nói:
+
+> Build hoàn tất, không có compile error. Điều này chứng minh bốn tầng trên slide đang được biên dịch và liên kết trong project thật.
+
+Thời gian: khoảng 30–45 giây.
+
+### Slide 6: Sau khi giải thích hai khối LLM Client và Parser + History
+
+Mở:
+
+1. `src/agent/agent_loop.h`
+2. `src/agent/agent_loop.cpp`
+
+Chỉ đúng các phần:
+
+- `AgentLoop::run()`
+- System prompt và Tool catalog
+- Phân tích tool call
+- Thêm assistant/tool vào history
+- Gọi StepHook để Harness ghi trajectory
+
+Nói:
+
+> Đây là vòng ReAct thật: hỏi LLM, parse action, chạy tool, lưu observation rồi lặp đến final answer hoặc failure gate.
+
+Thời gian: khoảng 45 giây.
+
+### Slide 7: Sau khi giải thích Loop Detector và Skill Loader
+
+Mở:
+
+- `src/agent/LoopDetector.cpp`
+- `src/agent/SkillLoader.cpp`
+- `skills/task_planner.md`
+
+Sau đó chạy:
+
+```bash
+./build/test_role_a
+```
+
+Nói:
+
+> Test Role A kiểm tra parser, history, LoopDetector, SkillLoader và error contract. Kết quả PASS xác nhận phần Agent Core hoạt động đúng.
+
+Thời gian: khoảng 45–60 giây.
+
+## Role B — Demo OOP, Tools và Vector Search
+
+### Slide 8: Sau khi trình bày bốn design pattern
+
+Mở nhanh các vị trí:
+
+- `src/agent/agent_loop.h`: Strategy, Template Method, StepHook
+- `src/tools/ToolRegistry.cpp`: Registry/Factory
+
+Chỉ vào:
+
+- Interface Tool
+- `AgentLoop::run()`
+- `ToolRegistry::create()`
+- StepHook callback
+
+Nói:
+
+> Bốn pattern này nằm trực tiếp trên production path, không chỉ xuất hiện trong sơ đồ.
+
+Thời gian: khoảng 30–40 giây.
+
+### Slide 9: Ngay sau phần C++26
+
+Mở:
+
+```text
+src/multiagent/MultiAgentRunner.h
+```
+
+Chỉ hai dòng:
+
+```cpp
+MultiAgentRunner(const MultiAgentRunner&)
+    = delete("MultiAgentRunner owns worker threads and is non-copyable");
+```
+
+Nói:
+
+> Runner sở hữu worker threads nên không được copy. C++26 cho phép ghi rõ lý do ngay trong thông báo compiler.
+
+Thời gian: khoảng 20 giây.
+
+### Slide 10: Sau khi giải thích sơ đồ ToolRegistry
+
+Mở:
+
+```text
+src/tools/ToolRegistry.cpp
+```
+
+Chỉ theo thứ tự:
+
+1. `register_all_tools()`
+2. `register_creator()`
+3. `register_alias()`
+4. `catalog()`
+5. `memory_save` và `memory_search`
+
+Nói:
+
+> Thêm tool mới chỉ cần đăng ký vào Registry. Agent Core không cần sửa vì system prompt lấy catalog động từ runtime.
+
+Thời gian: khoảng 45 giây.
+
+### Slide 11: Sau khi giới thiệu năm tool bắt buộc và ba tool bổ sung
+
+Chuyển sang terminal:
+
+```bash
+./build/test_tools
+```
+
+Nói:
+
+> Target này kiểm tra Registry, alias, File Tool, error path, Memory lifecycle và Vector ranking offline.
+
+Thời gian: khoảng 30–45 giây.
+
+### Slide 12: Sau khi giải thích pipeline Vector Search
+
+Mở:
+
+- `src/tools/MemoryTool.cpp`
+- `src/tools/Embedding.cpp`
+
+Chỉ:
+
+- Lưu text và embedding vào SQLite
+- `OllamaEmbedder::embed()`
+- `cosine_similarity()`
+- `HashEmbedder` chỉ dùng trong test
+
+Nếu Ollama đang chạy:
+
+```bash
+curl http://localhost:11434/api/tags
+RUN_LIVE_OLLAMA=1 ./build/test_tools
+```
+
+Nếu Ollama không chạy, không demo live; mở evidence đã lưu.
+
+Thời gian: khoảng 45–60 giây.
+
+## Role C — Demo Harness, Multi-agent và Benchmark
+
+### Slide 13: Sau khi giải thích pipeline Harness
+
+Mở:
+
+- `src/harness/HarnessRunner.cpp`
+- `benchmark/tasks.json`
+
+Chỉ:
+
+- Cleanup artifact
+- Chạy Agent
+- Chọn Evaluator
+- Ghi trajectory
+- 10 task: 4 simple, 4 medium, 2 hard
+
+Nói:
+
+> Harness biến một lần chạy thành evidence có thể kiểm tra lại, thay vì chỉ in câu trả lời ra terminal.
+
+Thời gian: khoảng 40 giây.
+
+### Slide 14: Sau khi giải thích Trajectory JSON
+
+Đây là phần demo kiểm thử tổng.
+
+Chạy:
+
+```bash
+./build/test_harness
+./build/test_multi_agent
+ctest --test-dir build --output-on-failure
+```
+
+Nói:
+
+> test_harness kiểm tra Evaluator, trajectory, token metadata và export. test_multi_agent kiểm tra queue và worker lifecycle. CTest tổng hợp cho kết quả 5/5 PASS.
+
+Thời gian: khoảng 45–60 giây.
+
+### Slide 15: Ngay sau khi giải thích hai worker
+
+Chạy:
+
+```bash
+./build/demo_multi_agent '47 * 23' 'Japan capital'
+cat artifacts/demo/report.txt
+```
+
+Trên report, chỉ:
+
+- Calculator: 47 × 23 = 1081
+- Researcher: Tokyo
+- `STATUS=PASS`
+
+Nói:
+
+> Harness gửi hai task qua message queue. Chỉ khi nhận đủ hai kết quả thì report mới PASS; worker error không được biến thành kết quả thành công giả.
+
+Thời gian: khoảng 45–60 giây.
+
+### Slide 16: Sau khi đọc ba chỉ số 7/10, 70%, 90%
+
+Mở summary:
+
+```bash
+cat benchmark/results/run_20260820_002933_100/benchmark_summary.txt
+```
+
+Sau đó mở:
+
+- `trajectory_task_010.json`
+- `trajectory_task_005.json`
+
+Trình bày:
+
+- Task 010: PASS — read file thất bại, sau đó write, append và đọc lại.
+- Task 005: FAIL — calculator trả đúng 1081 nhưng model lặp lại đến khi LoopDetector dừng.
+
+Nói:
+
+> Benchmark 7/10 là kết quả model thật. Trajectory giải thích rõ vì sao một task PASS hoặc FAIL.
+
+Thời gian: khoảng 60–90 giây.
+
+### Slide 17: Không chạy thêm lệnh
+
+Chỉ tổng kết những gì đã demo:
+
+- CTest 5/5 PASS
+- Vector acceptance PASS
+- Multi-agent focused test PASS
+- Benchmark thật 7/10
+
+Slide 17 là slide tổng hợp evidence, không phải một demo mới.
+
+## Vị trí demo tổng
+
+- Demo kiểm thử tổng: slide 14
+- Demo Multi-agent: slide 15
+- Demo benchmark/evidence cuối: slide 16
+- Tổng hợp toàn bộ kết quả: slide 17
+
+---
+
 # DEMO FLOW RÚT GỌN
 
 ## Chuẩn bị trước khi trình bày
