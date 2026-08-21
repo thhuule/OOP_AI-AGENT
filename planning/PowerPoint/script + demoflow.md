@@ -110,6 +110,12 @@ cmake --build build -j2
 2. [`SkillLoader.cpp`](../../src/agent/SkillLoader.cpp)
 3. [`task_planner.md`](../../skills/task_planner.md)
 
+### Focused test của Role A
+
+```bash
+./build/test_role_a
+```
+
 ### Chuyển người nói
 
 > Phần Core đã giữ vòng chạy an toàn. Tiếp theo, Role B trình bày các pattern, tính năng Modern C++ và cách mở rộng tool.
@@ -222,16 +228,14 @@ RUN_LIVE_OLLAMA=1 ./build/test_tools
 ### Demo 2 — Focused tests và CTest
 
 ```bash
-./build/test_role_a
-./build/test_tools
+./build/test_harness
 ./build/test_multi_agent
 ctest --test-dir build --output-on-failure
 ```
 
 ### Kết quả cần đọc đúng
 
-- `test_role_a`: parser, history, config/error contract, LoopDetector và skill selection PASS.
-- `test_tools`: Registry, error paths, Memory và offline Vector ranking PASS.
+- `test_harness`: Evaluator Strategy, trajectory, token metadata, export và scoring PASS.
 - `test_multi_agent`: queue, worker lifecycle, cleanup và failure propagation PASS.
 - CTest: **5/5 PASS**.
 
