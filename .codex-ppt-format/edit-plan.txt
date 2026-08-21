@@ -1,0 +1,4 @@
+rewrite: slide 2 subtitle sh/ozy1ofad, remove trailing " ###" only.
+rewrite-and-reposition: slide title objects on slides 2-15, preserving text and typography.
+rewrite-and-reposition: local footer and page-number text boxes on slides 2-17, preserving text and typography.
+keep: every other inherited and slide-local object.

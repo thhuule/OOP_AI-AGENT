@@ -1,0 +1,320 @@
+{"kind":"deck","id":"pr/aq0k10","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"","type":"master","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"subtitle","type":"subtitle","textPreview":"Click to edit Master subtitle style"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout2.xml","name":"Title and Content","type":"obj","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"content placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout3.xml","name":"Section Header","type":"secHead","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout4.xml","name":"Two Content","type":"twoObj","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"content placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"content placeholder 3","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout5.xml","name":"Comparison","type":"twoTxTwoObj","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles"},{"name":"content placeholder 3","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles"},{"name":"content placeholder 5","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout6.xml","name":"Title Only","type":"titleOnly","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout7.xml","name":"Blank","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout8.xml","name":"Content with Caption","type":"objTx","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"content placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout9.xml","name":"Picture with Caption","type":"picTx","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"picture","type":"picture"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout10.xml","name":"Title and Vertical Text","type":"vertTx","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout11.xml","name":"Vertical Title and Text","type":"vertTitleAndTx","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"dateTime","type":"dateTime","textPreview":"8/1/2011"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"slide","id":"sl/jopvgz","slide":1,"title":"Giảng viên: Trần Duy Quang","textShapes":8}
+{"kind":"shape","id":"sh/w36tsfmd","slide":1,"name":"Freeform 3","bbox":[1526.59,-173.94,607.27,607.27]}
+{"kind":"shape","id":"sh/md4bm5ob","slide":1,"name":"Freeform 5","bbox":[20.04,10.36,384.45,331.26]}
+{"kind":"shape","id":"sh/9gfuxknm","slide":1,"name":"TextBox 6","bbox":[20.04,9.1,384.44,332.51]}
+{"kind":"shape","id":"sh/rahc7u50","slide":1,"name":"Freeform 8","bbox":[469.74,430.36,917.52,94.73]}
+{"kind":"textbox","id":"sh/698vyp4f","slide":1,"name":"TextBox 9","text":"Giảng viên: Trần Duy Quang","textPreview":"Giảng viên: Trần Duy Quang","textChars":26,"textLines":1,"bbox":[469.74,430.36,917.52,94.73]}
+{"kind":"shape","id":"sh/hwva987a","slide":1,"name":"Freeform 11","bbox":[100.18,653.25,529.01,173.05]}
+{"kind":"textbox","id":"sh/utkbedoz","slide":1,"name":"TextBox 12","text":"Lê Hữu Anh Thư \n [MSSV]\nSystems / Core","textPreview":"Lê Hữu Anh Thư  |  [MSSV] | Systems / Core","textChars":38,"textLines":3,"bbox":[100.18,653.25,529.01,173.06]}
+{"kind":"shape","id":"sh/sr2tc36t","slide":1,"name":"Freeform 14","bbox":[678.41,653.25,529.01,173.05]}
+{"kind":"textbox","id":"sh/tsba587e","slide":1,"name":"TextBox 15","text":"Nguyễn Hiếu Thiện \n [MSSV]\nTools / Data","textPreview":"Nguyễn Hiếu Thiện  |  [MSSV] | Tools / Data","textChars":39,"textLines":3,"bbox":[678.41,653.25,529.01,173.06]}
+{"kind":"shape","id":"sh/7qts3yp8","slide":1,"name":"Freeform 17","bbox":[1262.09,653.25,529.01,173.05]}
+{"kind":"textbox","id":"sh/kn298j6h","slide":1,"name":"TextBox 18","text":"Nguyễn Huy Khánh \n[MSSV]\nEval / Infra","textPreview":"Nguyễn Huy Khánh  | [MSSV] | Eval / Infra","textChars":37,"textLines":3,"bbox":[1262.09,653.25,529.01,173.06]}
+{"kind":"textbox","id":"sh/5oba1o72","slide":1,"name":"TextBox 19","text":"AI Agent Framework","textPreview":"AI Agent Framework","textChars":18,"textLines":1,"bbox":[515.71,108,854.42,112]}
+{"kind":"textbox","id":"sh/0jupcfil","slide":1,"name":"TextBox 21","text":"với Ollama và Gemini APIs","textPreview":"với Ollama và Gemini APIs","textChars":25,"textLines":1,"bbox":[419.29,265.03,1018.41,38]}
+{"kind":"textbox","id":"sh/zi183ah0","slide":1,"name":"TextBox 22","text":"Modern C++17 / 20 / 23 / 26","textPreview":"Modern C++17 / 20 / 23 / 26","textChars":27,"textLines":1,"bbox":[455.32,313.03,946.35,38]}
+{"kind":"textbox","id":"sh/yhs7a50f","slide":1,"name":"TextBox 23","text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/jopvgz","slide":1,"text":""}
+{"kind":"slide","id":"sl/mv3myf","slide":2,"title":"Roadmap","textShapes":9}
+{"kind":"textbox","id":"sh/hgr6dsj6","slide":2,"name":"TextBox 2","text":"Roadmap","textPreview":"Roadmap","textChars":7,"textLines":1,"bbox":[103.27,68.65,1710.15,82]}
+{"kind":"textbox","id":"sh/wfipk72l","slide":2,"name":"TextBox 3","text":"Mỗi phần trả lời một câu hỏi và kết thúc bằng evidence có thể kiểm tra. ###","textPreview":"Mỗi phần trả lời một câu hỏi và kết thúc bằng evidence có thể kiểm tra. ###","textChars":75,"textLines":1,"bbox":[107.6,184.94,1638.1,43]}
+{"kind":"shape","id":"sh/mpgnedkj","slide":2,"name":"Freeform 5","bbox":[338.06,423.83,76.94,71.18]}
+{"kind":"shape","id":"sh/8by5gn2p","slide":2,"name":"Freeform 7","bbox":[732.03,423.83,76.94,71.18]}
+{"kind":"shape","id":"sh/6l07qhk3","slide":2,"name":"Freeform 9","bbox":[1126.79,423.83,76.94,71.18]}
+{"kind":"shape","id":"sh/x4z21s3u","slide":2,"name":"Freeform 11","bbox":[1520.11,423.83,76.94,71.18]}
+{"kind":"shape","id":"sh/b2hkzilo","slide":2,"name":"Freeform 13","bbox":[20.19,340.96,316.87,233.36]}
+{"kind":"textbox","id":"sh/of614n2x","slide":2,"name":"TextBox 14","text":"AGENT CORE\nReAct · history\nerror contract","textPreview":"AGENT CORE | ReAct · history | error contract","textChars":41,"textLines":3,"bbox":[20.19,340.96,316.87,233.36]}
+{"kind":"shape","id":"sh/mdoj2dk7","slide":2,"name":"Freeform 16","bbox":[414.87,342.73,317.17,233.58]}
+{"kind":"textbox","id":"sh/nexkvils","slide":2,"name":"TextBox 17","text":"OOP & C++\n4 patterns\nownership","textPreview":"OOP & C++ | 4 patterns | ownership","textChars":30,"textLines":3,"bbox":[414.87,342.73,317.17,233.58]}
+{"kind":"shape","id":"sh/1cf2t83m","slide":2,"name":"Freeform 19","bbox":[808.98,340.96,317.17,233.58]}
+{"kind":"textbox","id":"sh/hwnqh0ry","slide":2,"name":"TextBox 20","text":"TOOLS & VECTOR\nRegistry · SQLite\nsemantic search","textPreview":"TOOLS & VECTOR | Registry · SQLite | semantic search","textChars":48,"textLines":3,"bbox":[808.98,340.96,317.17,233.58]}
+{"kind":"shape","id":"sh/vu58fq98","slide":2,"name":"Freeform 22","bbox":[1203.74,340.96,317.17,233.58]}
+{"kind":"textbox","id":"sh/utwr6l8n","slide":2,"name":"TextBox 23","text":"EVALUATION\nHarness · trace\nMulti-agent","textPreview":"EVALUATION | Harness · trace | Multi-agent","textChars":38,"textLines":3,"bbox":[1203.74,340.96,317.17,233.58]}
+{"kind":"shape","id":"sh/8ru94vqh","slide":2,"name":"Freeform 25","bbox":[1597.05,340.96,302.76,233.58]}
+{"kind":"textbox","id":"sh/7ql8bq9w","slide":2,"name":"TextBox 26","text":"EVIDENCE\nCTest 5/5\nBenchmark 7/10","textPreview":"EVIDENCE | CTest 5/5 | Benchmark 7/10","textChars":33,"textLines":3,"bbox":[1597.05,340.96,302.76,233.58]}
+{"kind":"textbox","id":"sh/6pcr2lsb","slide":2,"name":"TextBox 27","text":"Code chạy được  →  Failure được giải thích  →  Requirement có bằng chứng","textPreview":"Code chạy được  →  Failure được giải thích  →  Requirement có bằng chứng","textChars":72,"textLines":1,"bbox":[189.74,689.34,1537.22,55]}
+{"kind":"textbox","id":"sh/do7apkr6","slide":2,"name":"TextBox 28","text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/mv3myf","slide":2,"text":""}
+{"kind":"slide","id":"sl/j206tl","slide":3,"title":"Sáu khái niệm giúp đọc toàn bộ hệ thống","textShapes":9}
+{"kind":"textbox","id":"sh/3mtc7yxc","slide":3,"name":"TextBox 2","text":"Sáu khái niệm giúp đọc toàn bộ hệ thống","textPreview":"Sáu khái niệm giúp đọc toàn bộ hệ thống","textChars":39,"textLines":1,"bbox":[103.27,68.65,1695.74,82]}
+{"kind":"textbox","id":"sh/ilkbytg7","slide":3,"name":"TextBox 3","text":"+","textPreview":"+","textChars":1,"textLines":1,"bbox":[405.53,302.39,52.86,79.75]}
+{"kind":"shape","id":"sh/srmt43y9","slide":3,"name":"Freeform 5","bbox":[818.32,301.64,116.9,74.06]}
+{"kind":"shape","id":"sh/qp4b2tg3","slide":3,"name":"Freeform 7","bbox":[1289.81,301.64,164.75,74.06]}
+{"kind":"shape","id":"sh/0vmt8ne5","slide":3,"name":"Freeform 9","bbox":[49.45,221.87,356.08,240.79]}
+{"kind":"textbox","id":"sh/mtsbelsj","slide":3,"name":"TextBox 10","text":"LLM\nMô hình sinh quyết định hoặc câu trả lời","textPreview":"LLM | Mô hình sinh quyết định hoặc câu trả lời","textChars":44,"textLines":2,"bbox":[49.45,221.87,356.08,240.79]}
+{"kind":"shape","id":"sh/8fatgvap","slide":3,"name":"Freeform 12","bbox":[462.24,221.87,356.08,240.79]}
+{"kind":"textbox","id":"sh/9gju90ba","slide":3,"name":"TextBox 13","text":"TOOL\nChức năng có input, output và lỗi rõ ràng","textPreview":"TOOL | Chức năng có input, output và lỗi rõ ràng","textChars":46,"textLines":2,"bbox":[462.24,221.87,356.08,240.79]}
+{"kind":"shape","id":"sh/vilcbatg","slide":3,"name":"Freeform 15","bbox":[933.41,221.87,356.08,240.79]}
+{"kind":"textbox","id":"sh/wjutkfal","slide":3,"name":"TextBox 16","text":"AI AGENT\nLLM + vòng điều khiển + trạng thái + tools","textPreview":"AI AGENT | LLM + vòng điều khiển + trạng thái + tools","textChars":51,"textLines":2,"bbox":[933.41,221.87,356.08,240.79]}
+{"kind":"shape","id":"sh/ql8b61sb","slide":3,"name":"Freeform 18","bbox":[1454.57,221.87,392.1,240.79]}
+{"kind":"textbox","id":"sh/bmhsz6tw","slide":3,"name":"TextBox 19","text":"ReAct\nThink → Act → Observe rồi lặp hoặc kết thúc","textPreview":"ReAct | Think → Act → Observe rồi lặp hoặc kết thúc","textChars":49,"textLines":2,"bbox":[1454.57,221.87,392.11,240.79]}
+{"kind":"shape","id":"sh/up47ex83","slide":3,"name":"Freeform 21","bbox":[816.12,661.92,117.29,76.94]}
+{"kind":"shape","id":"sh/grm9g7q9","slide":3,"name":"Freeform 23","bbox":[250.7,567.74,565.05,262.41]}
+{"kind":"textbox","id":"sh/72d8329s","slide":3,"name":"TextBox 24","text":"HARNESS\nBộ chạy task, gọi evaluator và tổng hợp kết quả","textPreview":"HARNESS | Bộ chạy task, gọi evaluator và tổng hợp kết quả","textChars":55,"textLines":2,"bbox":[250.7,567.74,565.04,262.41]}
+{"kind":"shape","id":"sh/tovq5sri","slide":3,"name":"Freeform 26","bbox":[935.23,567.74,709.16,262.41]}
+{"kind":"textbox","id":"sh/s3mpc7qd","slide":3,"name":"TextBox 27","text":"TRAJECTORY\nNhật ký từng bước: action, arguments, result, latency và token","textPreview":"TRAJECTORY | Nhật ký từng bước: action, arguments, result, latency và token","textChars":73,"textLines":2,"bbox":[935.23,567.74,709.15,262.41]}
+{"kind":"textbox","id":"sh/ryx8fm9w","slide":3,"name":"TextBox 28","text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/j206tl","slide":3,"text":""}
+{"kind":"slide","id":"sl/fho7gh","slide":4,"title":"Từ chatbot sang Agent có khả năng hành động","textShapes":9}
+{"kind":"textbox","id":"sh/cv6983ix","slide":4,"name":"TextBox 2","text":"Từ chatbot sang Agent có khả năng hành động","textPreview":"Từ chatbot sang Agent có khả năng hành động","textChars":43,"textLines":1,"bbox":[103.27,68.65,1695.74,99.48]}
+{"kind":"textbox","id":"sh/xwfqh8zi","slide":4,"name":"TextBox 3","text":"LLM đơn thuần chỉ sinh văn bản — Agent biến quyết định thành hành động có kiểm chứng.","textPreview":"LLM đơn thuần chỉ sinh văn bản — Agent biến quyết định thành hành động có kiểm chứng.","textChars":85,"textLines":1,"bbox":[107.6,189.26,1594.86,59.57]}
+{"kind":"shape","id":"sh/n6d8by1g","slide":4,"name":"Freeform 5","bbox":[106.58,351.58,327.26,204.76]}
+{"kind":"textbox","id":"sh/o76943i1","slide":4,"name":"TextBox 6","text":"THINK\nLLM chọn bước tiếp theo","textPreview":"THINK | LLM chọn bước tiếp theo","textChars":29,"textLines":2,"bbox":[106.58,351.58,327.26,204.76]}
+{"kind":"shape","id":"sh/m18rex0z","slide":4,"name":"Freeform 8","bbox":[455.84,409.72,95.67,81.26]}
+{"kind":"shape","id":"sh/bm58zmpo","slide":4,"name":"Freeform 10","bbox":[574.95,351.58,327.26,204.76]}
+{"kind":"textbox","id":"sh/alw7qho3","slide":4,"name":"TextBox 11","text":"ACT\nFramework chạy tool","textPreview":"ACT | Framework chạy tool","textChars":23,"textLines":2,"bbox":[574.95,351.58,327.26,204.76]}
+{"kind":"shape","id":"sh/cnepsr69","slide":4,"name":"Freeform 13","bbox":[924.2,409.72,95.67,81.26]}
+{"kind":"shape","id":"sh/ypw7uhof","slide":4,"name":"Freeform 15","bbox":[1043.31,351.58,327.26,204.76]}
+{"kind":"textbox","id":"sh/lcnq5w7q","slide":4,"name":"TextBox 16","text":"OBSERVE\nKết quả vào history","textPreview":"OBSERVE | Kết quả vào history","textChars":27,"textLines":2,"bbox":[1043.31,351.58,327.26,204.76]}
+{"kind":"shape","id":"sh/7ep8765w","slide":4,"name":"Freeform 18","bbox":[1392.57,409.72,95.67,81.26]}
+{"kind":"shape","id":"sh/ilkjmpcv","slide":4,"name":"Freeform 20","bbox":[1511.68,351.58,305.64,204.76]}
+{"kind":"textbox","id":"sh/3mtkfudg","slide":4,"name":"TextBox 21","text":"CONTINUE\nhoặc FINISH","textPreview":"CONTINUE | hoặc FINISH","textChars":20,"textLines":2,"bbox":[1511.68,351.58,305.64,204.76]}
+{"kind":"textbox","id":"sh/4n21ozu1","slide":4,"name":"TextBox 22","text":"Mở rộng được  ·  Lỗi rõ ràng  ·  Đánh giá tái lập","textPreview":"Mở rộng được  ·  Lỗi rõ ràng  ·  Đánh giá tái lập","textChars":49,"textLines":1,"bbox":[326.65,725.36,1263.4,84.07]}
+{"kind":"textbox","id":"sh/5ob2h4v6","slide":4,"name":"TextBox 23","text":"Role A · Systems / Core","textPreview":"Role A · Systems / Core","textChars":23,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/uh0jipcj","slide":4,"name":"TextBox 24","text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/fho7gh","slide":4,"text":""}
+{"kind":"slide","id":"sl/7cbdvt","slide":5,"title":"Các tầng được tách bằng contract rõ ràng","textShapes":8}
+{"kind":"textbox","id":"sh/rupo7ups","slide":5,"name":"TextBox 2","text":"Các tầng được tách bằng contract rõ ràng","textPreview":"Các tầng được tách bằng contract rõ ràng","textChars":40,"textLines":1,"bbox":[103.27,68.65,1681.33,99.48]}
+{"kind":"shape","id":"sh/1kr6d47a","slide":5,"name":"Freeform 4","bbox":[113.79,250.7,320.05,550.63]}
+{"kind":"textbox","id":"sh/gjy54j6p","slide":5,"name":"TextBox 5","text":"LLM CLIENT\n\nGeminiClient\nOllamaClient\n\ntext + image\nconfig + usage","textPreview":"LLM CLIENT |  | GeminiClient | OllamaClient |  | text + image | config + usage","textChars":66,"textLines":7,"bbox":[113.79,250.7,320.05,550.63]}
+{"kind":"shape","id":"sh/exgn29oj","slide":5,"name":"Freeform 7","bbox":[452.95,467.37,88.47,81.26]}
+{"kind":"shape","id":"sh/oni58j6l","slide":5,"name":"Freeform 9","bbox":[560.54,250.7,320.05,550.63]}
+{"kind":"textbox","id":"sh/qp4je50n","slide":5,"name":"TextBox 10","text":"AGENT CORE\n\nAgentLoop\nLoopDetector\nSkillLoader\n\nReAct + history","textPreview":"AGENT CORE |  | AgentLoop | LoopDetector | SkillLoader |  | ReAct + history","textChars":63,"textLines":7,"bbox":[560.54,250.7,320.05,550.63]}
+{"kind":"shape","id":"sh/crm1gvit","slide":5,"name":"Freeform 12","bbox":[899.7,467.37,88.47,81.26]}
+{"kind":"shape","id":"sh/et4ji50z","slide":5,"name":"Freeform 14","bbox":[1007.29,250.7,320.05,550.63]}
+{"kind":"textbox","id":"sh/zudkba1k","slide":5,"name":"TextBox 15","text":"TOOLS\n\nToolRegistry\nFactory + policy\nConcrete tools\n\nToolError","textPreview":"TOOLS |  | ToolRegistry | Factory + policy | Concrete tools |  | ToolError","textChars":62,"textLines":7,"bbox":[1007.29,250.7,320.05,550.63]}
+{"kind":"shape","id":"sh/1wf2dkja","slide":5,"name":"Freeform 17","bbox":[1346.45,467.37,88.47,81.26]}
+{"kind":"shape","id":"sh/vyt0f610","slide":5,"name":"Freeform 19","bbox":[1454.04,250.7,348.88,550.63]}
+{"kind":"textbox","id":"sh/j2pg7mhs","slide":5,"name":"TextBox 20","text":"EVALUATION\n\nHarnessRunner\nEvaluator Strategy\nTrajectory export\n\nStepHook","textPreview":"EVALUATION |  | HarnessRunner | Evaluator Strategy | Trajectory export |  | StepHook","textChars":72,"textLines":7,"bbox":[1454.04,250.7,348.87,550.63]}
+{"kind":"textbox","id":"sh/y1gfehg7","slide":5,"name":"TextBox 21","text":"Agent phát sự kiện; Harness quan sát mà không tạo dependency ngược.","textPreview":"Agent phát sự kiện; Harness quan sát mà không tạo dependency ngược.","textChars":67,"textLines":1,"bbox":[232.98,852.18,1450.75,59.57]}
+{"kind":"textbox","id":"sh/l4ry9czy","slide":5,"name":"TextBox 22","text":"Role A · Systems / Core","textPreview":"Role A · Systems / Core","textChars":23,"textLines":1,"bbox":[107.6,991.97,470.78,26]}
+{"kind":"textbox","id":"sh/k3yxg7yd","slide":5,"name":"TextBox 23","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/7cbdvt","slide":5,"text":""}
+{"kind":"slide","id":"sl/amygq8","slide":6,"title":"AgentLoop điều phối LLM, tool và history","textShapes":5}
+{"kind":"textbox","id":"sh/g7il47y9","slide":6,"name":"TextBox 2","text":"AgentLoop điều phối LLM, tool và history","textPreview":"AgentLoop điều phối LLM, tool và history","textChars":40,"textLines":1,"bbox":[103.27,68.65,1695.74,99.48]}
+{"kind":"shape","id":"sh/6hg3yxg7","slide":6,"name":"Freeform 4","bbox":[106.58,236.29,802.83,680.33]}
+{"kind":"textbox","id":"sh/rip47ixs","slide":6,"name":"TextBox 5","text":"LLM CLIENT\n\n• Text và ảnh base64 trong một interface\n• Endpoint, model, temperature\n• Max tokens và timeout từ config\n• Gemini / Ollama cùng contract","textPreview":"LLM CLIENT |  | • Text và ảnh base64 trong một interface | • Endpoint, model, temperature | • Max tokens và timeout từ config | • Gemini ...","textChars":149,"textLines":6,"bbox":[106.58,236.29,802.83,680.33]}
+{"kind":"shape","id":"sh/tk7m9sfy","slide":6,"name":"Freeform 7","bbox":[971.26,236.29,838.85,680.33]}
+{"kind":"textbox","id":"sh/qdknahwr","slide":6,"name":"TextBox 8","text":"PARSER + HISTORY\n\n• JSON và fenced JSON\n• Escaped arguments không bị cắt\n• Role: system → user → assistant → tool\n• JSON hỏng → PARSE_ERROR, không chạy tool","textPreview":"PARSER + HISTORY |  | • JSON và fenced JSON | • Escaped arguments không bị cắt | • Role: system → user → assistant → tool | • JSON hỏng →...","textChars":156,"textLines":6,"bbox":[971.26,236.29,838.86,680.33]}
+{"kind":"textbox","id":"sh/bet4jmxw","slide":6,"name":"TextBox 9","text":"Role A · Systems / Core","textPreview":"Role A · Systems / Core","textChars":23,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/n6183m9c","slide":6,"name":"TextBox 10","text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/amygq8","slide":6,"text":""}
+{"kind":"slide","id":"sl/benh0b","slide":7,"title":"Loop Detector và Skill System giữ Agent đúng hướng","textShapes":8}
+{"kind":"textbox","id":"sh/6tsnm1ov","slide":7,"name":"TextBox 2","text":"Loop Detector và Skill System giữ Agent đúng hướng","textPreview":"Loop Detector và Skill System giữ Agent đúng hướng","textChars":50,"textLines":1,"bbox":[103.27,68.65,1710.15,99.48]}
+{"kind":"shape","id":"sh/gza5sb6x","slide":7,"name":"Freeform 4","bbox":[142.11,300.63,292.23,292.23]}
+{"kind":"textbox","id":"sh/h03m1gni","slide":7,"name":"TextBox 5","text":"Action\nhistory","textPreview":"Action | history","textChars":14,"textLines":2,"bbox":[142.11,300.63,292.23,292.23]}
+{"kind":"shape","id":"sh/vy14z65c","slide":7,"name":"Freeform 7","bbox":[460.16,399.63,131.7,81.26]}
+{"kind":"shape","id":"sh/5o3m5gne","slide":7,"name":"Freeform 9","bbox":[618.18,250.7,435.34,399.31]}
+{"kind":"textbox","id":"sh/psnal43u","slide":7,"name":"TextBox 10","text":"LOOP DETECTOR\n\nGeneric repeat\nPing-pong A ↔ B\n\nWarning → Critical","textPreview":"LOOP DETECTOR |  | Generic repeat | Ping-pong A ↔ B |  | Warning → Critical","textChars":65,"textLines":6,"bbox":[618.18,250.7,435.34,399.31]}
+{"kind":"shape","id":"sh/3q5sjulo","slide":7,"name":"Freeform 12","bbox":[1079.84,399.63,131.7,81.26]}
+{"kind":"shape","id":"sh/dw7upo3q","slide":7,"name":"Freeform 14","bbox":[1245.07,250.7,529.01,399.31]}
+{"kind":"textbox","id":"sh/cvytgjm5","slide":7,"name":"TextBox 15","text":"SKILL LOADER\n\nerror_recovery\nstep_verifier\ntask_planner\n\nChọn theo keyword mỗi run","textPreview":"SKILL LOADER |  | error_recovery | step_verifier | task_planner |  | Chọn theo keyword mỗi run","textChars":82,"textLines":7,"bbox":[1245.07,250.7,529.01,399.31]}
+{"kind":"shape","id":"sh/qtgbe94f","slide":7,"name":"Freeform 17","bbox":[308.34,745,550.64,118.3]}
+{"kind":"textbox","id":"sh/t03adk3m","slide":7,"name":"TextBox 18","text":"Critical → dừng an toàn","textPreview":"Critical → dừng an toàn","textChars":23,"textLines":1,"bbox":[308.34,745,550.63,118.29]}
+{"kind":"shape","id":"sh/kjyt0fux","slide":7,"name":"Freeform 20","bbox":[1064.93,745,550.64,118.3]}
+{"kind":"textbox","id":"sh/l47atkbi","slide":7,"name":"TextBox 21","text":"Không khớp → task_planner","textPreview":"Không khớp → task_planner","textChars":25,"textLines":1,"bbox":[1064.93,745,550.63,118.29]}
+{"kind":"textbox","id":"sh/yhgbypcr","slide":7,"name":"TextBox 22","text":"Role A · Systems / Core","textPreview":"Role A · Systems / Core","textChars":23,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/jipsrutc","slide":7,"name":"TextBox 23","text":"7","textPreview":"7","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/benh0b","slide":7,"text":""}
+{"kind":"slide","id":"sl/ve0p7a","slide":8,"title":"Bốn design pattern nằm trên production path","textShapes":8}
+{"kind":"textbox","id":"sh/ilkzip07","slide":8,"name":"TextBox 2","text":"Bốn design pattern nằm trên production path","textPreview":"Bốn design pattern nằm trên production path","textChars":43,"textLines":1,"bbox":[103.27,68.65,1695.74,99.48]}
+{"kind":"shape","id":"sh/sbm1oji9","slide":8,"name":"Freeform 4","bbox":[106.48,243.39,409.6,565.24]}
+{"kind":"textbox","id":"sh/dcvixozu","slide":8,"name":"TextBox 5","text":"STRATEGY\n\nEvaluator\nTool\n\nĐổi implementation\nkhông đổi caller","textPreview":"STRATEGY |  | Evaluator | Tool |  | Đổi implementation | không đổi caller","textChars":61,"textLines":7,"bbox":[106.48,243.39,409.6,565.24]}
+{"kind":"shape","id":"sh/rat0veho","slide":8,"name":"Freeform 7","bbox":[538.82,243.39,409.6,565.24]}
+{"kind":"textbox","id":"sh/0fm1sji5","slide":8,"name":"TextBox 8","text":"TEMPLATE METHOD\n\nAgentLoop::run()\n\nSkeleton cố định,\nprimitive có thể override","textPreview":"TEMPLATE METHOD |  | AgentLoop::run() |  | Skeleton cố định, | primitive có thể override","textChars":78,"textLines":6,"bbox":[538.82,243.39,409.6,565.24]}
+{"kind":"shape","id":"sh/hczmt4zq","slide":8,"name":"Freeform 10","bbox":[971.16,243.39,409.6,565.24]}
+{"kind":"textbox","id":"sh/gbql0zi5","slide":8,"name":"TextBox 11","text":"REGISTRY / FACTORY\n\nToolRegistry\n\nLookup instance\nTạo instance mới","textPreview":"REGISTRY / FACTORY |  | ToolRegistry |  | Lookup instance | Tạo instance mới","textChars":66,"textLines":6,"bbox":[971.16,243.39,409.6,565.24]}
+{"kind":"shape","id":"sh/up83yp0z","slide":8,"name":"Freeform 13","bbox":[1403.5,243.39,409.6,565.24]}
+{"kind":"textbox","id":"sh/5gjmx4zm","slide":8,"name":"TextBox 14","text":"OBSERVER / HOOK\n\nStepHook\n\nHarness ghi trace,\nAgent không biết Harness","textPreview":"OBSERVER / HOOK |  | StepHook |  | Harness ghi trace, | Agent không biết Harness","textChars":70,"textLines":6,"bbox":[1403.5,243.39,409.6,565.24]}
+{"kind":"textbox","id":"sh/4fal4zi1","slide":8,"name":"TextBox 15","text":"Pattern được chứng minh bằng luồng chạy và focused tests — không chỉ nằm trong sơ đồ.","textPreview":"Pattern được chứng minh bằng luồng chạy và focused tests — không chỉ nằm trong sơ đồ.","textChars":85,"textLines":1,"bbox":[204.15,862.27,1508.39,50.93]}
+{"kind":"textbox","id":"sh/3eh4vuhw","slide":8,"name":"TextBox 16","text":"Role B · Tools / Data","textPreview":"Role B · Tools / Data","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/id83290b","slide":8,"name":"TextBox 17","text":"8","textPreview":"8","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/ve0p7a","slide":8,"text":""}
+{"kind":"slide","id":"sl/9j18io","slide":9,"title":"Modern C++ làm rõ ownership và contract","textShapes":12}
+{"kind":"textbox","id":"sh/v2h0nqpk","slide":9,"name":"TextBox 2","text":"Modern C++ làm rõ ownership và contract","textPreview":"Modern C++ làm rõ ownership và contract","textChars":39,"textLines":1,"bbox":[103.27,68.65,1695.74,99.48]}
+{"kind":"shape","id":"sh/a18zul8z","slide":9,"name":"AutoShape 3","bbox":[163.72,454.4,1574.85,0]}
+{"kind":"shape","id":"sh/8zqhsbq9","slide":9,"name":"Freeform 5","bbox":[143.11,414.04,81.26,81.26]}
+{"kind":"shape","id":"sh/mxozql83","slide":9,"name":"Freeform 7","bbox":[625.89,414.04,81.26,81.26]}
+{"kind":"shape","id":"sh/sva14fqd","slide":9,"name":"Freeform 9","bbox":[1108.67,414.04,81.26,81.26]}
+{"kind":"shape","id":"sh/n6d03aps","slide":9,"name":"Freeform 11","bbox":[1591.44,414.04,81.26,81.26]}
+{"kind":"textbox","id":"sh/o76hcf6d","slide":9,"name":"TextBox 12","text":"C++17","textPreview":"C++17","textChars":5,"textLines":1,"bbox":[103.27,264.2,160.94,62.46]}
+{"kind":"textbox","id":"sh/9sfi5k7y","slide":9,"name":"TextBox 13","text":"smart pointers\nfilesystem\nvariant · optional","textPreview":"smart pointers | filesystem | variant · optional","textChars":44,"textLines":3,"bbox":[60.04,530.81,269.02,192.16]}
+{"kind":"textbox","id":"sh/e14z65ob","slide":9,"name":"TextBox 14","text":"C++20","textPreview":"C++20","textChars":5,"textLines":1,"bbox":[586.05,264.2,160.94,62.46]}
+{"kind":"textbox","id":"sh/z2dgzapw","slide":9,"name":"TextBox 15","text":"ranges\nviews","textPreview":"ranges | views","textChars":12,"textLines":2,"bbox":[535.61,530.81,269.02,148.92]}
+{"kind":"textbox","id":"sh/03mh8v6h","slide":9,"name":"TextBox 16","text":"C++23","textPreview":"C++23","textChars":5,"textLines":1,"bbox":[1068.83,264.2,160.94,62.46]}
+{"kind":"textbox","id":"sh/14vi1072","slide":9,"name":"TextBox 17","text":"std::expected\nstd::println","textPreview":"std::expected | std::println","textChars":26,"textLines":2,"bbox":[1018.39,530.81,269.02,148.92]}
+{"kind":"textbox","id":"sh/yxozipof","slide":9,"name":"TextBox 18","text":"C++26","textPreview":"C++26","textChars":5,"textLines":1,"bbox":[1551.61,264.2,160.94,62.46]}
+{"kind":"shape","id":"sh/v6pon21g","slide":9,"name":"Freeform 20","bbox":[1403.8,524.71,470.97,197.15]}
+{"kind":"textbox","id":"sh/u5gnex0v","slide":9,"name":"TextBox 21","text":"= delete(\"owns worker threads\")","textPreview":"= delete(\"owns worker threads\")","textChars":31,"textLines":1,"bbox":[1403.8,523.96,470.97,197.9]}
+{"kind":"textbox","id":"sh/hs76psj6","slide":9,"name":"TextBox 22","text":"Không claim std::inplace_vector","textPreview":"Không claim std::inplace_vector","textChars":31,"textLines":1,"bbox":[1436.31,760.39,405.93,46.16]}
+{"kind":"textbox","id":"sh/wry5gnil","slide":9,"name":"TextBox 23","text":"Role B · Tools / Data","textPreview":"Role B · Tools / Data","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/3u9or21c","slide":9,"name":"TextBox 24","text":"9","textPreview":"9","textChars":1,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/9j18io","slide":9,"text":""}
+{"kind":"slide","id":"sl/cx8al8","slide":10,"title":"ToolRegistry mở rộng tool mà không sửa Agent Core","textShapes":11}
+{"kind":"textbox","id":"sh/l0ve1sfm","slide":10,"name":"TextBox 2","text":"ToolRegistry mở rộng tool mà không sửa Agent Core","textPreview":"ToolRegistry mở rộng tool mà không sửa Agent Core","textChars":49,"textLines":1,"bbox":[103.27,68.65,1710.15,99.48]}
+{"kind":"shape","id":"sh/butwvixk","slide":10,"name":"Freeform 4","bbox":[732.97,343.87,450.75,306.64]}
+{"kind":"textbox","id":"sh/qtkvmdgz","slide":10,"name":"TextBox 5","text":"ToolRegistry\n\nlookup · create · catalog","textPreview":"ToolRegistry |  | lookup · create · catalog","textChars":39,"textLines":3,"bbox":[732.97,343.87,450.75,306.64]}
+{"kind":"shape","id":"sh/cv2xony5","slide":10,"name":"Freeform 7","bbox":[380.9,424.13,246.99,81.26]}
+{"kind":"textbox","id":"sh/36twryx8","slide":10,"name":"TextBox 8","text":"register","textPreview":"register","textChars":8,"textLines":1,"bbox":[427.53,382.38,132.12,30.75]}
+{"kind":"shape","id":"sh/w3it0zy1","slide":10,"name":"Freeform 10","bbox":[92.17,344.37,327.25,240.79]}
+{"kind":"textbox","id":"sh/x4rutkzm","slide":10,"name":"TextBox 11","text":"Concrete Tool\nname · description\nexecute(arguments)","textPreview":"Concrete Tool | name · description | execute(arguments)","textChars":51,"textLines":3,"bbox":[92.17,344.37,327.26,240.79]}
+{"kind":"shape","id":"sh/b29cruhg","slide":10,"name":"Freeform 13","bbox":[1211.94,437.69,246.99,81.26]}
+{"kind":"textbox","id":"sh/ozytwfip","slide":10,"name":"TextBox 14","text":"catalog","textPreview":"catalog","textChars":7,"textLines":1,"bbox":[1251.17,397.75,132.12,30.75]}
+{"kind":"shape","id":"sh/mxgbu50z","slide":10,"name":"Freeform 16","bbox":[1497.27,344.37,327.25,240.79]}
+{"kind":"textbox","id":"sh/nypcnahk","slide":10,"name":"TextBox 17","text":"System Prompt\nTên và mô tả\nkhớp runtime","textPreview":"System Prompt | Tên và mô tả | khớp runtime","textChars":39,"textLines":3,"bbox":[1497.27,344.37,327.26,240.79]}
+{"kind":"shape","id":"sh/twbu14zu","slide":10,"name":"Freeform 19","bbox":[149.92,733.57,456.76,110.89]}
+{"kind":"textbox","id":"sh/hs7ul4ry","slide":10,"name":"TextBox 20","text":"Alias normalization","textPreview":"Alias normalization","textChars":19,"textLines":1,"bbox":[149.92,733.57,456.76,110.89]}
+{"kind":"shape","id":"sh/fqpcju9s","slide":10,"name":"Freeform 22","bbox":[733.57,733.57,456.76,110.89]}
+{"kind":"textbox","id":"sh/upgbq987","slide":10,"name":"TextBox 23","text":"Allow / deny policy","textPreview":"Allow / deny policy","textChars":19,"textLines":1,"bbox":[733.57,733.57,456.76,110.89]}
+{"kind":"shape","id":"sh/snetozq1","slide":10,"name":"Freeform 25","bbox":[1317.23,733.57,456.76,110.89]}
+{"kind":"textbox","id":"sh/7m5cfu9w","slide":10,"name":"TextBox 26","text":"Fresh-instance factory","textPreview":"Fresh-instance factory","textChars":22,"textLines":1,"bbox":[1317.23,733.57,456.76,110.89]}
+{"kind":"textbox","id":"sh/6lwbmp8b","slide":10,"name":"TextBox 27","text":"Role B · Tools / Data","textPreview":"Role B · Tools / Data","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/5knadkrq","slide":10,"name":"TextBox 28","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/cx8al8","slide":10,"text":""}
+{"kind":"slide","id":"sl/hci3qt","slide":11,"title":"Bộ tool đáp ứng requirement bắt buộc","textShapes":14}
+{"kind":"textbox","id":"sh/1kzq50z2","slide":11,"name":"TextBox 2","text":"Bộ tool đáp ứng requirement bắt buộc","textPreview":"Bộ tool đáp ứng requirement bắt buộc","textChars":36,"textLines":1,"bbox":[103.27,68.65,1681.33,99.48]}
+{"kind":"textbox","id":"sh/0jqpcfyh","slide":11,"name":"TextBox 3","text":"5 nhóm bắt buộc","textPreview":"5 nhóm bắt buộc","textChars":15,"textLines":1,"bbox":[117.68,214.76,413.14,54.25]}
+{"kind":"shape","id":"sh/qto76l0f","slide":11,"name":"Freeform 5","bbox":[106.78,294.13,305.24,182.75]}
+{"kind":"textbox","id":"sh/dwfq10z6","slide":11,"name":"TextBox 6","text":"Shell\nexecute_shell","textPreview":"Shell | execute_shell","textChars":19,"textLines":2,"bbox":[106.78,294.13,305.24,182.74]}
+{"kind":"shape","id":"sh/bq18buh4","slide":11,"name":"Freeform 8","bbox":[438.24,294.13,305.24,182.75]}
+{"kind":"textbox","id":"sh/aps7ipgz","slide":11,"name":"TextBox 9","text":"File\nread · write · append","textPreview":"File | read · write · append","textChars":26,"textLines":2,"bbox":[438.24,294.13,305.24,182.74]}
+{"kind":"shape","id":"sh/tgjepofm","slide":11,"name":"Freeform 11","bbox":[769.7,294.13,305.24,182.75]}
+{"kind":"textbox","id":"sh/6d8futwb","slide":11,"name":"TextBox 12","text":"Web Search\nDuckDuckGo / Wiki","textPreview":"Web Search | DuckDuckGo / Wiki","textChars":28,"textLines":2,"bbox":[769.7,294.13,305.24,182.74]}
+{"kind":"shape","id":"sh/krqxsje5","slide":11,"name":"Freeform 14","bbox":[1101.16,294.13,305.24,182.75]}
+{"kind":"textbox","id":"sh/lszelofq","slide":11,"name":"TextBox 15","text":"Memory\nmemory_save\nmemory_search","textPreview":"Memory | memory_save | memory_search","textChars":32,"textLines":3,"bbox":[1101.16,294.13,305.24,182.74]}
+{"kind":"shape","id":"sh/jqhwjexk","slide":11,"name":"Freeform 17","bbox":[1432.62,294.13,305.24,182.75]}
+{"kind":"textbox","id":"sh/wnqxoze9","slide":11,"name":"TextBox 18","text":"Calculator\nbiểu thức số học","textPreview":"Calculator | biểu thức số học","textChars":27,"textLines":2,"bbox":[1432.62,294.13,305.24,182.74]}
+{"kind":"textbox","id":"sh/xozeh4fe","slide":11,"name":"TextBox 19","text":"3 tool bổ sung","textPreview":"3 tool bổ sung","textChars":14,"textLines":1,"bbox":[117.68,582.25,413.14,54.25]}
+{"kind":"shape","id":"sh/cjidsv6x","slide":11,"name":"Freeform 21","bbox":[106.78,668.82,384.5,146.71]}
+{"kind":"textbox","id":"sh/ripcjqpc","slide":11,"name":"TextBox 22","text":"Time","textPreview":"Time","textChars":4,"textLines":1,"bbox":[106.78,668.82,384.5,146.71]}
+{"kind":"shape","id":"sh/pg7uh076","slide":11,"name":"Freeform 24","bbox":[539.12,668.82,384.5,146.71]}
+{"kind":"textbox","id":"sh/4fydov6l","slide":11,"name":"TextBox 25","text":"JSON","textPreview":"JSON","textChars":4,"textLines":1,"bbox":[539.12,668.82,384.5,146.71]}
+{"kind":"shape","id":"sh/2dgvmlov","slide":11,"name":"Freeform 27","bbox":[971.46,668.82,384.5,146.71]}
+{"kind":"textbox","id":"sh/9cbetk7q","slide":11,"name":"TextBox 28","text":"Git","textPreview":"Git","textChars":3,"textLines":1,"bbox":[971.46,668.82,384.5,146.71]}
+{"kind":"shape","id":"sh/6hcruh4n","slide":11,"name":"Freeform 30","bbox":[1403.8,668.82,341.26,146.71]}
+{"kind":"textbox","id":"sh/7ilsnm58","slide":11,"name":"TextBox 31","text":"Failure → ToolError","textPreview":"Failure → ToolError","textChars":19,"textLines":1,"bbox":[1403.8,668.82,341.27,146.71]}
+{"kind":"textbox","id":"sh/sju9wrmd","slide":11,"name":"TextBox 32","text":"Role B · Tools / Data","textPreview":"Role B · Tools / Data","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/tknapwny","slide":11,"name":"TextBox 33","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/hci3qt","slide":11,"text":""}
+{"kind":"slide","id":"sl/0zwkn8","slide":12,"title":"Vector Search thay thế tìm kiếm từ khóa","textShapes":10}
+{"kind":"textbox","id":"sh/vyt8bu1o","slide":12,"name":"TextBox 2","text":"Vector Search thay thế tìm kiếm từ khóa","textPreview":"Vector Search thay thế tìm kiếm từ khóa","textChars":39,"textLines":1,"bbox":[103.27,68.65,1508.39,99.48]}
+{"kind":"shape","id":"sh/54vah4zq","slide":12,"name":"Freeform 4","bbox":[84.97,286.72,284.02,320.05]}
+{"kind":"textbox","id":"sh/43m98zi5","slide":12,"name":"TextBox 5","text":"1\nVăn bản","textPreview":"1 | Văn bản","textChars":9,"textLines":2,"bbox":[84.97,286.72,284.02,320.05]}
+{"kind":"shape","id":"sh/i14r6p0z","slide":12,"name":"Freeform 7","bbox":[376.57,399.63,76.94,81.26]}
+{"kind":"shape","id":"sh/k729wfi1","slide":12,"name":"Freeform 9","bbox":[459.66,286.72,298.43,320.05]}
+{"kind":"textbox","id":"sh/qp4jq5sv","slide":12,"name":"TextBox 10","text":"2\nOllama\nnomic-embed-text","textPreview":"2 | Ollama | nomic-embed-text","textChars":25,"textLines":3,"bbox":[459.66,286.72,298.43,320.05]}
+{"kind":"shape","id":"sh/crm1sfal","slide":12,"name":"Freeform 12","bbox":[765.68,399.63,76.94,81.26]}
+{"kind":"shape","id":"sh/ytojupsr","slide":12,"name":"Freeform 14","bbox":[848.76,286.72,284.02,320.05]}
+{"kind":"textbox","id":"sh/zux03u9c","slide":12,"name":"TextBox 15","text":"3\nEmbedding\nvector","textPreview":"3 | Embedding | vector","textChars":18,"textLines":3,"bbox":[848.76,286.72,284.02,320.05]}
+{"kind":"shape","id":"sh/lwfi5kri","slide":12,"name":"Freeform 17","bbox":[1140.37,399.63,76.94,81.26]}
+{"kind":"shape","id":"sh/nix07u98","slide":12,"name":"Freeform 19","bbox":[1223.46,286.72,284.02,320.05]}
+{"kind":"textbox","id":"sh/jmh0fupg","slide":12,"name":"TextBox 20","text":"4\nSQLite\ntext + vector","textPreview":"4 | SQLite | text + vector","textChars":22,"textLines":3,"bbox":[1223.46,286.72,284.02,320.05]}
+{"kind":"shape","id":"sh/5ozih47m","slide":12,"name":"Freeform 22","bbox":[1515.06,399.63,76.94,81.26]}
+{"kind":"shape","id":"sh/vyx0bupk","slide":12,"name":"Freeform 24","bbox":[1598.15,286.72,240.79,320.05]}
+{"kind":"textbox","id":"sh/axozipoz","slide":12,"name":"TextBox 25","text":"5\nCosine\nsimilarity","textPreview":"5 | Cosine | similarity","textChars":19,"textLines":3,"bbox":[1598.15,286.72,240.79,320.05]}
+{"kind":"shape","id":"sh/wj6hkz65","slide":12,"name":"Freeform 27","bbox":[121.19,719.26,751.99,125.1]}
+{"kind":"textbox","id":"sh/nux07ap8","slide":12,"name":"TextBox 28","text":"Production: OllamaEmbedder","textPreview":"Production: OllamaEmbedder","textChars":26,"textLines":1,"bbox":[121.19,719.26,751.99,125.1]}
+{"kind":"shape","id":"sh/cz2xobml","slide":12,"name":"Freeform 30","bbox":[1007.49,683.23,788.02,197.15]}
+{"kind":"textbox","id":"sh/d0behgn6","slide":12,"name":"TextBox 31","text":"Offline test: HashEmbedder\nKhông tự fallback trong production","textPreview":"Offline test: HashEmbedder | Không tự fallback trong production","textChars":61,"textLines":2,"bbox":[1007.49,683.23,788.02,197.15]}
+{"kind":"textbox","id":"sh/qxkfm14f","slide":12,"name":"TextBox 32","text":"Role B · Tools / Data","textPreview":"Role B · Tools / Data","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/bytwf650","slide":12,"name":"TextBox 33","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/0zwkn8","slide":12,"text":""}
+{"kind":"slide","id":"sl/1vn3z9","slide":13,"title":"Harness biến một lần chạy thành evidence","textShapes":12}
+{"kind":"textbox","id":"sh/mp8bu10z","slide":13,"name":"TextBox 2","text":"Harness biến một lần chạy thành evidence","textPreview":"Harness biến một lần chạy thành evidence","textChars":40,"textLines":1,"bbox":[103.27,68.65,1681.33,99.48]}
+{"kind":"shape","id":"sh/wvad0bih","slide":13,"name":"Freeform 4","bbox":[92.27,294.03,269.41,211.76]}
+{"kind":"textbox","id":"sh/hwju9gjm","slide":13,"name":"TextBox 5","text":"SETUP\nDọn artifact","textPreview":"SETUP | Dọn artifact","textChars":18,"textLines":2,"bbox":[92.27,294.03,269.41,211.77]}
+{"kind":"shape","id":"sh/vu1c761w","slide":13,"name":"Freeform 7","bbox":[369.37,359.28,81.26,81.26]}
+{"kind":"shape","id":"sh/5k3ud0jy","slide":13,"name":"Freeform 9","bbox":[456.88,294.03,269.41,211.76]}
+{"kind":"textbox","id":"sh/58na1gz6","slide":13,"name":"TextBox 10","text":"RUN\nAgentLoop","textPreview":"RUN | AgentLoop","textChars":13,"textLines":2,"bbox":[456.88,294.03,269.41,211.77]}
+{"kind":"shape","id":"sh/j6lszqh0","slide":13,"name":"Freeform 12","bbox":[733.97,359.28,81.26,81.26]}
+{"kind":"shape","id":"sh/twna50z2","slide":13,"name":"Freeform 14","bbox":[821.48,294.03,269.41,211.76]}
+{"kind":"textbox","id":"sh/sve9wvih","slide":13,"name":"TextBox 15","text":"EVALUATE\nHậu điều kiện","textPreview":"EVALUATE | Hậu điều kiện","textChars":22,"textLines":2,"bbox":[821.48,294.03,269.41,211.77]}
+{"kind":"shape","id":"sh/69wrul0r","slide":13,"name":"Freeform 17","bbox":[1098.58,359.28,81.26,81.26]}
+{"kind":"shape","id":"sh/8za9krid","slide":13,"name":"Freeform 19","bbox":[1186.09,294.03,269.41,211.76]}
+{"kind":"textbox","id":"sh/0je90bq9","slide":13,"name":"TextBox 20","text":"RECORD\nTrajectory","textPreview":"RECORD | Trajectory","textChars":17,"textLines":2,"bbox":[1186.09,294.03,269.41,211.77]}
+{"kind":"shape","id":"sh/ehwry183","slide":13,"name":"Freeform 22","bbox":[1463.18,359.28,81.26,81.26]}
+{"kind":"shape","id":"sh/8ny94bq5","slide":13,"name":"Freeform 24","bbox":[1550.69,294.03,276.61,211.76]}
+{"kind":"textbox","id":"sh/9o7adg7q","slide":13,"name":"TextBox 25","text":"CLEANUP\nKết thúc sạch","textPreview":"CLEANUP | Kết thúc sạch","textChars":21,"textLines":2,"bbox":[1550.69,294.03,276.62,211.77]}
+{"kind":"shape","id":"sh/nmpsb6pk","slide":13,"name":"Freeform 27","bbox":[171.53,654.31,463.97,154.12]}
+{"kind":"textbox","id":"sh/wby98vqh","slide":13,"name":"TextBox 28","text":"4 SIMPLE","textPreview":"4 SIMPLE","textChars":8,"textLines":1,"bbox":[171.53,654.31,463.96,154.12]}
+{"kind":"shape","id":"sh/rid4nedg","slide":13,"name":"Freeform 30","bbox":[726.37,654.31,463.97,154.12]}
+{"kind":"textbox","id":"sh/6h43u9wv","slide":13,"name":"TextBox 31","text":"4 MEDIUM","textPreview":"4 MEDIUM","textChars":8,"textLines":1,"bbox":[726.37,654.31,463.96,154.12]}
+{"kind":"shape","id":"sh/sjmlwje1","slide":13,"name":"Freeform 33","bbox":[1281.2,654.31,463.97,154.12]}
+{"kind":"textbox","id":"sh/jutkjed4","slide":13,"name":"TextBox 34","text":"2 HARD","textPreview":"2 HARD","textChars":6,"textLines":1,"bbox":[1281.2,654.31,463.96,154.12]}
+{"kind":"textbox","id":"sh/itk3q9wj","slide":13,"name":"TextBox 35","text":"Success rate đo model thật — không phải unit-test score.","textPreview":"Success rate đo model thật — không phải unit-test score.","textChars":56,"textLines":1,"bbox":[305.03,862.27,1306.64,50.93]}
+{"kind":"textbox","id":"sh/5gbml4va","slide":13,"name":"TextBox 36","text":"Role C · Eval / Infra","textPreview":"Role C · Eval / Infra","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/4f2lsjep","slide":13,"name":"TextBox 37","text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/1vn3z9","slide":13,"text":""}
+{"kind":"slide","id":"sl/t7j5r7","slide":14,"title":"Trajectory giải thích vì sao task PASS hoặc FAIL","textShapes":5}
+{"kind":"textbox","id":"sh/kjudg7al","slide":14,"name":"TextBox 2","text":"Trajectory giải thích vì sao task PASS hoặc FAIL","textPreview":"Trajectory giải thích vì sao task PASS hoặc FAIL","textChars":48,"textLines":1,"bbox":[103.27,68.65,1710.15,99.48]}
+{"kind":"shape","id":"sh/6lcvihsr","slide":14,"name":"Freeform 4","bbox":[108,221.87,514.6,658.72]}
+{"kind":"textbox","id":"sh/7mlwbm9c","slide":14,"name":"TextBox 5","text":"EVALUATOR STRATEGY\n\nKeywordEvaluator\nNội dung có từ khóa đúng?\n\nFunctionalEvaluator\nFile và hậu điều kiện có thật?","textPreview":"EVALUATOR STRATEGY |  | KeywordEvaluator | Nội dung có từ khóa đúng? |  | FunctionalEvaluator | File và hậu điều kiện có thật?","textChars":114,"textLines":7,"bbox":[108,221.87,514.6,658.71]}
+{"kind":"shape","id":"sh/to3edwri","slide":14,"name":"Freeform 7","bbox":[654.71,467.37,124.5,88.47]}
+{"kind":"shape","id":"sh/nq1cz298","slide":14,"name":"Freeform 9","bbox":[812.74,221.87,997.38,658.72]}
+{"kind":"textbox","id":"sh/nyxonypc","slide":14,"name":"TextBox 10","text":"TRAJECTORY JSON\n\n✓ action và tool name\n✓ arguments và result\n✓ success và latency\n✓ token usage khi provider cung cấp\n✓ final answer\n\nFinal answer được ghi lại nhưng không tính là tool step.","textPreview":"TRAJECTORY JSON |  | ✓ action và tool name | ✓ arguments và result | ✓ success và latency | ✓ token usage khi provider cung cấp | ✓ final...","textChars":190,"textLines":9,"bbox":[812.74,221.87,997.38,658.71]}
+{"kind":"textbox","id":"sh/mxo7eto7","slide":14,"name":"TextBox 11","text":"Role C · Eval / Infra","textPreview":"Role C · Eval / Infra","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/90f6po7i","slide":14,"name":"TextBox 12","text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/t7j5r7","slide":14,"text":""}
+{"kind":"slide","id":"sl/4odevb","slide":15,"title":"Hai worker phối hợp qua message queue","textShapes":8}
+{"kind":"textbox","id":"sh/rih0fed0","slide":15,"name":"TextBox 2","text":"Hai worker phối hợp qua message queue","textPreview":"Hai worker phối hợp qua message queue","textChars":37,"textLines":1,"bbox":[103.27,68.65,1508.39,99.48]}
+{"kind":"shape","id":"sh/18jilov2","slide":15,"name":"Freeform 4","bbox":[106.58,322.75,341.67,291.23]}
+{"kind":"textbox","id":"sh/0na1cjeh","slide":15,"name":"TextBox 5","text":"HarnessRunner\n\nChia task\nTổng hợp report","textPreview":"HarnessRunner |  | Chia task | Tổng hợp report","textChars":40,"textLines":4,"bbox":[106.58,322.75,341.67,291.23]}
+{"kind":"shape","id":"sh/elszqtwr","slide":15,"name":"Freeform 7","bbox":[467.37,424.13,131.7,81.26]}
+{"kind":"shape","id":"sh/oba1g3et","slide":15,"name":"Freeform 9","bbox":[618.18,265.11,456.95,406.51]}
+{"kind":"textbox","id":"sh/axwj294b","slide":15,"name":"TextBox 10","text":"MultiAgentRunner\n\nstd::queue\nmutex\ncondition_variable\n\nstop + join","textPreview":"MultiAgentRunner |  | std::queue | mutex | condition_variable |  | stop + join","textChars":66,"textLines":7,"bbox":[618.18,265.11,456.96,406.52]}
+{"kind":"shape","id":"sh/wze14jmh","slide":15,"name":"Freeform 12","bbox":[1094.26,323.25,117.29,74.06]}
+{"kind":"shape","id":"sh/i1wj6t4n","slide":15,"name":"Freeform 14","bbox":[1094.26,539.42,117.29,74.06]}
+{"kind":"shape","id":"sh/kny183mt","slide":15,"name":"Freeform 16","bbox":[1230.66,214.67,565.04,240.79]}
+{"kind":"textbox","id":"sh/5o721ony","slide":15,"name":"TextBox 17","text":"CALCULATOR WORKER\n47 × 23","textPreview":"CALCULATOR WORKER | 47 × 23","textChars":25,"textLines":2,"bbox":[1230.66,214.67,565.04,240.79]}
+{"kind":"shape","id":"sh/z6l0nu5o","slide":15,"name":"Freeform 19","bbox":[1230.66,510.1,565.04,240.79]}
+{"kind":"textbox","id":"sh/3ahgvqlg","slide":15,"name":"TextBox 20","text":"RESEARCHER WORKER\nTìm thủ đô Nhật Bản","textPreview":"RESEARCHER WORKER | Tìm thủ đô Nhật Bản","textChars":37,"textLines":2,"bbox":[1230.66,510.1,565.04,240.79]}
+{"kind":"shape","id":"sh/pcjyx03m","slide":15,"name":"Freeform 22","bbox":[546.23,784.01,824.24,110.89]}
+{"kind":"textbox","id":"sh/obax4v21","slide":15,"name":"TextBox 23","text":"Hai kết quả → report; worker failure không biến thành PASS","textPreview":"Hai kết quả → report; worker failure không biến thành PASS","textChars":58,"textLines":1,"bbox":[546.23,784.01,824.24,110.89]}
+{"kind":"textbox","id":"sh/f6hgrqlk","slide":15,"name":"TextBox 24","text":"Role C · Eval / Infra","textPreview":"Role C · Eval / Infra","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/e58fylkz","slide":15,"name":"TextBox 25","text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/4odevb","slide":15,"text":""}
+{"kind":"slide","id":"sl/5uuouh","slide":16,"title":"Benchmark 7/10","textShapes":8}
+{"kind":"textbox","id":"sh/4v2hsreh","slide":16,"name":"TextBox 2","text":"Benchmark 7/10","textPreview":"Benchmark 7/10","textChars":14,"textLines":1,"bbox":[106.08,58.76,1061.64,86]}
+{"kind":"textbox","id":"sh/pwbi1wf2","slide":16,"name":"TextBox 3","text":"Gemini · gemma-4-31b-it","textPreview":"Gemini · gemma-4-31b-it","textChars":23,"textLines":1,"bbox":[1198.53,88.38,607.69,50.93]}
+{"kind":"shape","id":"sh/ryt036xs","slide":16,"name":"Freeform 5","bbox":[106.08,235.78,537.22,530.02]}
+{"kind":"textbox","id":"sh/cz2hwred","slide":16,"name":"TextBox 6","text":"7 / 10\n\nFINAL PASS\n70%","textPreview":"7 / 10 |  | FINAL PASS | 70%","textChars":22,"textLines":4,"bbox":[106.08,235.78,537.22,530.01]}
+{"kind":"shape","id":"sh/61gzixw3","slide":16,"name":"Freeform 8","bbox":[689.74,235.78,537.22,530.02]}
+{"kind":"textbox","id":"sh/7290r2xo","slide":16,"name":"TextBox 9","text":"70%\n\nEVALUATOR\nSCORE","textPreview":"70% |  | EVALUATOR | SCORE","textChars":20,"textLines":4,"bbox":[689.74,235.78,537.22,530.01]}
+{"kind":"shape","id":"sh/6t43u50f","slide":16,"name":"Freeform 11","bbox":[1273.39,235.78,537.22,530.02]}
+{"kind":"textbox","id":"sh/tgvmp0jq","slide":16,"name":"TextBox 12","text":"90%\n\nACTION-LEVEL\nSCORE","textPreview":"90% |  | ACTION-LEVEL | SCORE","textChars":23,"textLines":4,"bbox":[1273.39,235.78,537.22,530.01]}
+{"kind":"shape","id":"sh/jqt4jq1o","slide":16,"name":"Freeform 14","bbox":[106.88,813.03,1731.75,106.16]}
+{"kind":"textbox","id":"sh/ipk3ql03","slide":16,"name":"TextBox 15","text":"run_20260820_002933_100  ·  source: llm  ·  không dùng fixture fallback","textPreview":"run_20260820_002933_100  ·  source: llm  ·  không dùng fixture fallback","textChars":71,"textLines":1,"bbox":[106.88,813.03,1731.75,106.16]}
+{"kind":"textbox","id":"sh/5svml0ju","slide":16,"name":"TextBox 16","text":"Role C · Eval / Infra","textPreview":"Role C · Eval / Infra","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/kr2lsvi9","slide":16,"name":"TextBox 17","text":"16","textPreview":"16","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/5uuouh","slide":16,"text":""}
+{"kind":"slide","id":"sl/fr2bnt","slide":17,"title":"Requirement kỹ thuật đã có bằng chứng kiểm thử","textShapes":7}
+{"kind":"textbox","id":"sh/fa54769w","slide":17,"name":"TextBox 2","text":"Requirement kỹ thuật đã có bằng chứng kiểm thử","textPreview":"Requirement kỹ thuật đã có bằng chứng kiểm thử","textChars":46,"textLines":1,"bbox":[117.68,98.47,1681.33,112.9]}
+{"kind":"shape","id":"sh/pg7md0ry","slide":17,"name":"Freeform 4","bbox":[120.79,286.52,529.42,226.78]}
+{"kind":"textbox","id":"sh/ofylkvat","slide":17,"name":"TextBox 5","text":"CTest\n5 / 5 PASS","textPreview":"CTest | 5 / 5 PASS","textChars":16,"textLines":2,"bbox":[120.79,286.52,529.41,226.78]}
+{"kind":"shape","id":"sh/2dg3ilsn","slide":17,"name":"Freeform 7","bbox":[697.25,286.52,529.42,226.78]}
+{"kind":"textbox","id":"sh/x47mh0ra","slide":17,"name":"TextBox 8","text":"Vector\nLive acceptance PASS","textPreview":"Vector | Live acceptance PASS","textChars":27,"textLines":2,"bbox":[697.25,286.52,529.41,226.78]}
+{"kind":"shape","id":"sh/id4vel87","slide":17,"name":"Freeform 10","bbox":[1273.7,286.52,529.42,226.78]}
+{"kind":"textbox","id":"sh/jedw76pc","slide":17,"name":"TextBox 11","text":"Multi-agent\nFocused test PASS","textPreview":"Multi-agent | Focused test PASS","textChars":29,"textLines":2,"bbox":[1273.7,286.52,529.41,226.78]}
+{"kind":"textbox","id":"sh/4fmdgbqx","slide":17,"name":"TextBox 12","text":"4 design patterns  ·  4 Mermaid diagrams  ·  Benchmark thật 7/10","textPreview":"4 design patterns  ·  4 Mermaid diagrams  ·  Benchmark thật 7/10","textChars":64,"textLines":1,"bbox":[182.54,631.69,1551.63,69.66]}
+{"kind":"textbox","id":"sh/5gve9g7i","slide":17,"name":"TextBox 13","text":"Role C · Eval / Infra","textPreview":"Role C · Eval / Infra","textChars":21,"textLines":1,"bbox":[107.6,991.97,470.78,33.63]}
+{"kind":"textbox","id":"sh/6hofil83","slide":17,"name":"TextBox 14","text":"17","textPreview":"17","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/fr2bnt","slide":17,"text":""}
+{"kind":"slide","id":"sl/kf2nvd","slide":18,"title":"THANK YOU FOR LISTENING","textShapes":2}
+{"kind":"shape","id":"sh/twfqt87m","slide":18,"name":"Freeform 3","bbox":[-145.11,697.94,463.16,463.16]}
+{"kind":"shape","id":"sh/jqd8nep4","slide":18,"name":"Freeform 5","bbox":[1649.09,-166.73,448.75,448.75]}
+{"kind":"textbox","id":"sh/kr69wjqp","slide":18,"name":"TextBox 6","text":"THANK YOU FOR LISTENING","textPreview":"THANK YOU FOR LISTENING","textChars":23,"textLines":1,"bbox":[209.41,475.5,1501.19,129]}
+{"kind":"textbox","id":"sh/5sfqpo7a","slide":18,"name":"TextBox 7","text":"18","textPreview":"18","textChars":2,"textLines":1,"bbox":[1753.36,991.97,52.86,33.63]}
+{"kind":"notes","id":"nt/kf2nvd","slide":18,"text":""}

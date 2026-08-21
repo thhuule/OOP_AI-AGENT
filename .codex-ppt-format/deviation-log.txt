@@ -1,0 +1,4 @@
+Slides 2-15: normalized title boxes to the same left/top/width/height for consistent pacing.
+Slide 2: removed the stray visible suffix "###" from the subtitle.
+Slides 2-17: normalized footer/page-number boxes to a shared baseline without changing their text or style.
+No diagrams, claims, colors, images, or speaker notes were changed.

@@ -1,0 +1,7 @@
+18 slides, 16:9 (1920x1080), dark navy background.
+Primary typeface: Aptos / Aptos Bold. Palette: off-white, cyan, mint, amber, coral.
+Slides 2-15 use a consistent left-aligned title rail around x=103, y=69.
+Slides 16-18 intentionally switch to results, synthesis, and closing layouts.
+All slides use the source deck's Blank layout and inherited master hierarchy.
+No empty visible content placeholders are used on the slide canvas.
+Formatting pass: preserve all diagrams and content; normalize title geometry, footer geometry, and remove the stray Roadmap suffix.
