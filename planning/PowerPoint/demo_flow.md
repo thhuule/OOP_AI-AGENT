@@ -1,8 +1,17 @@
 # DEMO FLOW — C++ AI AGENT FRAMEWORK
 
-> **Mục tiêu:** quay một video demo 8–10 phút, chứng minh code hiện tại build được, test được, hai bonus Vector và Multi-agent có production path, và benchmark có evidence thật.
+> **Mục tiêu:** quay một video hybrid 8–10 phút, xen kẽ slide và ba clip demo ngắn để chứng minh code build/test được, hai bonus Vector và Multi-agent có production path, và benchmark có evidence thật.
 >
 > **Nguyên tắc:** không hiển thị `config.json` hoặc API key. Không chạy `run_eval` trực tiếp khi quay nếu mạng/quota không ổn định; dùng run evidence đã lưu và nói rõ run ID.
+
+## Timeline dựng video
+
+1. Slide 1–7 — Role A trình bày Core; chèn clip `./build/test_role_a`.
+2. Slide 8–12 — Role B trình bày OOP, Tools và Vector; chèn clip live Vector acceptance.
+3. Slide 13–16 — Role C trình bày Harness, Multi-agent và benchmark; chèn clip Multi-agent + evidence.
+4. Slide 17 — kết luận bằng chuỗi `Requirement → Code → Test → Evidence`.
+
+Các phần terminal bên dưới là nguồn cho ba clip này, không phải một video demo thứ hai.
 
 ## 1. Source of truth dùng trong video
 
@@ -14,18 +23,17 @@
 - Model của run: Gemini `gemma-4-31b-it`
 - Tất cả action trong run được ghi với `source: "llm"`; không dùng fixture fallback để ép điểm.
 
-## 2. Phân chia và thời lượng
+## 2. Phân chia và thời lượng hybrid
 
 | Phần | Thời gian | Người nói | Nội dung chính |
 |---|---:|---|---|
-| 1 | 00:00–00:50 | Role A | Giới thiệu kiến trúc và phạm vi |
-| 2 | 00:50–01:40 | Role B | Configure và build |
-| 3 | 01:40–02:50 | Role A | AgentLoop, OOP patterns, C++26 |
-| 4 | 02:50–04:15 | Role B | ToolRegistry và Vector Search |
-| 5 | 04:15–05:35 | Role C | Focused tests và CTest |
-| 6 | 05:35–06:45 | Role C | Multi-agent integration |
-| 7 | 06:45–08:40 | Role C | Benchmark và trajectory |
-| 8 | 08:40–09:10 | Role C | Kết luận trung thực |
+| Slide 1–7 | 00:00–02:40 | Role A | Tổng quan, khái niệm, Agent Core |
+| Demo A | 02:40–03:10 | Role A | Focused test Core |
+| Slide 8–12 | 03:10–05:20 | Role B | OOP/C++, Tools và Vector |
+| Demo B | 05:20–05:55 | Role B | Ollama + live Vector acceptance |
+| Slide 13–16 | 05:55–08:00 | Role C | Harness, trajectory, Multi-agent, benchmark |
+| Demo C | 08:00–09:10 | Role C | Hai worker, report và benchmark evidence |
+| Slide 17 | 09:10–09:40 | Role C | Kết luận và giới hạn |
 
 ---
 
