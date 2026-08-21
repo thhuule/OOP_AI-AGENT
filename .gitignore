@@ -4,6 +4,7 @@ config.json
 ROLE_C_FIX_REPORT
 AGENTS.md
 .idea/
+.codex-ppt-format/
 memory.db
 notes.txt
 result.txt
