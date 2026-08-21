@@ -1,89 +1,95 @@
 # OOP AI Agent
 
-A C++ AI Agent framework with interchangeable LLM clients, a tool-calling loop, Markdown skills, loop detection, a benchmark harness, and a multi-agent coordination demo.
+A Modern C++ AI Agent framework with Gemini and Ollama clients, a ReAct tool loop, Markdown skills, loop detection, an evaluation harness, vector memory, and a two-worker coordination demo.
 
-## Architecture Overview
+This README is the main requirement trace and presentation demo guide. Detailed reports remain under [`docs/`](docs/).
 
-| Component          | Responsibility                                                             | Location                         |
-| ------------------ | -------------------------------------------------------------------------- | -------------------------------- |
-| LLM client         | Sends conversation history to Gemini or Ollama                             | `src/client/`                  |
-| Agent loop         | Coordinates prompts, LLM responses, tool calls, and stopping conditions    | `src/agent/`                   |
-| Tool registry      | Registers, resolves, and executes tools                                    | `src/tools/`                   |
-| Skill system       | Loads Markdown instructions into the system prompt                         | `skills/`                      |
-| Evaluation harness | Loads tasks, runs the agent, evaluates results, and exports trajectories   | `src/harness/`, `benchmark/` |
-| Environment        | Provides real-filesystem and in-memory artifact operations for the harness | `src/environment/`             |
-| Multi-agent        | Provides worker threads, a dispatcher, and message queues                  | `src/multiagent/`              |
+## What Is Implemented
 
-The main layers communicate through the `LLMClient`, `Tool`, `Evaluator`, and `Environment` abstractions. `AgentLoop` does not depend on `HarnessRunner`; the harness records trajectories through `StepHook`. `HarnessRunner` uses `NativeEnvironment` by default for real files, while focused tests can inject `SandboxEnvironment` for in-memory files.
+| Layer | Implementation | Evidence |
+| --- | --- | --- |
+| LLM clients | Common `LLMClient` interface with Gemini and Ollama implementations and provider token metadata | [`src/client/`](src/client/), `test_role_a` |
+| Agent core | ReAct-style `AgentLoop`, tool-call parsing, conversation history, `StepHook`, and safe stopping | [`src/agent/`](src/agent/), `test_role_a`, `test_template_method` |
+| Skills and loop safety | Markdown skill selection with `task_planner` fallback; repeated-action and ping-pong detection | [`skills/`](skills/), `test_role_a` |
+| Tools | `Tool` contract plus Registry/Factory, aliases, runtime catalog, and allow/deny policy | [`src/tools/`](src/tools/), `test_tools` |
+| Harness | Task loading, setup/cleanup, evaluator strategies, scoring, failure reasons, and JSON trajectory export | [`src/harness/`](src/harness/), [`benchmark/`](benchmark/), `test_harness` |
+| Environment | Abstract artifact operations with native-filesystem and injectable in-memory implementations | [`src/environment/`](src/environment/), `test_harness` |
+| Vector memory | SQLite persistence, Ollama embeddings, and C++ cosine-similarity ranking | [`MemoryTool.cpp`](src/tools/MemoryTool.cpp), [`Embedding.cpp`](src/tools/Embedding.cpp), `test_tools` |
+| Multi-agent | Two worker threads coordinated through message queues, with timeout and failure propagation | [`src/multiagent/`](src/multiagent/), `test_multi_agent`, `demo_multi_agent` |
 
-## Prerequisites
+`AgentLoop` does not depend on `HarnessRunner`. The harness observes steps through `StepHook`, and uses `NativeEnvironment` by default while tests can inject `SandboxEnvironment`.
 
-The supported build environment is WSL/Linux. For example, on Ubuntu:
+## Requirement Traceability
+
+| Requirement | Implementation and check | Status |
+| --- | --- | --- |
+| LLM client, Skill System, ReAct loop, loop detection, Harness/Evaluator, trajectory | Production components above; focused Role A and harness tests | Implemented |
+| Required tools: shell, file, web search, persistent memory, calculator | `execute_shell`; `file` plus read/write/append tools; `web_search`; SQLite `memory`; `calculator`; `test_tools` | Implemented |
+| At least three extra tools | `time`, `json`, and `git` | Implemented |
+| Four design patterns | Strategy (`Tool`, `Evaluator`), Template Method (`AgentLoop::run`), Registry/Factory (`ToolRegistry`), Observer (`StepHook`) | Implemented and tested |
+| Modern C++ matrix | C++17 smart pointers/function/variant/filesystem/optional/templates; C++20 ranges/views; C++23 expected/print; C++26 deleted functions with a reason | Checked by `test_role_a`; GNU/Clang targets compile with `-std=c++26` |
+| Benchmark | 10 tasks: 4 simple, 4 medium, 2 hard; evaluator, action, final-success, token, and trajectory output | Implemented; verified Gemini result is 7/10 |
+| UML and documentation | Four Mermaid component/class/sequence diagrams and detailed design/evaluation reports | Available under [`docs/diagrams/`](docs/diagrams/) and [`docs/reports/`](docs/reports/) |
+| Vector-search bonus | Ollama `nomic-embed-text`, SQLite vectors, cosine ranking; deterministic embedder only in offline tests | Technically implemented; independent review remains |
+| Multi-agent bonus | Harness-to-runner path, two threads, queues, report, and explicit failure handling | Technically implemented; independent review remains |
+| GUI bonus | Screenshot and bounded-action contracts exist, but no complete cross-platform GUI agent is implemented | Not claimed |
+| Git contribution gate | Commit count passes; source-line balance and maximum commit spacing do not | Unresolved non-code requirement; instructor decision needed |
+
+The full audit, including the Git evidence, is in [`requirement_traceability_final_2026-08-20.md`](docs/evidence/requirement_traceability_final_2026-08-20.md).
+
+## Tool Catalog
+
+`ToolRegistry::register_all_tools()` currently exposes these canonical names:
+
+| Group | Canonical tools | Notes |
+| --- | --- | --- |
+| Required | `calculator`, `execute_shell`, `file`, `read_file`, `write_file`, `append_file`, `web_search`, `memory`, `memory_save`, `memory_search` | `memory_save` and `memory_search` are explicit adapters over persistent memory |
+| Additional | `time`, `json`, `git` | Satisfy the three-extra-tool requirement |
+| GUI contracts | `capture_screenshot`, `gui_action` | Screenshot uses macOS `screencapture`; action validation exists, but real desktop action execution is intentionally absent |
+
+Aliases are normalized before policy checks and lookup:
+
+| Alias | Canonical name |
+| --- | --- |
+| `calculate` | `calculator` |
+| `exec` | `execute_shell` |
+| `google_search` | `web_search` |
+| `create_file` | `write_file` |
+| `file_read` | `read_file` |
+| `file_write` | `write_file` |
+| `screenshot` | `capture_screenshot` |
+
+The deny list always blocks a canonical tool. When the allow list is non-empty, only explicitly allowed canonical tools are visible through lookup, creation, and the dynamic catalog supplied to the agent.
+
+## Prerequisites and Build
+
+The verified build environment is WSL/Linux. On Ubuntu:
 
 ```bash
 sudo apt update
-sudo apt install cmake g++ libcurl4-openssl-dev nlohmann-json3-dev libsqlite3-dev
+sudo apt install cmake g++ libcurl4-openssl-dev libsqlite3-dev
 ```
 
-The project requires CMake 3.28 or newer. GNU and Clang builds use `-std=c++26`, so the compiler must support the C++ features used by the source code.
+CMake 3.28 or newer is required. The repository vendors nlohmann/json, so the system package is optional. The compiler must support the used C++23/C++26 features.
 
-## Start Here
-
-Use this order when joining the project or returning after a break:
-
-1. Read [current project status](planning/status/PROJECT_STATUS.md) for the active goal, blockers, and latest verified gate.
-2. Read the current weekly plan in [`planning/weekly-plans/`](planning/weekly-plans/). Older weekly plans and error logs are historical context, not the current source of truth.
-3. Read this README, then build and run the local tests before changing code.
-4. Use [documentation guidance](docs/guides/DOCUMENTATION_GUIDE.md) when updating a report, diagram, benchmark claim, or checklist.
-
-The repository uses these top-level areas:
-
-| Area           | Purpose                                                                            |
-| -------------- | ---------------------------------------------------------------------------------- |
-| `src/`       | Product code, grouped by responsibility.                                           |
-| `skills/`    | Markdown instructions loaded by the agent.                                         |
-| `benchmark/` | Evaluation tasks, runners, focused tests, and local result output.                 |
-| `docs/`      | User-facing technical reports, diagrams, and submission material.                  |
-| `planning/`  | Team status, weekly plans, ownership notes, and historical decision/error records. |
-| `include/`   | Vendored and shared headers.                                                       |
-| `artifacts/` | Local demo output and other generated files that must stay out of Git.             |
-
-## Repository Hygiene
-
-- Treat files in the repository root such as `result.txt`, `report.txt`, and `memory.db` as generated local output. They must not be added to Git.
-- `benchmark/results/latest/` is the only location where the team may commit an approved benchmark baseline. All other benchmark output is ignored.
-- Demo output belongs in `artifacts/`, not the repository root.
-- IDE folders such as `.idea/` and build output are local-only.
-- `.gitignore` does not remove a file that Git already tracks. Before final packaging, review tracked legacy artifacts with the command in the submission checklist and remove them from the index only in a dedicated, reviewed cleanup commit.
-
-## Build
-
-Run the following commands from the repository root inside WSL:
+From the repository root:
 
 ```bash
 cmake -S . -B build
 cmake --build build -j2
 ```
 
-The build produces nine executables in `build/`:
-
-- `OopAgent`: performs one Gemini smoke-test request. It is not an interactive chat mode and does not support `--chat`.
-- `run_eval`: runs the 10-task batch from `benchmark/tasks.json` and exports results.
-- `test_harness`: runs local focused tests for task validation, evaluator Strategy selection, StepHook recording, cleanup, failure taxonomy, and score aggregation; it does not require an LLM API.
-- `test_multi_agent`: runs local tests for the dispatcher, message queue, and clean shutdown; it does not require an LLM API.
-- `test_tools`, `test_template_method`, and `test_role_a`: focused tool, OOP-pattern, and client/AgentLoop tests.
-- `demo_multi_agent`: runs two supplied calculator/research subtasks and writes `STATUS=PASS` only when both succeed; worker failure returns `STATUS=FAIL`.
-- `test_websearch_cli`: manual WebSearch diagnostic executable.
+The build defines nine executables: `OopAgent`, `run_eval`, five focused test executables, `demo_multi_agent`, and the manual `test_websearch_cli` diagnostic.
 
 ## Configuration
 
-Create a local configuration file:
+Create the ignored local configuration:
 
 ```bash
 cp config.json.example config.json
 ```
 
-Gemini example:
+The complete example schema is:
 
 ```json
 {
@@ -91,157 +97,162 @@ Gemini example:
   "api_key": "YOUR_API_HERE",
   "model": "gemma-4-31b-it",
   "api_url": "https://generativelanguage.googleapis.com/v1beta",
-  "use_mock": false
-}
-```
-
-Ollama example:
-
-```json
-{
-  "provider": "ollama",
-  "api_key": "",
-  "model": "gemma4:e4b",
-  "api_url": "http://localhost:11434",
   "temperature": 0.7,
   "max_tokens": 2048,
   "timeout_seconds": 60,
-  "use_mock": false
+  "use_mock": false,
+  "ollama_host": "http://localhost:11434",
+  "embedding_model": "nomic-embed-text"
 }
 ```
 
-Current implementation notes:
+- `OopAgent` is only a one-request Gemini smoke test. It always creates `GeminiClient`, reads only `api_key` and `model`, and is not an interactive `--chat` program.
+- `run_eval` selects Gemini when `provider` is `gemini`; every other value currently selects Ollama. It reads the common `model`, `api_url`, `temperature`, `max_tokens`, and `timeout_seconds` fields, plus `api_key` for Gemini.
+- Vector memory in `run_eval` is configured separately by `ollama_host` and `embedding_model`, even when Gemini is the chat provider. Ollama must therefore be available for benchmark tasks that use memory.
+- `use_mock` exists in the example but is not read by either executable. It is not proof of a mock or live run.
 
-- `run_eval` reads `provider`, `api_key`, `model`, `api_url`, `temperature`, `max_tokens`, and `timeout_seconds`.
-- `OopAgent` always creates a `GeminiClient` and reads only `api_key` and `model`.
-- The example configuration contains `use_mock`, but the executables do not currently connect this field to a mock execution path. Do not use it as evidence that a run used a mock or a real provider.
-- Missing optional numeric fields use the defaults in `LLMConfig`.
+Never commit `config.json`; it may contain a secret.
 
-Never commit `config.json`. It may contain an API key and is listed in `.gitignore`.
-
-## Tests and Demo
-
-Run the local tests first:
+Run the Gemini smoke test only after configuring a valid Gemini key/model:
 
 ```bash
-./build/test_tools
-./build/test_harness
-./build/test_multi_agent
-./build/test_template_method
+./build/OopAgent
 ```
 
-Alternatively, run all five through CTest:
+## Offline Verification
+
+Run all five CTest targets:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-A successful direct run ends with these messages:
+Run each focused executable directly when presenting its output:
 
-```text
-=== ALL ROLE B TOOL TESTS PASSED SUCCESSFULLY ===
-ALL HARNESS TESTS PASSED
-ALL PASSED
-=== ALL ROLE A TESTS PASSED SUCCESSFULLY ===
+```bash
+./build/test_harness
+./build/test_multi_agent
+./build/test_tools
+./build/test_template_method
+./build/test_role_a
 ```
 
-Run the multi-agent demo only when network access to DuckDuckGo is acceptable:
+These focused tests use fixtures or injected fakes for provider-sensitive behavior. The default vector checks use `HashEmbedder` only to stay deterministic; production does not silently fall back to it.
+
+`test_websearch_cli` is a manual network diagnostic, not a CTest target:
+
+```bash
+./build/test_websearch_cli 'capital of France'
+```
+
+## Optional Live Ollama Vector Acceptance
+
+Install/start Ollama and pull the embedding model, then confirm the service before opting into the live check:
+
+```bash
+ollama pull nomic-embed-text
+curl http://localhost:11434/api/tags
+RUN_LIVE_OLLAMA=1 ./build/test_tools
+```
+
+Without `RUN_LIVE_OLLAMA=1`, `test_tools` skips the live acceptance. A saved successful check is documented in [`week10_75_verification_2026-08-20.md`](docs/evidence/week10_75_verification_2026-08-20.md).
+
+## Multi-Agent Demo
+
+The default demo computes `47 * 23` and searches for Japan's capital. The research worker uses DuckDuckGo, so this demo needs network access.
 
 ```bash
 ./build/demo_multi_agent
+cat artifacts/demo/report.txt
 ```
 
-The demo accepts optional inputs: `./build/demo_multi_agent '2 * 3' 'Japan capital'`. A worker error is reported as `STATUS=FAIL`, never replaced by a fabricated answer.
+Optional custom inputs:
 
-## Running the Benchmark
+```bash
+./build/demo_multi_agent '2 * 3' 'France capital'
+cat artifacts/demo/report.txt
+```
 
-`run_eval` calls the real provider selected by the current configuration. It may consume quota, use the network, and create files. Before running it:
+The report says `STATUS=PASS` only when both workers succeed. A worker error or timeout remains a failure; no answer is fabricated.
 
-1. Inspect `config.json` without printing or sharing the API key.
-2. Confirm that the selected model, quota, and cost are approved.
-3. Build every target, then run `test_harness` and `test_multi_agent`.
-4. Make sure the working tree does not contain old artifacts that must be preserved.
+## Benchmark Run and Evidence
 
-Then run:
+`run_eval` calls the configured real provider, may consume quota, and writes generated files. Check the provider, model, network, Ollama embedding service, quota, and cost before running:
 
 ```bash
 ./build/run_eval
 ```
 
-The harness reads `benchmark/tasks.json`, removes known benchmark artifacts before the batch, runs 10 tasks sequentially, and creates:
+Each run creates `benchmark/results/run_YYYYMMDD_HHMMSS_mmm/` containing:
 
 ```text
-benchmark/results/run_YYYYMMDD_HHMMSS_mmm/
-├── eval_results.json
-├── benchmark_summary.txt
-├── trajectory_task_001.json
-└── ...
+benchmark_summary.txt
+eval_results.json
+trajectory_task_001.json
+...
+trajectory_task_010.json
 ```
 
-The timestamped directory is local output. To preserve an approved baseline, review it and copy only the selected files to `benchmark/results/latest/`, including a short note with its run ID, revision, provider/model, and fallback limitation.
-
-`eval_results.json` contains the evaluator score, action-level score, final success rate, and per-task token total. Each trajectory contains tool steps plus the final-answer step, while `tool_steps_count` counts only actual tool calls.
-
-Gemini `usageMetadata` and Ollama `prompt_eval_count`/`eval_count` are propagated to `tokens_used` and `total_tokens`. A value of `0` means the provider did not return usage metadata; it does not prove that no tokens were used.
-
-## Benchmark Criteria
-
-`benchmark/tasks.json` is the source of truth. The current suite contains:
-
-- 4 simple tasks;
-- 4 medium tasks;
-- 2 hard tasks.
-
-A task that requires tools reaches final success only when its evaluator passes and the harness finds at least one relevant successful tool step. File-producing tasks are also checked by `FunctionalEvaluator` scripts for the required filename and content.
-
-Production `run_eval` explicitly disables the deterministic fallback. The fallback remains available only when an offline fixture opts in; trajectories label actions `llm` or `fixture`.
-
-Files under `benchmark/results/latest/` are the selected baseline evidence. Timestamped run directories are local history. A claim about the current revision must come from a new, clean run using the stated provider and its action-source trajectory.
-
-## Security
-
-- Do not commit API keys, `config.json`, databases, build output, or generated benchmark artifacts.
-- Do not weaken tasks or evaluators merely to improve the score.
-- Keep the `execute_shell` policy restrictive; do not use the benchmark to run commands outside task scope.
-- `run_eval` and `demo_multi_agent` may use the network. Use the local tests first.
-
-## Troubleshooting
-
-### CMake Cannot Find a Dependency
-
-Install CURL, SQLite3, and nlohmann-json, then configure again:
+Inspect the newest run using its printed run ID:
 
 ```bash
-sudo apt install libcurl4-openssl-dev libsqlite3-dev nlohmann-json3-dev
-cmake -S . -B build
+cat benchmark/results/run_YYYYMMDD_HHMMSS_mmm/benchmark_summary.txt
+cat benchmark/results/run_YYYYMMDD_HHMMSS_mmm/eval_results.json
+cat benchmark/results/run_YYYYMMDD_HHMMSS_mmm/trajectory_task_005.json
+cat benchmark/results/run_YYYYMMDD_HHMMSS_mmm/trajectory_task_010.json
 ```
 
-### `config.json` Is Missing
+The harness removes known task artifacts before the batch, runs the 10 tasks sequentially, evaluates their output and real file postconditions, and records tool steps plus the final answer. `tool_steps_count` counts tool calls only. Provider token metadata is recorded when available; zero means “not reported,” not “no tokens used.” Production `run_eval` disables deterministic task fallback.
 
-Run the executable from the repository root or `build/` directory, and make sure `config.json.example` has been copied to `config.json`.
+### Verified Benchmark Result
 
-### Gemini Returns 429 or Resource Exhausted
+The local Gemini evidence run is `run_20260820_002933_100`, using `gemma-4-31b-it`:
 
-Stop the benchmark, inspect the quota or rate limit, and do not retry continuously. A rate-limited run must not be reported as evidence of agent quality.
+| Metric | Result |
+| --- | ---: |
+| Final success | **7/10 (0.7)** |
+| Evaluator score | **0.7** |
+| Action-level score | **0.9** |
 
-### Ollama Cannot Connect
+This is not a 10/10 claim. Tasks 004, 005, and 009 failed. Task 005's calculator action succeeded but repeated until loop detection stopped it; Task 010 completed its file workflow. Inspect the saved evidence locally:
 
-Verify that Ollama is running, `api_url` is correct, and the selected model is available locally.
+```bash
+cat benchmark/results/run_20260820_002933_100/benchmark_summary.txt
+cat benchmark/results/run_20260820_002933_100/eval_results.json
+cat benchmark/results/run_20260820_002933_100/trajectory_task_005.json
+cat benchmark/results/run_20260820_002933_100/trajectory_task_010.json
+```
 
-### The Benchmark Passes Because of an Old File
+Timestamped run directories are ignored local evidence, not tracked submission files. Only a reviewed baseline may be copied to [`benchmark/results/latest/`](benchmark/results/latest/).
 
-Do not use files in the repository root as evidence. Check the cleanup log and the timestamped run directory. If cleanup fails, the harness stops the batch to prevent a false positive.
+## Presentation Demo Map
 
-### Vector Embedding Cannot Connect
+The current 18-slide script is [`planning/PowerPoint/script + demoflow.md`](planning/PowerPoint/script%20%2B%20demoflow.md).
 
-Start local Ollama and install `nomic-embed-text`. This affects Vector Search only; Gemini may remain the chat provider.
+| Presenter | Slides | Demo/evidence |
+| --- | ---: | --- |
+| Role A | 5–7 | Configure/build; `AgentLoop`, `LoopDetector`, skills; `test_role_a` |
+| Role B | 8–12 | Design patterns, Modern C++, Registry/Factory, tool tests, optional vector acceptance |
+| Role C | 13–17 | Harness/trajectories, CTest, multi-agent report, verified 7/10 benchmark evidence |
+
+Do not run `run_eval` live during the presentation unless provider access and quota are stable. Open the saved summary and Task 005/010 trajectories instead.
+
+## Generated Files, Security, and Failure Modes
+
+- `build/`, `config.json`, timestamped benchmark results, `artifacts/*` except its README/placeholder, root task outputs, and `memory.db` are ignored generated files.
+- `benchmark/results/latest/` is the only location intended for an approved tracked baseline; it is currently a policy location, not automatic evidence.
+- Never expose or commit API keys. Do not weaken tasks/evaluators or enable fixture fallback to improve a score.
+- Gemini can fail because of invalid credentials, model access, quota, rate limits, or network errors. Ollama chat/vector calls can fail when the service or requested model is unavailable.
+- `demo_multi_agent` and `test_websearch_cli` depend on DuckDuckGo/network availability. Run offline CTest first.
+- Old task files can create false positives; the harness treats cleanup failure as a batch failure.
+- The Git contribution gate is still unresolved and cannot be fixed by runtime code or documentation claims.
 
 ## Documentation
 
-- [Tools architecture report](docs/reports/report_tools.md)
 - [OOP design report](docs/reports/report_oop_design.md)
+- [Tools and vector-memory report](docs/reports/report_tools.md)
 - [Evaluation report](docs/reports/report_evaluation.md)
+- [Final requirement traceability](docs/evidence/requirement_traceability_final_2026-08-20.md)
 - [Week 10.75 verification evidence](docs/evidence/week10_75_verification_2026-08-20.md)
-- [Batch evaluation sequence diagram](docs/diagrams/sequence_harness.md)
-- [Week 12 submission checklist](docs/guides/submission_checklist.md)
-- [Demo video storyboard](docs/guides/video_storyboard.md)
+- [Diagrams](docs/diagrams/)
+- [Submission checklist](docs/guides/submission_checklist.md)
