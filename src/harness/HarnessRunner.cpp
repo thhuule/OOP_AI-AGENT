@@ -193,9 +193,7 @@ bool HarnessRunner::loadTasks() {
 
         const bool evaluator_spec_valid =
             (task.eval_type == "keyword" && !task.expected_keywords.empty()) ||
-            (task.eval_type == "functional" && !task.eval_script.empty()) ||
-            (task.eval_type == "llm" &&
-             (!task.expected_keywords.empty() || !task.eval_script.empty()));
+            (task.eval_type == "functional" && !task.eval_script.empty());
         const bool required_fields_valid =
             !task.id.empty() && !task.description.empty() &&
             !task.instruction.empty() && !task.category.empty() &&
@@ -410,7 +408,7 @@ TaskRunResult HarnessRunner::runSingle(const Task& task) {
         result.eval_feedback = "Evaluator khong hop le: " + task.eval_type;
     } else {
         const std::string& expected =
-            task.eval_type == "functional" || task.expected_keywords.empty()
+            task.eval_type == "functional"
                 ? task.eval_script
                 : task.expected_keywords;
         const auto evaluated = evaluator.value()->evaluate(result.agent_output,

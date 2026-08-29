@@ -11,7 +11,6 @@
 #include "tools/GitTool.h"
 #include "agent/SkillLoader.h"
 #include "harness/HarnessRunner.h"
-#include "harness/LLMEvaluator.h"
 #include <iostream>
 #include <memory>
 #include <fstream>
@@ -129,8 +128,6 @@ int main() {
     const std::string output_dir  = (repo_root / "benchmark" / "results").string();
 
     oop_agent::HarnessRunner harness(tasks_path, output_dir);
-    harness.registerEvaluator("llm",
-        std::make_unique<oop_agent::LLMEvaluator>(llm_client, llm_config));
     if (!harness.loadTasks()) {
         std::cerr << "[ERROR] Cannot load benchmark tasks from: " << tasks_path << "\n";
         return 1;

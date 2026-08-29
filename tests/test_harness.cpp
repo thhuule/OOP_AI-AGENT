@@ -2,7 +2,6 @@
 #include "client/llm_client.h"
 #include "environment/SandboxEnvironment.h"
 #include "harness/HarnessRunner.h"
-#include "harness/LLMEvaluator.h"
 #include "harness/evaluator.h"
 #include "tools/FileTool.h"
 #include "tools/Tool.h"
@@ -243,22 +242,6 @@ void testLoadTasksValidation() {
     require(!duplicate_harness.loadTasks(), "duplicate task ID was accepted");
     require(duplicate_harness.getTasks().empty(),
             "duplicate load left partially loaded tasks");
-
-    auto llm = validKeywordTask("llm_eval");
-    llm["eval_type"] = "llm";
-    writeJson(tasks_path, json::array({llm}));
-    HarnessRunner llm_harness(tasks_path.string());
-    require(llm_harness.loadTasks(), "llm evaluator task was rejected");
-}
-
-void testLLMEvaluator() {
-    auto client = std::make_shared<ScriptedLLMClient>(
-        std::vector<std::string>{"PASS: answer satisfies the rubric"});
-    LLMEvaluator evaluator(client, LLMConfig{});
-    const auto result = evaluator.evaluate("51", "answer should be 51");
-    require(result.has_value(), "LLM evaluator returned an error");
-    require(result->is_passed && result->score == 1.0f,
-            "LLM evaluator did not accept PASS judgement");
 }
 
 void testStrategySelection() {
@@ -652,7 +635,6 @@ void testAggregateScores() {
 int main() {
     const std::vector<std::pair<std::string_view, std::function<void()>>> tests = {
         {"load task validation", testLoadTasksValidation},
-        {"LLM evaluator", testLLMEvaluator},
         {"evaluator strategy selection", testStrategySelection},
         {"StepHook action arguments", testStepHookPreservesActionArguments},
         {"trajectory final answer and tokens export", testExportIncludesFinalAnswerAndTokens},
