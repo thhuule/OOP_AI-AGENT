@@ -65,25 +65,25 @@ add_executable(run_eval
 )
 
 add_executable(test_multi_agent
-    benchmark/test_multi_agent.cpp
+    tests/test_multi_agent.cpp
     ${SOURCE_FILES}
 )
 
 add_executable(test_harness
-    benchmark/test_harness.cpp
+    tests/test_harness.cpp
     ${SOURCE_FILES}
 )
 
 add_executable(test_tools
-    benchmark/test_tools.cpp
+    tests/test_tools.cpp
     ${SOURCE_FILES}
 )
 add_executable(test_template_method
-    benchmark/test_template_method.cpp
+    tests/test_template_method.cpp
     ${SOURCE_FILES}
 )
 add_executable(test_role_a
-    benchmark/test_role_a.cpp
+    tests/test_role_a.cpp
     ${SOURCE_FILES}
 )
 add_executable(demo_multi_agent
@@ -91,7 +91,7 @@ add_executable(demo_multi_agent
     ${SOURCE_FILES}
 )
 add_executable(test_websearch_cli
-    benchmark/test_websearch_cli.cpp
+    tests/test_websearch_cli.cpp
     ${SOURCE_FILES}
 )
 
