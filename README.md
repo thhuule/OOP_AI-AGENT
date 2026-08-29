@@ -19,6 +19,37 @@ This README is the main requirement trace and presentation demo guide. Detailed 
 
 `AgentLoop` does not depend on `HarnessRunner`. The harness observes steps through `StepHook`, and uses `NativeEnvironment` by default while tests can inject `SandboxEnvironment`.
 
+## Project Structure
+
+```text
+.
+├── src/                        # Core source code
+│   ├── agent/                  # ReAct AgentLoop, SkillLoader, LoopDetector
+│   ├── client/                 # LLMClient abstraction, GeminiClient, OllamaClient
+│   ├── environment/            # Environment interface, Native/Sandbox Environment
+│   ├── harness/                # Evaluation harness & evaluators (Keyword, Functional, VLM)
+│   ├── multiagent/             # Multi-agent coordination, MessageQueue, Worker threads
+│   └── tools/                  # Tool interfaces, ToolRegistry, and tool implementations
+├── include/                    # Vendored third-party header libraries (nlohmann/json)
+├── tests/                      # Focused test suites (5 CTest targets + CLI diagnostic)
+│   ├── test_role_a.cpp         # Agent core, parsing, loop detection & skills
+│   ├── test_tools.cpp          # Tool registry, individual tools & vector memory
+│   ├── test_harness.cpp        # Evaluator strategies & benchmark harness
+│   ├── test_multi_agent.cpp    # Multi-agent threading & message queues
+│   ├── test_template_method.cpp# Template Method pattern verification
+│   └── test_websearch_cli.cpp  # Manual web search diagnostic
+├── benchmark/                  # Benchmark evaluation suite
+│   ├── tasks.json              # 10 benchmark task definitions
+│   ├── run_eval.cpp            # Benchmark evaluation runner
+│   ├── demo_multi_agent.cpp    # Multi-agent live demo runner
+│   └── results/                # Benchmark output logs & trajectories
+├── skills/                     # Modular ReAct skill definitions (Markdown)
+├── docs/                       # Architectural diagrams (.mmd & .md) and reports
+│   └── diagrams/               # Component, class, and sequence diagrams
+├── CMakeLists.txt              # CMake build configuration
+└── config.json.example         # Example configuration template for LLM providers
+```
+
 ## Requirement Traceability
 
 | Requirement | Implementation and check | Status |
@@ -246,13 +277,3 @@ Do not run `run_eval` live during the presentation unless provider access and qu
 - `demo_multi_agent` and `test_websearch_cli` depend on DuckDuckGo/network availability. Run offline CTest first.
 - Old task files can create false positives; the harness treats cleanup failure as a batch failure.
 - The Git contribution gate is still unresolved and cannot be fixed by runtime code or documentation claims.
-
-## Documentation
-
-- [OOP design report](docs/reports/report_oop_design.md)
-- [Tools and vector-memory report](docs/reports/report_tools.md)
-- [Evaluation report](docs/reports/report_evaluation.md)
-- [Final requirement traceability](docs/evidence/requirement_traceability_final_2026-08-20.md)
-- [Week 10.75 verification evidence](docs/evidence/week10_75_verification_2026-08-20.md)
-- [Diagrams](docs/diagrams/)
-- [Submission checklist](docs/guides/submission_checklist.md)
