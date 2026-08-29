@@ -8,14 +8,14 @@ This README is the main requirement trace and presentation demo guide. Detailed 
 
 | Layer | Implementation | Evidence |
 | --- | --- | --- |
-| LLM clients | Common `LLMClient` interface with Gemini and Ollama implementations and provider token metadata | [`src/client/`](src/client/), `test_role_a` |
-| Agent core | ReAct-style `AgentLoop`, tool-call parsing, conversation history, `StepHook`, and safe stopping | [`src/agent/`](src/agent/), `test_role_a`, `test_template_method` |
-| Skills and loop safety | Markdown skill selection with `task_planner` fallback; repeated-action and ping-pong detection | [`skills/`](skills/), `test_role_a` |
-| Tools | `Tool` contract plus Registry/Factory, aliases, runtime catalog, and allow/deny policy | [`src/tools/`](src/tools/), `test_tools` |
-| Harness | Task loading, setup/cleanup, evaluator strategies, scoring, failure reasons, and JSON trajectory export | [`src/harness/`](src/harness/), [`benchmark/`](benchmark/), `test_harness` |
-| Environment | Abstract artifact operations with native-filesystem and injectable in-memory implementations | [`src/environment/`](src/environment/), `test_harness` |
-| Vector memory | SQLite persistence, Ollama embeddings, and C++ cosine-similarity ranking | [`MemoryTool.cpp`](src/tools/MemoryTool.cpp), [`Embedding.cpp`](src/tools/Embedding.cpp), `test_tools` |
-| Multi-agent | Two worker threads coordinated through message queues, with timeout and failure propagation | [`src/multiagent/`](src/multiagent/), `test_multi_agent`, `demo_multi_agent` |
+| LLM clients | Common `LLMClient` interface with Gemini and Ollama implementations and provider token metadata | [`src/client/`](src/client/), [`tests/test_role_a.cpp`](tests/test_role_a.cpp) |
+| Agent core | ReAct-style `AgentLoop`, tool-call parsing, conversation history, `StepHook`, and safe stopping | [`src/agent/`](src/agent/), [`tests/test_role_a.cpp`](tests/test_role_a.cpp), [`tests/test_template_method.cpp`](tests/test_template_method.cpp) |
+| Skills and loop safety | Markdown skill selection with `task_planner` fallback; repeated-action and ping-pong detection | [`skills/`](skills/), [`tests/test_role_a.cpp`](tests/test_role_a.cpp) |
+| Tools | `Tool` contract plus Registry/Factory, aliases, runtime catalog, and allow/deny policy | [`src/tools/`](src/tools/), [`tests/test_tools.cpp`](tests/test_tools.cpp) |
+| Harness | Task loading, setup/cleanup, evaluator strategies, scoring, failure reasons, and JSON trajectory export | [`src/harness/`](src/harness/), [`benchmark/`](benchmark/), [`tests/test_harness.cpp`](tests/test_harness.cpp) |
+| Environment | Abstract artifact operations with native-filesystem and injectable in-memory implementations | [`src/environment/`](src/environment/), [`tests/test_harness.cpp`](tests/test_harness.cpp) |
+| Vector memory | SQLite persistence, Ollama embeddings, and C++ cosine-similarity ranking | [`src/tools/MemoryTool.cpp`](src/tools/MemoryTool.cpp), [`src/tools/Embedding.cpp`](src/tools/Embedding.cpp), [`tests/test_tools.cpp`](tests/test_tools.cpp) |
+| Multi-agent | Two worker threads coordinated through message queues, with timeout and failure propagation | [`src/multiagent/`](src/multiagent/), [`tests/test_multi_agent.cpp`](tests/test_multi_agent.cpp), [`benchmark/demo_multi_agent.cpp`](benchmark/demo_multi_agent.cpp) |
 
 `AgentLoop` does not depend on `HarnessRunner`. The harness observes steps through `StepHook`, and uses `NativeEnvironment` by default while tests can inject `SandboxEnvironment`.
 
@@ -29,7 +29,7 @@ This README is the main requirement trace and presentation demo guide. Detailed 
 | Four design patterns | Strategy (`Tool`, `Evaluator`), Template Method (`AgentLoop::run`), Registry/Factory (`ToolRegistry`), Observer (`StepHook`) | Implemented and tested |
 | Modern C++ matrix | C++17 smart pointers/function/variant/filesystem/optional/templates; C++20 ranges/views; C++23 expected/print; C++26 deleted functions with a reason | Checked by `test_role_a`; GNU/Clang targets compile with `-std=c++26` |
 | Benchmark | 10 tasks: 4 simple, 4 medium, 2 hard; evaluator, action, final-success, token, and trajectory output | Implemented; verified Gemini result is 7/10 |
-| UML and documentation | Four Mermaid component/class/sequence diagrams and detailed design/evaluation reports | Available under [`docs/diagrams/`](docs/diagrams/) and [`docs/reports/`](docs/reports/) |
+| UML and documentation | Four Mermaid component/class/sequence diagrams and detailed design/evaluation reports | Available under [`docs/diagrams/`](docs/diagrams/) (`.md` & `.mmd`) and [`docs/reports/`](docs/reports/) |
 | Vector-search bonus | Ollama `nomic-embed-text`, SQLite vectors, cosine ranking; deterministic embedder only in offline tests | Technically implemented; independent review remains |
 | Multi-agent bonus | Harness-to-runner path, two threads, queues, report, and explicit failure handling | Technically implemented; independent review remains |
 | GUI bonus | Screenshot and bounded-action contracts exist, but no complete cross-platform GUI agent is implemented | Not claimed |
@@ -79,7 +79,7 @@ cmake -S . -B build
 cmake --build build -j2
 ```
 
-The build defines nine executables: `OopAgent`, `run_eval`, five focused test executables, `demo_multi_agent`, and the manual `test_websearch_cli` diagnostic.
+The build defines nine executables: `OopAgent`, `run_eval`, five focused test executables (located in [`tests/`](tests/)), `demo_multi_agent` (in [`benchmark/`](benchmark/)), and the manual `test_websearch_cli` diagnostic.
 
 ## Configuration
 

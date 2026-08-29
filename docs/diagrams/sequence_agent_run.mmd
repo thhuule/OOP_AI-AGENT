@@ -1,0 +1,93 @@
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant AgentLoop
+    participant SkillLoader
+    participant LLMClient
+    participant ToolRegistry
+    participant Tool
+    participant LoopDetector
+    participant StepHook
+
+    Caller->>AgentLoop: run(instruction, max_steps)
+
+    %% ── OBSERVE: build system prompt ──────────────────
+    AgentLoop->>SkillLoader: getSystemPromptForTask(instruction)
+    SkillLoader-->>AgentLoop: system_prompt (injected skill content)
+    AgentLoop->>AgentLoop: init history [system, user(instruction)]
+
+    loop Each step 1..max_steps
+
+        %% ── THINK: call LLM ───────────────────────────
+        AgentLoop->>LLMClient: generate_chat(history, config)
+
+        alt LLM network / timeout error
+            LLMClient-->>AgentLoop: throws / error string
+            AgentLoop->>StepHook: notify(step, thought="", tool="", error="LLM_ERROR", latency)
+            AgentLoop-->>Caller: return "LLM error — aborting"
+        else LLM returns text
+            LLMClient-->>AgentLoop: raw_text + last_usage metadata
+            AgentLoop->>AgentLoop: append assistant(raw_text) to history
+        end
+
+        %% ── ACT: parse response ───────────────────────
+        AgentLoop->>AgentLoop: parse_llm_response(raw_text)
+
+        alt Malformed tool-call intent
+            AgentLoop->>StepHook: notify(step, tool="final_answer", result="PARSE_ERROR", tokens)
+            AgentLoop-->>Caller: return classified PARSE_ERROR
+        else FinalAnswerAction
+            AgentLoop->>StepHook: notify(step, thought, tool="final_answer", result=answer, latency)
+            AgentLoop-->>Caller: return final_answer
+        else ToolCallAction
+            AgentLoop->>ToolRegistry: normalize(tool_name)  [alias resolution]
+            ToolRegistry-->>AgentLoop: canonical_name
+
+            AgentLoop->>ToolRegistry: is_allowed(canonical_name)
+
+            alt Tool in deny-list or not in allow-list
+                ToolRegistry-->>AgentLoop: false
+                AgentLoop->>StepHook: notify(step, thought, tool=canonical_name, error="POLICY_DENIED", latency)
+                AgentLoop->>AgentLoop: append observation("POLICY_DENIED: …") to history
+            else Tool not found in registry
+                ToolRegistry-->>AgentLoop: nullptr
+                AgentLoop->>StepHook: notify(step, thought, tool=canonical_name, error="TOOL_NOT_FOUND", latency)
+                AgentLoop->>AgentLoop: append observation("TOOL_NOT_FOUND: …") to history
+            else Tool found
+                ToolRegistry-->>AgentLoop: Tool*
+                AgentLoop->>Tool: execute(args)
+
+                alt Tool returns ToolError
+                    Tool-->>AgentLoop: unexpected(ToolError)
+                    AgentLoop->>StepHook: notify(step, thought, tool, error=ToolError, latency)
+                    AgentLoop->>AgentLoop: append tool("TOOL_ERROR: …") to history
+                    Note over AgentLoop: error fed back so model can recover
+                else Tool succeeds
+                    Tool-->>AgentLoop: expected(result_string)
+                    AgentLoop->>StepHook: notify(step, thought, tool, result, latency, tokens)
+                    AgentLoop->>AgentLoop: append tool(result) to history
+                end
+
+                %% ── Loop detection ────────────────────
+                AgentLoop->>LoopDetector: add_action(canonical_name, normalize(args))
+                AgentLoop->>LoopDetector: is_loop_detected()
+
+                alt Loop detected (repeat or ping-pong)
+                    LoopDetector-->>AgentLoop: true
+                    AgentLoop->>AgentLoop: on_loop_detected()
+                    AgentLoop->>StepHook: notify(step, thought, tool, error="LOOP_DETECTED", latency)
+                    AgentLoop-->>Caller: return "Loop detected — aborting"
+                else No loop
+                    LoopDetector-->>AgentLoop: false
+                end
+            end
+        end
+
+        %% ── max_steps guard ───────────────────────────
+        alt step == max_steps AND no final answer yet
+            AgentLoop->>AgentLoop: on_max_steps_reached()
+            AgentLoop->>StepHook: notify(step, thought="", tool="", error="MAX_STEPS_REACHED", latency=0)
+            AgentLoop-->>Caller: return "Max steps reached"
+        end
+
+    end
