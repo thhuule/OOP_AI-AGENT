@@ -9,9 +9,10 @@ This folder is the entry point for team planning and historical coordination.
 
 ## Structure
 
-- `status/`: concise current state.
-- `weekly-plans/`: current and past weekly plans.
-- `history/`: decision and error history.
+- `status/`: concise current state and verified gate milestones.
+- `weekly-plans/`: current and past weekly milestone plans.
+- `history/`: decision and error history logs.
+- `PowerPoint/`: presentation slides (`.pptx`), formatting scripts, and demo scripts.
 - `reference/`: assignment material and role-ownership reference.
 
 Update the status file and the active weekly plan when priorities or verified state change. Keep old plans unchanged as history.

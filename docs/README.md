@@ -3,7 +3,9 @@
 | Area | Purpose | Entry point |
 |---|---|---|
 | Reports | Submission-facing technical reports | [reports/](reports/README.md) |
-| Diagrams | Class, component, and sequence diagrams | [diagrams/](diagrams/README.md) |
-| Guides | Documentation, packaging, and video guidance | [guides/](guides/README.md) |
+| Diagrams | Class, component, and sequence diagrams (`.md` & `.mmd`) | [diagrams/](diagrams/README.md) |
+| Guides | Documentation, packaging, demo flow, and video guidance | [guides/](guides/README.md) |
+| Evidence | Requirement traceability audits and verification evidence | [evidence/](evidence/requirement_traceability_final_2026-08-20.md) |
 
-The existing source files remain at this level during the current submission cycle so all established relative links continue to work. The folder indexes identify their purpose without creating a risky mass rename immediately before freeze.
+All documentation files reflect the current Modern C++ AI Agent codebase.
+
